@@ -4,26 +4,38 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.15 0.03 260);
-  --foreground: oklch(0.97 0.01 255);
-  --card: oklch(0.22 0.02 258);
-  --card-foreground: oklch(0.96 0.01 255);
-  --popover: oklch(0.2 0.02 258);
-  --popover-foreground: oklch(0.96 0.01 255);
-  --primary: oklch(0.7 0.17 248);
+  /* Deep dark gaming theme - inspired by Prydwen */
+  --background: oklch(0.11 0.02 250);
+  --foreground: oklch(0.95 0.01 250);
+  --card: oklch(0.14 0.015 250);
+  --card-foreground: oklch(0.95 0.01 250);
+  --popover: oklch(0.13 0.02 250);
+  --popover-foreground: oklch(0.95 0.01 250);
+  --primary: oklch(0.65 0.18 220);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.3 0.03 255);
-  --secondary-foreground: oklch(0.97 0.01 255);
-  --muted: oklch(0.28 0.02 255);
-  --muted-foreground: oklch(0.77 0.02 255);
-  --accent: oklch(0.32 0.03 230);
+  --secondary: oklch(0.18 0.02 250);
+  --secondary-foreground: oklch(0.95 0.01 250);
+  --muted: oklch(0.2 0.015 250);
+  --muted-foreground: oklch(0.65 0.02 250);
+  --accent: oklch(0.22 0.02 250);
   --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.68 0.22 25);
+  --destructive: oklch(0.6 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.35 0.03 256);
-  --input: oklch(0.35 0.03 256);
-  --ring: oklch(0.74 0.14 245);
-  --radius: 0.75rem;
+  --border: oklch(0.25 0.02 250);
+  --input: oklch(0.2 0.02 250);
+  --ring: oklch(0.65 0.18 220);
+  --radius: 0.625rem;
+  
+  /* Tier colors */
+  --tier-t0: oklch(0.65 0.22 25);
+  --tier-t05: oklch(0.7 0.18 55);
+  --tier-t1: oklch(0.75 0.15 85);
+  --tier-t2: oklch(0.6 0.15 250);
+  
+  /* Accent colors */
+  --cyan-accent: oklch(0.75 0.15 195);
+  --amber-accent: oklch(0.8 0.15 85);
+  --emerald-accent: oklch(0.7 0.15 160);
 }
 
 @theme inline {
@@ -50,6 +62,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
+  --font-sans: 'Manrope', 'Manrope Fallback', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Space Grotesk Fallback', system-ui, sans-serif;
 }
 
 * {
@@ -58,11 +73,7 @@
 
 body {
   @apply bg-background text-foreground antialiased;
-  font-family: var(--font-manrope), "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(45, 102, 168, 0.28) 0%, transparent 26%),
-    radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.12) 0%, transparent 22%),
-    linear-gradient(180deg, #0d1220 0%, #0b0f18 100%);
+  font-family: var(--font-manrope), system-ui, sans-serif;
 }
 
 h1,
@@ -70,5 +81,41 @@ h2,
 h3,
 .font-display {
   font-family: var(--font-space-grotesk), var(--font-manrope), sans-serif;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(0.12 0.02 250);
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.25 0.02 250);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.3 0.02 250);
+}
+
+/* Tier badge styles */
+.tier-badge-t0 {
+  background: linear-gradient(135deg, oklch(0.6 0.22 25) 0%, oklch(0.5 0.2 20) 100%);
+}
+
+.tier-badge-t05 {
+  background: linear-gradient(135deg, oklch(0.7 0.18 55) 0%, oklch(0.6 0.16 50) 100%);
+}
+
+.tier-badge-t1 {
+  background: linear-gradient(135deg, oklch(0.75 0.15 85) 0%, oklch(0.65 0.13 80) 100%);
+}
+
+.tier-badge-t2 {
+  background: linear-gradient(135deg, oklch(0.6 0.15 250) 0%, oklch(0.5 0.13 245) 100%);
 }

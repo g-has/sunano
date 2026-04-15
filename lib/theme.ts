@@ -1,83 +1,123 @@
 /**
- * Centralized Theme System
- * All colors, spacing, and design tokens defined here
+ * Centralized Theme System - Sunano Tierlist
+ * Modern dark gaming theme inspired by Prydwen.gg
  */
 
 export const THEME = {
   // Main Background Colors
   bg: {
-    primary: "#0f1420", // Main page background
-    secondary: "#131a28", // Card background
-    tertiary: "#0a0e18", // Admin sidebar background
-    hover: "#1a2333", // Hover state
-    light: "#1a2436", // Lighter surfaces
+    page: "bg-[#0a0d14]",
+    primary: "bg-[#0d1117]",
+    secondary: "bg-[#131921]",
+    tertiary: "bg-[#171d28]",
+    hover: "bg-[#1c2433]",
+    elevated: "bg-[#1f2937]",
+    glass: "bg-white/[0.03]",
+    glassHover: "bg-white/[0.06]",
   },
 
   // Border Colors
   border: {
-    default: "border-white/10",
-    light: "border-white/5",
-    hover: "border-white/20",
-    accent: "border-sky-400/30",
-    accentHover: "border-sky-400/40",
+    default: "border-white/[0.08]",
+    light: "border-white/[0.05]",
+    hover: "border-white/[0.15]",
+    accent: "border-cyan-500/30",
+    accentHover: "border-cyan-400/50",
   },
 
   // Text Colors
   text: {
-    primary: "text-slate-50", // Primary text
-    secondary: "text-slate-200", // Secondary text
-    tertiary: "text-slate-300", // Tertiary text
-    muted: "text-slate-400", // Muted text
-    dimmed: "text-slate-500", // Dimmed text
+    primary: "text-slate-50",
+    secondary: "text-slate-200",
+    tertiary: "text-slate-300",
+    muted: "text-slate-400",
+    dimmed: "text-slate-500",
+  },
+
+  // Tier Colors (matching Prydwen style)
+  tier: {
+    t0: {
+      bg: "bg-gradient-to-r from-red-500 to-red-600",
+      text: "text-red-400",
+      border: "border-red-500/40",
+      badge: "bg-red-500/20 text-red-300 border-red-500/30",
+    },
+    t05: {
+      bg: "bg-gradient-to-r from-orange-500 to-orange-600",
+      text: "text-orange-400",
+      border: "border-orange-500/40",
+      badge: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+    },
+    t1: {
+      bg: "bg-gradient-to-r from-yellow-500 to-yellow-600",
+      text: "text-yellow-400",
+      border: "border-yellow-500/40",
+      badge: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+    },
+    t2: {
+      bg: "bg-gradient-to-r from-blue-500 to-blue-600",
+      text: "text-blue-400",
+      border: "border-blue-500/40",
+      badge: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    },
+  },
+
+  // Category Colors
+  category: {
+    performance: {
+      bg: "bg-cyan-500/15",
+      text: "text-cyan-300",
+      border: "border-cyan-500/30",
+    },
+    value: {
+      bg: "bg-emerald-500/15",
+      text: "text-emerald-300",
+      border: "border-emerald-500/30",
+    },
+    recommended: {
+      bg: "bg-amber-500/15",
+      text: "text-amber-300",
+      border: "border-amber-500/30",
+    },
   },
 
   // Accent Colors
   accent: {
-    sky: {
-      bg: "bg-sky-500/20",
-      text: "text-sky-200",
-      border: "border-sky-400/40",
+    cyan: {
+      bg: "bg-cyan-500/20",
+      text: "text-cyan-300",
+      border: "border-cyan-400/40",
     },
     amber: {
       bg: "bg-amber-500/20",
-      text: "text-amber-200",
+      text: "text-amber-300",
       border: "border-amber-400/40",
     },
     emerald: {
       bg: "bg-emerald-500/20",
-      text: "text-emerald-200",
+      text: "text-emerald-300",
       border: "border-emerald-400/40",
     },
     red: {
-      bg: "bg-red-500/10",
+      bg: "bg-red-500/15",
       text: "text-red-300",
       border: "border-red-500/30",
     },
     rose: {
       bg: "bg-rose-500/20",
-      text: "text-rose-200",
+      text: "text-rose-300",
       border: "border-rose-400/40",
     },
     blue: {
       bg: "bg-blue-500/20",
-      text: "text-blue-200",
+      text: "text-blue-300",
       border: "border-blue-400/40",
     },
-    green: {
-      bg: "bg-green-500/20",
-      text: "text-green-200",
-      border: "border-green-400/40",
+    purple: {
+      bg: "bg-purple-500/20",
+      text: "text-purple-300",
+      border: "border-purple-400/40",
     },
-  },
-
-  // Spacing Scale
-  spacing: {
-    xs: "0.25rem", // 4px
-    sm: "0.5rem", // 8px
-    md: "1rem", // 16px
-    lg: "1.5rem", // 24px
-    xl: "2rem", // 32px
-    "2xl": "3rem", // 48px
   },
 
   // Radius
@@ -86,29 +126,20 @@ export const THEME = {
     base: "rounded-lg",
     md: "rounded-xl",
     lg: "rounded-2xl",
+    full: "rounded-full",
   },
 
   // Sidebar
   sidebar: {
-    width: "w-60",
+    width: "w-64",
     collapsedWidth: "w-20",
-    bgColor: "bg-[#0a0e18]",
-    borderColor: "border-white/10",
-  },
-
-  // Component Sizes
-  icon: {
-    xs: "size-3",
-    sm: "size-4",
-    base: "size-5",
-    lg: "size-6",
   },
 
   // Layout
   layout: {
-    mainPadding: "p-4 md:p-5 lg:p-6",
-    adminPadding: "p-6",
-    contentMaxWidth: "max-w-[1720px]",
+    mainPadding: "p-4 md:p-6",
+    adminPadding: "p-4 md:p-6",
+    contentMaxWidth: "max-w-7xl",
     adminMaxWidth: "max-w-7xl",
   },
 
@@ -118,17 +149,17 @@ export const THEME = {
     base: "shadow-md",
     lg: "shadow-lg",
     xl: "shadow-xl",
-    "2xl": "shadow-2xl",
-    glow: "shadow-[0_8px_32px_rgba(0,0,0,0.24)]",
-    glowLarge: "shadow-[0_8px_44px_rgba(0,0,0,0.32)]",
-    glowXL: "shadow-[0_25px_50px_rgba(0,0,0,0.8)]",
+    glow: "shadow-[0_4px_24px_rgba(0,0,0,0.25)]",
+    glowLarge: "shadow-[0_8px_40px_rgba(0,0,0,0.35)]",
+    glowXL: "shadow-[0_16px_64px_rgba(0,0,0,0.5)]",
+    cyan: "shadow-[0_0_20px_rgba(34,211,238,0.15)]",
   },
 
   // Transitions
   transition: {
-    fast: "transition-all duration-150",
-    base: "transition-all duration-200",
-    slow: "transition-all duration-300",
+    fast: "transition-all duration-150 ease-out",
+    base: "transition-all duration-200 ease-out",
+    slow: "transition-all duration-300 ease-out",
   },
 
   // Z-Index
@@ -136,21 +167,39 @@ export const THEME = {
     sidebar: "z-40",
     modal: "z-50",
     dropdown: "z-30",
+    tooltip: "z-60",
   },
 } as const
 
-// Convenience function to get card styling
+// Card styles helper
 export const cardStyles = {
-  base: `border ${THEME.border.default} ${THEME.bg.secondary}/90 ${THEME.shadow.glow} backdrop-blur`,
-  hover: `hover:${THEME.border.hover} hover:${THEME.bg.hover}/90 transition-all`,
-  interactive: `cursor-pointer border ${THEME.border.default} ${THEME.bg.secondary}/90 ${THEME.shadow.glow} backdrop-blur hover:${THEME.border.accentHover} hover:${THEME.bg.hover}/90 transition-all`,
+  base: `border ${THEME.border.default} ${THEME.bg.secondary} ${THEME.shadow.glow}`,
+  hover: `hover:${THEME.border.hover} hover:${THEME.bg.hover} ${THEME.transition.base}`,
+  interactive: `cursor-pointer border ${THEME.border.default} ${THEME.bg.secondary} ${THEME.shadow.glow} hover:border-cyan-500/30 hover:${THEME.bg.hover} ${THEME.transition.base}`,
+  glass: `border ${THEME.border.default} ${THEME.bg.glass} backdrop-blur-sm`,
 }
 
-// Convenience function to get button styling
+// Button styles helper
 export const buttonStyles = {
-  primary: `bg-slate-100 text-slate-900 hover:bg-slate-200`,
-  secondary: `bg-white/10 text-slate-100 hover:bg-white/20`,
-  outline: `border border-white/20 text-slate-100 hover:bg-white/5`,
-  danger: `border border-red-500/30 text-red-300 hover:bg-red-500/10`,
-  ghost: `text-slate-300 hover:bg-white/5 hover:text-slate-100`,
+  primary: "bg-cyan-600 text-white hover:bg-cyan-500",
+  secondary: "bg-white/10 text-slate-100 hover:bg-white/15",
+  outline: "border border-white/15 text-slate-100 hover:bg-white/5 hover:border-white/25",
+  ghost: "text-slate-300 hover:bg-white/5 hover:text-slate-100",
+  danger: "border border-red-500/30 text-red-300 hover:bg-red-500/10",
+}
+
+// Tier helper function
+export function getTierStyle(tier: string) {
+  switch (tier) {
+    case "T0":
+      return THEME.tier.t0
+    case "T0.5":
+      return THEME.tier.t05
+    case "T1":
+      return THEME.tier.t1
+    case "T2":
+      return THEME.tier.t2
+    default:
+      return THEME.tier.t2
+  }
 }

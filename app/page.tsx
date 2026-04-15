@@ -237,6 +237,16 @@ const ITEMS: Peripheral[] = [
   },
 ]
 
+const CATEGORY_LABELS: Record<Category, string> = {
+  all: "Geral",
+  keyboard: "Teclados",
+  mouse: "Mouses",
+  mousepad: "Mousepads",
+  glasspad: "Glasspads",
+  iem: "IEMs",
+  headset: "Headsets",
+}
+
 function getPriceBand(price: number): Exclude<PriceBand, "all"> {
   if (price <= 80) return "budget"
   if (price <= 160) return "mid"
@@ -252,12 +262,7 @@ export default function Page() {
   const [selectedMouseShape, setSelectedMouseShape] = useState<MouseShape | "all">("all")
   const [selectedKeyboardLayout, setSelectedKeyboardLayout] = useState<KeyboardLayout | "all">("all")
 
-  const categoryLabel = ["all", "keyboard", "mouse", "mousepad", "glasspad", "iem", "headset"]
-    .find((cat) => cat === selectedCategory)
-    ?.replace(/([a-z])([A-Z])/g, "$1 $2")
-    ?.split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ") || "Tierlist"
+  const categoryLabel = CATEGORY_LABELS[selectedCategory]
 
   const handleCategoryChange = (category: Category) => {
     setSelectedCategory(category)
@@ -313,10 +318,10 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1420] text-foreground">
+    <div className="min-h-screen bg-[#0a0d14] text-slate-100">
       <div className="flex">
         {/* Sidebar */}
-        <div className="hidden md:flex md:sticky md:top-0 md:h-screen">
+        <div className="hidden md:flex md:sticky md:top-0 md:h-screen md:shrink-0">
           <PublicSidebar
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
@@ -327,7 +332,7 @@ export default function Page() {
 
         {/* Main Content */}
         <main className="flex-1 min-w-0">
-          <div className="mx-auto max-w-6xl p-4 md:p-5 lg:p-6 space-y-4">
+          <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8 space-y-5">
             <TierlistHeader categoryLabel={categoryLabel} />
 
             <FilterBar
