@@ -1,16 +1,19 @@
+"use client"
+
+import { Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 
 type Tag = "competitive" | "versatile" | "value" | "comfort"
-type PriceBand = "budget" | "mid" | "premium"
+type Tier = "T0" | "T0.5" | "T1" | "T2"
 
 interface PeripheralCardProps {
   id: string
   name: string
   brand: string
   price: number
-  tier: string
+  tier: Tier
   category: string
   tags: Tag[]
   specs: {
@@ -22,6 +25,14 @@ interface PeripheralCardProps {
     driver?: string
     profile?: string
   }
+  // Extended ratings (simulating the chart from briefing)
+  ratings?: {
+    performance: number
+    build: number
+    value: number
+    software?: number
+    qc?: number
+  }
 }
 
 function formatLabel(value: string) {
@@ -31,121 +42,200 @@ function formatLabel(value: string) {
     .join(" ")
 }
 
-function getPriceBand(price: number): PriceBand {
-  if (price <= 80) return "budget"
-  if (price <= 160) return "mid"
-  return "premium"
+const TAG_STYLES: Record<Tag, { bg: string; text: string; border: string }> = {
+  competitive: { bg: "bg-red-500/15", text: "text-red-300", border: "border-red-500/30" },
+  versatile: { bg: "bg-cyan-500/15", text: "text-cyan-300", border: "border-cyan-500/30" },
+  value: { bg: "bg-emerald-500/15", text: "text-emerald-300", border: "border-emerald-500/30" },
+  comfort: { bg: "bg-amber-500/15", text: "text-amber-300", border: "border-amber-500/30" },
 }
 
-function getSpecBadges(item: PeripheralCardProps) {
-  const out: string[] = [`$${item.price}`]
-
-  if (item.specs.mouseShape) out.push(formatLabel(item.specs.mouseShape))
-  if (item.specs.keyboardLayout) out.push(item.specs.keyboardLayout.toUpperCase())
-  if (item.specs.connectivity) out.push(formatLabel(item.specs.connectivity))
-  if (item.specs.surface) out.push(formatLabel(item.specs.surface))
-
-  return out
+const TIER_STYLES: Record<Tier, { bg: string; text: string; glow: string }> = {
+  "T0": { bg: "bg-gradient-to-br from-red-500 to-red-600", text: "text-white", glow: "shadow-red-500/30" },
+  "T0.5": { bg: "bg-gradient-to-br from-orange-500 to-orange-600", text: "text-white", glow: "shadow-orange-500/30" },
+  "T1": { bg: "bg-gradient-to-br from-yellow-500 to-yellow-600", text: "text-slate-900", glow: "shadow-yellow-500/30" },
+  "T2": { bg: "bg-gradient-to-br from-blue-500 to-blue-600", text: "text-white", glow: "shadow-blue-500/30" },
 }
 
-function getSecondaryLine(item: PeripheralCardProps) {
+function RatingStars({ rating, max = 5 }: { rating: number; max?: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: max }).map((_, i) => (
+        <Star
+          key={i}
+          className={cn(
+            "size-3",
+            i < rating ? "fill-amber-400 text-amber-400" : "fill-slate-700 text-slate-700"
+          )}
+        />
+      ))}
+    </div>
+  )
+}
+
+function getSpecLine(item: PeripheralCardProps) {
   const parts: string[] = []
+  if (item.specs.connectivity) parts.push(formatLabel(item.specs.connectivity))
   if (item.specs.size) parts.push(formatLabel(item.specs.size))
   if (item.specs.driver) parts.push(item.specs.driver)
   if (item.specs.profile) parts.push(item.specs.profile)
-  return parts.join(" • ")
+  if (item.specs.mouseShape) parts.push(formatLabel(item.specs.mouseShape))
+  if (item.specs.keyboardLayout) parts.push(item.specs.keyboardLayout.toUpperCase())
+  if (item.specs.surface) parts.push(formatLabel(item.specs.surface))
+  return parts.slice(0, 3).join(" / ")
 }
 
 export function PeripheralCard({ ...item }: PeripheralCardProps) {
+  const tierStyle = TIER_STYLES[item.tier]
+  
+  // Default ratings if not provided
+  const ratings = item.ratings || {
+    performance: Math.floor(Math.random() * 2) + 3,
+    build: Math.floor(Math.random() * 2) + 3,
+    value: Math.floor(Math.random() * 2) + 3,
+  }
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Card className="group cursor-default overflow-visible border border-white/10 bg-white/[0.03] p-0 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-400/40 hover:bg-white/[0.05]">
-          <CardContent className="p-0">
-            <div className="flex gap-2.5 p-2.5">
-              <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-indigo-700 text-sm font-bold text-white shadow-md shadow-sky-900/20">
-                {item.brand.slice(0, 2).toUpperCase()}
-              </div>
+        <div className="group cursor-pointer rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 transition-all duration-200 hover:border-cyan-500/30 hover:bg-white/[0.04]">
+          <div className="flex items-start gap-2.5">
+            {/* Brand Avatar / Mini Profile Image */}
+            <div className={cn(
+              "grid size-11 shrink-0 place-items-center rounded-lg text-sm font-bold shadow-md",
+              tierStyle.bg,
+              tierStyle.text,
+              tierStyle.glow
+            )}>
+              {item.brand.slice(0, 2).toUpperCase()}
+            </div>
 
-              <div className="min-w-0 flex-1 space-y-1.5">
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-semibold leading-tight text-slate-50">
+            {/* Content */}
+            <div className="min-w-0 flex-1">
+              {/* Name and Price */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h3 className="truncate text-sm font-semibold leading-tight text-slate-100 group-hover:text-white">
                     {item.name}
                   </h3>
-                  <p className="mt-0.5 text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
+                  <p className="mt-0.5 text-[10px] font-medium tracking-wide text-slate-500 uppercase">
                     {item.brand}
                   </p>
                 </div>
+                <span className="shrink-0 text-xs font-semibold text-emerald-400">
+                  ${item.price}
+                </span>
+              </div>
 
-                <div className="flex flex-wrap gap-1">
-                  {getSpecBadges(item).map((badge) => (
-                    <Badge
-                      className="rounded-full border-white/10 bg-white/10 px-2 py-0 text-[10px] text-slate-100"
-                      key={`${item.id}-${badge}`}
-                      variant="outline"
+              {/* Tags */}
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {item.tags.slice(0, 2).map((tag) => {
+                  const style = TAG_STYLES[tag]
+                  return (
+                    <span
+                      key={tag}
+                      className={cn(
+                        "rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
+                        style.bg,
+                        style.text
+                      )}
                     >
-                      {badge}
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="truncate text-[10px] font-medium tracking-[0.12em] text-emerald-300 uppercase">
-                  {getSecondaryLine(item)}
-                </div>
+                      {tag}
+                    </span>
+                  )
+                })}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </TooltipTrigger>
 
       <TooltipContent
-        arrowClassName="!bg-[#0f1620] !fill-[#0f1620]"
-        className="max-w-sm rounded-lg border border-sky-300/25 bg-[#0f1620]/97 p-4 text-left shadow-[0_25px_50px_rgba(0,0,0,0.8)] backdrop-blur"
-        sideOffset={12}
+        className="w-80 rounded-xl border border-white/[0.1] bg-[#0d1117]/98 p-0 shadow-2xl backdrop-blur-xl"
+        sideOffset={8}
+        side="right"
       >
-        <div className="space-y-3.5">
-          <div className="border-b border-white/10 pb-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-bold text-slate-50">{item.name}</p>
-                <p className="mt-1 text-xs tracking-[0.15em] text-slate-400 uppercase">
-                  {item.brand} • {formatLabel(item.category)}
-                </p>
+        {/* Header */}
+        <div className="border-b border-white/[0.08] p-4">
+          <div className="flex items-start gap-3">
+            <div className={cn(
+              "grid size-14 shrink-0 place-items-center rounded-xl text-lg font-bold shadow-lg",
+              tierStyle.bg,
+              tierStyle.text,
+              tierStyle.glow
+            )}>
+              {item.brand.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-base font-bold text-slate-50">{item.name}</h4>
+              <p className="mt-0.5 text-xs text-slate-400">
+                {item.brand} / {formatLabel(item.category)}
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <Badge className={cn(
+                  "rounded-md border px-2 py-0.5 text-xs font-bold",
+                  tierStyle.bg,
+                  tierStyle.text,
+                  "border-transparent"
+                )}>
+                  {item.tier}
+                </Badge>
+                <span className="text-sm font-semibold text-emerald-400">${item.price}</span>
               </div>
-              <Badge className="rounded-lg border border-rose-300/30 bg-rose-500/20 px-2.5 py-1 text-center text-sm font-bold text-rose-200 dark:text-rose-100" variant="secondary">
-                {item.tier}
-              </Badge>
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-3 gap-2.5">
-            <div className="rounded-md border border-white/15 bg-white/6 px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/10">
-              <div className="text-lg font-bold text-sky-200">${item.price}</div>
-              <div className="text-xs tracking-[0.12em] text-slate-400 uppercase">Price</div>
+        {/* Ratings Grid (Mini chart style from briefing) */}
+        <div className="border-b border-white/[0.08] p-4">
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Avaliacao
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-lg bg-white/[0.04] p-2.5 text-center">
+              <RatingStars rating={ratings.performance} />
+              <p className="mt-1 text-[10px] font-medium text-slate-400">Performance</p>
             </div>
-            <div className="rounded-md border border-white/15 bg-white/6 px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/10">
-              <div className="text-sm font-bold text-amber-200">{getPriceBand(item.price).toUpperCase()}</div>
-              <div className="text-xs tracking-[0.12em] text-slate-400 uppercase">Band</div>
+            <div className="rounded-lg bg-white/[0.04] p-2.5 text-center">
+              <RatingStars rating={ratings.build} />
+              <p className="mt-1 text-[10px] font-medium text-slate-400">Construcao</p>
             </div>
-            <div className="rounded-md border border-white/15 bg-white/6 px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/10">
-              <div className="text-sm font-bold text-emerald-200">Featured</div>
-              <div className="text-xs tracking-[0.12em] text-slate-400 uppercase">Status</div>
+            <div className="rounded-lg bg-white/[0.04] p-2.5 text-center">
+              <RatingStars rating={ratings.value} />
+              <p className="mt-1 text-[10px] font-medium text-slate-400">Custo-Benef</p>
             </div>
           </div>
+        </div>
 
-          <div className="rounded-md border border-white/15 bg-white/6 px-3.5 py-2.5">
-            <p className="text-xs font-semibold text-slate-300 uppercase tracking-[0.1em]">Specs</p>
-            <p className="mt-1.5 text-sm text-slate-200">{getSecondaryLine(item)}</p>
-          </div>
-          <div className="rounded-md border border-amber-300/25 bg-amber-400/12 px-3.5 py-2.5">
-            <p className="text-xs font-semibold text-amber-200 uppercase tracking-[0.1em]">Category</p>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {item.tags.map((tag) => (
-                <Badge key={tag} className="rounded-full border border-amber-300/40 bg-amber-400/15 px-2.5 py-1 text-xs text-amber-100">
+        {/* Specs */}
+        <div className="border-b border-white/[0.08] p-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Especificacoes
+          </p>
+          <p className="text-sm text-slate-300">{getSpecLine(item)}</p>
+        </div>
+
+        {/* Tags */}
+        <div className="p-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            Categorias
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {item.tags.map((tag) => {
+              const style = TAG_STYLES[tag]
+              return (
+                <Badge
+                  key={tag}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-[10px] font-medium",
+                    style.bg,
+                    style.text,
+                    style.border
+                  )}
+                >
                   {formatLabel(tag)}
                 </Badge>
-              ))}
-            </div>
+              )
+            })}
           </div>
         </div>
       </TooltipContent>

@@ -1,11 +1,12 @@
-import { ChevronDown, SlidersHorizontal, X } from "lucide-react"
+"use client"
+
+import { Search, SlidersHorizontal, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { THEME } from "@/lib/theme"
+import { cn } from "@/lib/utils"
 
 type MouseShape = "symmetrical" | "ergonomic"
 type KeyboardLayout = "60%" | "75%" | "tkl" | "full-size"
@@ -58,112 +59,133 @@ export function FilterBar({
   showKeyboardLayoutFilter,
 }: FilterBarProps) {
   return (
-    <div className={`border ${THEME.border.default} rounded-2xl p-4 md:p-5 space-y-3`}>
-      {/* Search and Main Controls */}
+    <div className="space-y-3 rounded-xl border border-white/[0.08] bg-[#0d1117] p-4">
+      {/* Search and Controls Row */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <Input
-          aria-label="Search peripherals"
-          className={`h-9 border-white/10 ${THEME.bg.secondary}/20 px-3 text-sm placeholder:text-slate-500 flex-1`}
-          onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search products, brands, drivers..."
-          value={query}
-        />
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
+          <Input
+            aria-label="Buscar perifericos"
+            className="h-10 border-white/[0.1] bg-white/[0.02] pl-10 text-sm placeholder:text-slate-500 focus-visible:border-cyan-500/50 focus-visible:ring-cyan-500/20"
+            onChange={(event) => onQueryChange(event.target.value)}
+            placeholder="Buscar produtos, marcas, sensores..."
+            value={query}
+          />
+        </div>
 
-        <div className="flex flex-wrap gap-1.5">
+        {/* Filter Controls */}
+        <div className="flex flex-wrap items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
-              <Button className="rounded-xl" size="sm" variant="secondary">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className={cn(
+                  "gap-2 border-white/[0.1] bg-white/[0.02] hover:bg-white/[0.05]",
+                  activeFiltersCount > 0 && "border-cyan-500/40 text-cyan-300"
+                )}
+              >
                 <SlidersHorizontal className="size-4" />
-                Filters
-                <ChevronDown className="size-4 opacity-70" />
+                Filtros
+                {activeFiltersCount > 0 && (
+                  <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-cyan-500/20 text-xs font-medium text-cyan-300">
+                    {activeFiltersCount}
+                  </span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
-              className={`w-[340px] space-y-3 rounded-2xl ${THEME.border.default} ${THEME.bg.secondary} p-3 ${THEME.shadow.glowXL} sm:w-[460px]`}
+              className="w-80 space-y-4 rounded-xl border-white/[0.1] bg-[#0d1117] p-4 shadow-xl sm:w-96"
             >
               <div>
-                <h3 className="text-sm font-semibold text-slate-100">Filter tierlist</h3>
-                <p className="text-xs leading-5 text-slate-400">
-                  Price, brand and category-specific options.
+                <h3 className="text-sm font-semibold text-slate-100">Filtrar Tierlist</h3>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  Preco, marca e opcoes especificas por categoria.
                 </p>
               </div>
-              <Separator className="bg-white/10" />
 
-              <div className="grid gap-2 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium tracking-[0.12em] text-slate-400 uppercase">
-                    Brand
+              <div className="h-px bg-white/[0.08]" />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Brand Filter */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                    Marca
                   </label>
                   <Select onValueChange={onBrandChange} value={selectedBrand}>
-                    <SelectTrigger className="rounded-xl border-white/10 bg-white/5">
-                      <SelectValue placeholder="Brand" />
+                    <SelectTrigger className="border-white/[0.1] bg-white/[0.02]">
+                      <SelectValue placeholder="Marca" />
                     </SelectTrigger>
                     <SelectContent>
                       {availableBrands.map((brand) => (
                         <SelectItem key={brand} value={brand}>
-                          {formatLabel(brand)}
+                          {brand === "all" ? "Todas" : formatLabel(brand)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium tracking-[0.12em] text-slate-400 uppercase">
-                    Price
+                {/* Price Filter */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                    Faixa de Preco
                   </label>
                   <Select
                     onValueChange={(value) => onPriceBandChange(value as PriceBand)}
                     value={selectedPriceBand}
                   >
-                    <SelectTrigger className="rounded-xl border-white/10 bg-white/5">
-                      <SelectValue placeholder="Price" />
+                    <SelectTrigger className="border-white/[0.1] bg-white/[0.02]">
+                      <SelectValue placeholder="Preco" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="budget">Budget (up to $80)</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="budget">Budget (ate $80)</SelectItem>
                       <SelectItem value="mid">Mid ($81 - $160)</SelectItem>
                       <SelectItem value="premium">Premium ($160+)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
+                {/* Mouse Shape Filter */}
                 {showMouseShapeFilter && (
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-medium tracking-[0.12em] text-slate-400 uppercase">
-                      Mouse Shape
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                      Shape do Mouse
                     </label>
                     <Select
                       onValueChange={(value) => onMouseShapeChange(value as MouseShape | "all")}
                       value={selectedMouseShape}
                     >
-                      <SelectTrigger className="rounded-xl border-white/10 bg-white/5">
-                        <SelectValue placeholder="Mouse Shape" />
+                      <SelectTrigger className="border-white/[0.1] bg-white/[0.02]">
+                        <SelectValue placeholder="Shape" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="symmetrical">Symmetrical</SelectItem>
-                        <SelectItem value="ergonomic">Ergonomic</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="symmetrical">Simetrico</SelectItem>
+                        <SelectItem value="ergonomic">Ergonomico</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 )}
 
+                {/* Keyboard Layout Filter */}
                 {showKeyboardLayoutFilter && (
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-medium tracking-[0.12em] text-slate-400 uppercase">
-                      Keyboard Layout
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                      Layout do Teclado
                     </label>
                     <Select
                       onValueChange={(value) => onKeyboardLayoutChange(value as KeyboardLayout | "all")}
                       value={selectedKeyboardLayout}
                     >
-                      <SelectTrigger className="rounded-xl border-white/10 bg-white/5">
-                        <SelectValue placeholder="Keyboard Layout" />
+                      <SelectTrigger className="border-white/[0.1] bg-white/[0.02]">
+                        <SelectValue placeholder="Layout" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                         {KEYBOARD_LAYOUTS.map((layout) => (
                           <SelectItem key={layout} value={layout}>
                             {layout.toUpperCase()}
@@ -177,26 +199,53 @@ export function FilterBar({
             </PopoverContent>
           </Popover>
 
-          <Button className="rounded-xl" size="sm" variant="outline" onClick={onReset}>
-            <X className="size-4" />
-            Reset
-          </Button>
+          {/* Reset Button */}
+          {activeFiltersCount > 0 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onReset}
+              className="gap-1.5 text-slate-400 hover:text-slate-200"
+            >
+              <X className="size-4" />
+              Limpar
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Filter Status Badges */}
-      <div className="flex flex-wrap gap-1.5">
-        <Badge className="rounded-full px-2.5 py-0.5 text-[11px]" variant="secondary">
-          Showing {filteredCount} items
+      {/* Active Filters Display */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" className="rounded-full bg-white/[0.05] px-3 py-1 text-xs text-slate-300">
+          {filteredCount} {filteredCount === 1 ? "item" : "itens"} encontrados
         </Badge>
-        <Badge className="rounded-full px-2.5 py-0.5 text-[11px]" variant="outline">
-          Active filters: {activeFiltersCount}
-        </Badge>
-        {query.trim() ? (
-          <Badge className="rounded-full px-2.5 py-0.5 text-[11px]" variant="outline">
-            Search: {query.trim()}
+        
+        {query.trim() && (
+          <Badge variant="outline" className="gap-1.5 rounded-full border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
+            Busca: {query.trim()}
+            <button onClick={() => onQueryChange("")} className="hover:text-cyan-200">
+              <X className="size-3" />
+            </button>
           </Badge>
-        ) : null}
+        )}
+        
+        {selectedBrand !== "all" && (
+          <Badge variant="outline" className="gap-1.5 rounded-full border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
+            {formatLabel(selectedBrand)}
+            <button onClick={() => onBrandChange("all")} className="hover:text-emerald-200">
+              <X className="size-3" />
+            </button>
+          </Badge>
+        )}
+        
+        {selectedPriceBand !== "all" && (
+          <Badge variant="outline" className="gap-1.5 rounded-full border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-300">
+            {formatLabel(selectedPriceBand)}
+            <button onClick={() => onPriceBandChange("all")} className="hover:text-amber-200">
+              <X className="size-3" />
+            </button>
+          </Badge>
+        )}
       </div>
     </div>
   )

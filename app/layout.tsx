@@ -1,12 +1,12 @@
-import type { Metadata } from "next"
-import { Manrope, Space_Grotesk } from "next/font/google"
+import type { Metadata, Viewport } from "next"
+import { Inter, Space_Grotesk } from "next/font/google"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 import "./globals.css"
 
-const manrope = Manrope({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-manrope",
+  variable: "--font-inter",
 })
 
 const spaceGrotesk = Space_Grotesk({
@@ -15,8 +15,15 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: "Sunano Tierlist",
-  description: "Tier list de perifericos com filtros intuitivos",
+  title: "Sunano | Tierlist de Perifericos",
+  description: "A tierlist definitiva de perifericos gamers. Compare mouses, teclados, headsets e mais com filtros avancados e reviews detalhadas.",
+  keywords: ["tierlist", "perifericos", "mouse", "teclado", "headset", "gaming", "review"],
+}
+
+export const viewport: Viewport = {
+  themeColor: "#0a0d14",
+  width: "device-width",
+  initialScale: 1,
 }
 
 export default function RootLayout({
@@ -25,9 +32,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${manrope.variable} ${spaceGrotesk.variable}`}>
-        <TooltipProvider>{children}</TooltipProvider>
+    <html lang="pt-BR" className="bg-background">
+      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans`}>
+        <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
       </body>
     </html>
   )
