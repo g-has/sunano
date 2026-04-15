@@ -1,16 +1,23 @@
-import { Geist, Geist_Mono } from "next/font/google"
+import type { Metadata } from "next"
+import { Manrope, Space_Grotesk } from "next/font/google"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
-
-const fontMono = Geist_Mono({
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-manrope",
 })
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+})
+
+export const metadata: Metadata = {
+  title: "Sunano Tierlist",
+  description: "Tier list de perifericos com filtros intuitivos",
+}
 
 export default function RootLayout({
   children,
@@ -18,15 +25,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
-    >
-      <body>
-        <ThemeProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-        </ThemeProvider>
+    <html lang="en">
+      <body className={`${manrope.variable} ${spaceGrotesk.variable}`}>
+        <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
   )

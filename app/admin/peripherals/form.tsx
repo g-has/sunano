@@ -1,0 +1,453 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ChevronLeft, Upload } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { supabase } from "@/lib/supabase"
+
+type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
+type Tier = "T0" | "T0.5" | "T1" | "T2"
+type Tag = "competitive" | "versatile" | "value" | "comfort"
+
+const peripheralSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  brand: z.string().min(1, "Marca é obrigatória"),
+  category: z.enum(["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset"]),
+  tier: z.enum(["T0", "T0.5", "T1", "T2"]),
+  price: z.number().positive("Preço deve ser maior que 0"),
+  mouseShape: z.string().optional(),
+  keyboardLayout: z.string().optional(),
+  connectivity: z.string().optional(),
+  size: z.string().optional(),
+  surface: z.string().optional(),
+  driver: z.string().optional(),
+  profile: z.string().optional(),
+})
+
+type PeripheralFormData = z.infer<typeof peripheralSchema>
+
+const CATEGORIES = ["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset"] as const
+const TIERS = ["T0", "T0.5", "T1", "T2"] as const
+const TAGS_OPTIONS = ["competitive", "versatile", "value", "comfort"] as const
+
+interface PeripheralEditProps {
+  peripheralId?: string
+}
+
+export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) => {
+  const router = useRouter()
+  const [uploading, setUploading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  // Pré-selecionar todas as tags por padrão
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([
+    "competitive",
+    "versatile",
+    "value",
+    "comfort",
+  ])
+  const [error, setError] = useState<string | null>(null)
+
+  const form = useForm<PeripheralFormData>({
+    resolver: zodResolver(peripheralSchema),
+    defaultValues: {
+      name: "",
+      brand: "",
+      category: "mouse",
+      tier: "T1",
+      price: 0,
+    },
+  })
+
+  useEffect(() => {
+    if (peripheralId) {
+      loadPeripheral()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peripheralId])
+
+  async function loadPeripheral() {
+    try {
+      const { data, error: err } = await supabase
+        .from("peripherals")
+        .select("*")
+        .eq("id", peripheralId)
+        .single()
+
+      if (err) throw err
+      if (data) {
+        form.reset({
+          name: data.name,
+          brand: data.brand,
+          category: data.category,
+          tier: data.tier,
+          price: data.price,
+          ...data.specs,
+        })
+        setSelectedTags(data.tags || [])
+        if (data.image_url) {
+          setImagePreview(data.image_url)
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao carregar periférico")
+    }
+  }
+
+  async function onSubmit(data: PeripheralFormData): Promise<void> {
+    try {
+      setError(null)
+
+      // Validar tags
+      if (selectedTags.length === 0) {
+        setError("Selecione pelo menos uma tag")
+        return
+      }
+
+      let imageUrl = imagePreview
+
+      if (imageFile) {
+        setUploading(true)
+        const fileName = `${Date.now()}-${imageFile.name}`
+        const { error: uploadErr } = await supabase.storage
+          .from("peripherals")
+          .upload(fileName, imageFile)
+
+        if (uploadErr) throw uploadErr
+
+        const { data: urlData } = supabase.storage.from("peripherals").getPublicUrl(fileName)
+        imageUrl = urlData.publicUrl
+      }
+
+      const specs = {
+        mouseShape: data.mouseShape,
+        keyboardLayout: data.keyboardLayout,
+        connectivity: data.connectivity,
+        size: data.size,
+        surface: data.surface,
+        driver: data.driver,
+        profile: data.profile,
+      }
+
+      const peripheralData = {
+        name: data.name,
+        brand: data.brand,
+        category: data.category,
+        tier: data.tier,
+        price: data.price,
+        image_url: imageUrl,
+        tags: selectedTags,
+        specs,
+      }
+
+      if (peripheralId) {
+        const { error: err } = await supabase
+          .from("peripherals")
+          .update(peripheralData)
+          .eq("id", peripheralId)
+        if (err) throw err
+      } else {
+        const { error: err } = await supabase.from("peripherals").insert([peripheralData])
+        if (err) throw err
+      }
+
+      router.push("/admin/peripherals")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const toggleTag = (tag: Tag) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <Link href="/admin/peripherals">
+        <Button className="gap-2" variant="ghost">
+          <ChevronLeft className="size-4" />
+          Voltar
+        </Button>
+      </Link>
+
+      <Card className="border-white/10 bg-[#131a28]/90">
+        <CardHeader className="border-b border-white/10">
+          <CardTitle>{peripheralId ? "Editar Periférico" : "Novo Periférico"}</CardTitle>
+          <CardDescription>
+            {peripheralId ? "Edite as informações do periférico" : "Crie um novo periférico"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {error && <div className="bg-red-500/15 border border-red-500/30 text-red-300 p-3 rounded mb-4">{error}</div>}
+
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Imagem */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-100">Imagem</label>
+              <div className="flex gap-4 items-start">
+                {imagePreview && (
+                  <div className="relative w-32 h-32 rounded-lg border border-white/10 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img alt="Preview" className="w-full h-full object-cover" src={imagePreview} />
+                  </div>
+                )}
+                <label className="flex-1 border-2 border-dashed border-white/20 rounded-lg p-6 cursor-pointer hover:border-white/40 transition">
+                  <input
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                    type="file"
+                  />
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="size-6 text-slate-400" />
+                    <div className="text-sm text-slate-300">Clique para enviar ou arraste a imagem</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Informações Básicas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-100">Nome</label>
+                <Input
+                  className="border-white/10 bg-white/5"
+                  placeholder="Ex: Logitech G Pro X Superlight 2"
+                  {...form.register("name")}
+                />
+                {form.formState.errors.name && (
+                  <p className="text-red-400 text-xs">{form.formState.errors.name.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-100">Marca</label>
+                <Input
+                  className="border-white/10 bg-white/5"
+                  placeholder="Ex: Logitech"
+                  {...form.register("brand")}
+                />
+                {form.formState.errors.brand && (
+                  <p className="text-red-400 text-xs">{form.formState.errors.brand.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-100">Preço ($)</label>
+                <Input
+                  className="border-white/10 bg-white/5"
+                  placeholder="159"
+                  type="number"
+                  step="0.01"
+                  {...form.register("price", { valueAsNumber: true })}
+                />
+                {form.formState.errors.price && (
+                  <p className="text-red-400 text-xs">{form.formState.errors.price.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-100">Categoria</label>
+                <Select
+                  onValueChange={(value) => form.setValue("category", value as Category)}
+                  value={form.watch("category")}
+                >
+                  <SelectTrigger className="border-white/10 bg-white/5">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-100">Tier</label>
+                <Select
+                  onValueChange={(value) => form.setValue("tier", value as Tier)}
+                  value={form.watch("tier")}
+                >
+                  <SelectTrigger className="border-white/10 bg-white/5">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIERS.map((tier) => (
+                      <SelectItem key={tier} value={tier}>
+                        {tier}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-slate-100">Tags</label>
+              <div className="flex gap-2 flex-wrap">
+                {TAGS_OPTIONS.map((tag) => (
+                  <Badge
+                    key={tag}
+                    className={`cursor-pointer transition ${
+                      selectedTags.includes(tag)
+                        ? "bg-sky-500 text-white"
+                        : "bg-white/10 text-slate-300 hover:bg-white/20"
+                    }`}
+                    onClick={() => toggleTag(tag)}
+                    variant="secondary"
+                  >
+                    {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                  </Badge>
+                ))}
+              </div>
+              {selectedTags.length === 0 && (
+                <p className="text-red-400 text-xs">Seleção de pelo menos uma tag é obrigatória</p>
+              )}
+              <p className="text-xs text-slate-400">
+                Selecionadas: {selectedTags.length} de {TAGS_OPTIONS.length}
+              </p>
+            </div>
+
+            {/* Specs Específicas por Categoria */}
+            <div className="space-y-4 border-t border-white/10 pt-6">
+              <h3 className="font-semibold text-slate-100">Especificações</h3>
+
+              {form.watch("category") === "mouse" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Mouse Shape</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="symmetrical, ergonomic"
+                      {...form.register("mouseShape")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Driver</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="HERO 2, PMW 3389"
+                      {...form.register("driver")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Connectivity</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="wired, wireless"
+                      {...form.register("connectivity")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Size</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="small, medium, large"
+                      {...form.register("size")}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {form.watch("category") === "keyboard" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Layout</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="60%, 75%, TKL, Full-size"
+                      {...form.register("keyboardLayout")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Profile</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="Rapid Trigger, Hall Effect"
+                      {...form.register("profile")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Connectivity</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="wired, wireless"
+                      {...form.register("connectivity")}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {form.watch("category") === "mousepad" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Surface</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="cloth, hybrid, glass"
+                      {...form.register("surface")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-300">Profile</label>
+                    <Input
+                      className="border-white/10 bg-white/5"
+                      placeholder="Control, Speed"
+                      {...form.register("profile")}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Botões */}
+            <div className="flex gap-3 justify-end border-t border-white/10 pt-6">
+              <Link href="/admin/peripherals">
+                <Button variant="outline">Cancelar</Button>
+              </Link>
+              <Button disabled={uploading || form.formState.isSubmitting} type="submit">
+                {uploading || form.formState.isSubmitting ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
