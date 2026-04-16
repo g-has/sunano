@@ -53,8 +53,6 @@ export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>()
   const [post, setPost] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedCategory, setSelectedCategory] = useState<"all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset">("all")
-  const [isTierlistMenuOpen, setIsTierlistMenuOpen] = useState(true)
 
   useEffect(() => {
     if (!slug) return
@@ -95,14 +93,11 @@ export default function BlogPostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1420] text-foreground flex">
+    <div className="min-h-screen bg-[#0a0d14] text-foreground flex pt-16">
       {/* Sidebar */}
-      <div className="hidden md:flex md:sticky md:top-0 md:h-screen">
+      <div className="hidden md:flex md:sticky md:top-16 md:h-[calc(100vh-64px)] md:shrink-0">
         <PublicSidebar
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          isTierlistMenuOpen={isTierlistMenuOpen}
-          onTierlistMenuToggle={setIsTierlistMenuOpen}
+          onCategoryChange={() => {}}
         />
       </div>
 

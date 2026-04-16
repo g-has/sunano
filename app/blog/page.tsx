@@ -3,10 +3,9 @@
 import { Suspense, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, Search } from "lucide-react"
+import { Search } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { supabase } from "@/lib/supabase"
@@ -29,8 +28,6 @@ function BlogPageContent() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<"all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset">("all")
-  const [isTierlistMenuOpen, setIsTierlistMenuOpen] = useState(true)
 
   useEffect(() => {
     loadPosts()
@@ -51,7 +48,7 @@ function BlogPageContent() {
     }
 
     const { data } = await request
-    setPosts(((data ?? []) as unknown as BlogPost[]) ?? [])
+    setPosts((data ?? []) as unknown as BlogPost[])
     setLoading(false)
   }
 
@@ -70,14 +67,11 @@ function BlogPageContent() {
   }, [posts, query])
 
   return (
-    <div className="min-h-screen bg-[#0a0d14] text-slate-100 flex">
+    <div className="min-h-screen bg-[#0a0d14] text-slate-100 flex pt-16">
       {/* Sidebar */}
-      <div className="hidden md:flex md:sticky md:top-0 md:h-screen md:shrink-0">
+      <div className="hidden md:flex md:sticky md:top-16 md:h-[calc(100vh-64px)] md:shrink-0">
         <PublicSidebar
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          isTierlistMenuOpen={isTierlistMenuOpen}
-          onTierlistMenuToggle={setIsTierlistMenuOpen}
+          onCategoryChange={() => {}}
         />
       </div>
 
@@ -86,12 +80,6 @@ function BlogPageContent() {
         <div className="mx-auto max-w-5xl px-4 py-6 md:px-6 lg:px-8 space-y-6">
           {/* Header */}
           <div className="space-y-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="gap-2 text-slate-400 hover:text-slate-200 -ml-2">
-                <ArrowLeft className="size-4" />
-                Voltar para Tierlist
-              </Button>
-            </Link>
             <div>
               <h1 className="font-display text-3xl font-bold tracking-tight text-slate-50 md:text-4xl">
                 Blog e Reviews
@@ -194,10 +182,7 @@ function BlogPageContent() {
       {/* Mobile Sidebar */}
       <div className="md:hidden">
         <PublicSidebar
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          isTierlistMenuOpen={isTierlistMenuOpen}
-          onTierlistMenuToggle={setIsTierlistMenuOpen}
+          onCategoryChange={() => {}}
         />
       </div>
     </div>

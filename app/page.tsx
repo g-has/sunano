@@ -256,7 +256,6 @@ function getPriceBand(price: number): Exclude<PriceBand, "all"> {
 export default function Page() {
   const [query, setQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<Category>("all")
-  const [isTierlistMenuOpen, setIsTierlistMenuOpen] = useState(true)
   const [selectedBrand, setSelectedBrand] = useState("all")
   const [selectedPriceBand, setSelectedPriceBand] = useState<PriceBand>("all")
   const [selectedMouseShape, setSelectedMouseShape] = useState<MouseShape | "all">("all")
@@ -318,15 +317,12 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0d14] text-slate-100">
+    <div className="min-h-screen bg-[#0a0d14] text-slate-100 pt-16">
       <div className="flex">
         {/* Sidebar */}
-        <div className="hidden md:flex md:sticky md:top-0 md:h-screen md:shrink-0">
+        <div className="hidden md:flex md:sticky md:top-16 md:h-[calc(100vh-64px)] md:shrink-0">
           <PublicSidebar
-            selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
-            isTierlistMenuOpen={isTierlistMenuOpen}
-            onTierlistMenuToggle={setIsTierlistMenuOpen}
           />
         </div>
 
@@ -336,6 +332,8 @@ export default function Page() {
             <TierlistHeader categoryLabel={categoryLabel} />
 
             <FilterBar
+              selectedCategory={selectedCategory}
+              onCategoryChange={handleCategoryChange}
               query={query}
               onQueryChange={setQuery}
               selectedBrand={selectedBrand}
@@ -364,10 +362,7 @@ export default function Page() {
       {/* Mobile Sidebar */}
       <div className="md:hidden">
         <PublicSidebar
-          selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
-          isTierlistMenuOpen={isTierlistMenuOpen}
-          onTierlistMenuToggle={setIsTierlistMenuOpen}
         />
       </div>
     </div>

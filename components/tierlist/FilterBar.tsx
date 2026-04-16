@@ -11,8 +11,18 @@ import { cn } from "@/lib/utils"
 type MouseShape = "symmetrical" | "ergonomic"
 type KeyboardLayout = "60%" | "75%" | "tkl" | "full-size"
 type PriceBand = "all" | "budget" | "mid" | "premium"
+type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
 
 const KEYBOARD_LAYOUTS: KeyboardLayout[] = ["60%", "75%", "tkl", "full-size"]
+const CATEGORY_OPTIONS: { key: Category; label: string }[] = [
+  { key: "all", label: "Todas" },
+  { key: "keyboard", label: "Teclados" },
+  { key: "mouse", label: "Mouses" },
+  { key: "mousepad", label: "Mousepads" },
+  { key: "glasspad", label: "Glasspads" },
+  { key: "iem", label: "IEMs" },
+  { key: "headset", label: "Headsets" },
+]
 
 function formatLabel(value: string) {
   return value
@@ -22,6 +32,8 @@ function formatLabel(value: string) {
 }
 
 interface FilterBarProps {
+  selectedCategory: Category
+  onCategoryChange: (category: Category) => void
   query: string
   onQueryChange: (value: string) => void
   selectedBrand: string
@@ -41,6 +53,8 @@ interface FilterBarProps {
 }
 
 export function FilterBar({
+  selectedCategory,
+  onCategoryChange,
   query,
   onQueryChange,
   selectedBrand,
@@ -60,6 +74,28 @@ export function FilterBar({
 }: FilterBarProps) {
   return (
     <div className="space-y-3 rounded-xl border border-white/[0.08] bg-[#0d1117] p-4">
+      <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
+        {CATEGORY_OPTIONS.map((category) => {
+          const active = selectedCategory === category.key
+
+          return (
+            <button
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                active
+                  ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-300"
+                  : "border-white/[0.1] bg-white/[0.02] text-slate-300 hover:bg-white/[0.05]"
+              )}
+              key={category.key}
+              onClick={() => onCategoryChange(category.key)}
+              type="button"
+            >
+              {category.label}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Search and Controls Row */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         {/* Search Input */}

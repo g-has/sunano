@@ -84,8 +84,24 @@ function getSpecLine(item: PeripheralCardProps) {
   return parts.slice(0, 3).join(" / ")
 }
 
+function getAllSpecs(item: PeripheralCardProps): Array<{ label: string; value: string }> {
+  const specs: Array<{ label: string; value: string }> = []
+  
+  if (item.specs.connectivity) specs.push({ label: "Conectividade", value: formatLabel(item.specs.connectivity) })
+  if (item.specs.size) specs.push({ label: "Tamanho", value: formatLabel(item.specs.size) })
+  if (item.specs.driver) specs.push({ label: "Sensor", value: item.specs.driver })
+  if (item.specs.profile) specs.push({ label: "Perfil", value: item.specs.profile })
+  if (item.specs.mouseShape) specs.push({ label: "Forma", value: formatLabel(item.specs.mouseShape) })
+  if (item.specs.keyboardLayout) specs.push({ label: "Layout", value: item.specs.keyboardLayout.toUpperCase() })
+  if (item.specs.surface) specs.push({ label: "Superfície", value: formatLabel(item.specs.surface) })
+  
+  return specs
+}
+
 export function PeripheralCard({ ...item }: PeripheralCardProps) {
   const tierStyle = TIER_STYLES[item.tier]
+  const primaryTag = item.tags[0]
+  const tagStyle = primaryTag ? TAG_STYLES[primaryTag] : TAG_STYLES.versatile
   
   // Default ratings if not provided
   const ratings = item.ratings || {
@@ -97,145 +113,100 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="group cursor-pointer rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 transition-all duration-200 hover:border-cyan-500/30 hover:bg-white/[0.04]">
-          <div className="flex items-start gap-2.5">
-            {/* Brand Avatar / Mini Profile Image */}
+        <div className="group cursor-pointer h-32 w-24 flex flex-col items-center justify-start">
+          {/* Card Container - Fixed Height */}
+          <div className="relative w-20 h-20">
+            {/* Avatar/Image */}
             <div className={cn(
-              "grid size-11 shrink-0 place-items-center rounded-lg text-sm font-bold shadow-md",
+              "grid size-20 place-items-center rounded-lg text-3xl font-black shadow-lg relative",
               tierStyle.bg,
               tierStyle.text,
-              tierStyle.glow
             )}>
               {item.brand.slice(0, 2).toUpperCase()}
+              
+              {/* Price Tag - Top Right */}
+              <Badge className="absolute top-0 right-0 rounded-sm h-5 px-1.5 py-0.5 m-1 text-[10px]" variant="secondary">
+                ${item.price}
+              </Badge>
             </div>
+          </div>
 
-            {/* Content */}
-            <div className="min-w-0 flex-1">
-              {/* Name and Price */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="truncate text-sm font-semibold leading-tight text-slate-100 group-hover:text-white">
-                    {item.name}
-                  </h3>
-                  <p className="mt-0.5 text-[10px] font-medium tracking-wide text-slate-500 uppercase">
-                    {item.brand}
-                  </p>
-                </div>
-                <span className="shrink-0 text-xs font-semibold text-emerald-400">
-                  ${item.price}
-                </span>
-              </div>
-
-              {/* Tags */}
-              <div className="mt-1.5 flex flex-wrap gap-1">
-                {item.tags.slice(0, 2).map((tag) => {
-                  const style = TAG_STYLES[tag]
-                  return (
-                    <span
-                      key={tag}
-                      className={cn(
-                        "rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
-                        style.bg,
-                        style.text
-                      )}
-                    >
-                      {tag}
-                    </span>
-                  )
-                })}
-              </div>
-            </div>
+          {/* Name Below - Fixed Space */}
+          <div className="pt-3 text-center flex-1 w-full flex flex-col justify-start">
+            <h3 className="text-xs font-bold text-slate-100 leading-tight line-clamp-2">
+              {item.name}
+            </h3>
+            <p className="text-[9px] font-medium text-slate-500">
+              {item.brand}
+            </p>
           </div>
         </div>
       </TooltipTrigger>
 
       <TooltipContent
-        className="w-80 rounded-xl border border-white/[0.1] bg-[#0d1117]/98 p-0 shadow-2xl backdrop-blur-xl"
-        sideOffset={8}
-        side="right"
+        className="flex flex-col rounded-lg border border-white/[0.12] bg-[#0a0e17]/95 p-5 shadow-xl backdrop-blur-md max-w-xs"
+        sideOffset={12}
+        side="bottom"
+        align="center"
       >
-        {/* Header */}
-        <div className="border-b border-white/[0.08] p-4">
-          <div className="flex items-start gap-3">
-            <div className={cn(
-              "grid size-14 shrink-0 place-items-center rounded-xl text-lg font-bold shadow-lg",
+        {/* Header - Centered */}
+        <div className="flex flex-col items-center gap-3">
+          <div className={cn(
+            "grid size-12 place-items-center rounded-lg text-base font-bold shadow-lg",
+            tierStyle.bg,
+            tierStyle.text,
+          )}>
+            {item.brand.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="text-center">
+            <h4 className="text-sm font-bold text-slate-50">{item.name}</h4>
+            <p className="text-xs text-slate-500 mt-0.5">{item.brand}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "rounded-md px-2 py-1 text-[10px] font-bold",
               tierStyle.bg,
               tierStyle.text,
-              tierStyle.glow
             )}>
-              {item.brand.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <h4 className="text-base font-bold text-slate-50">{item.name}</h4>
-              <p className="mt-0.5 text-xs text-slate-400">
-                {item.brand} / {formatLabel(item.category)}
-              </p>
-              <div className="mt-2 flex items-center gap-2">
-                <Badge className={cn(
-                  "rounded-md border px-2 py-0.5 text-xs font-bold",
-                  tierStyle.bg,
-                  tierStyle.text,
-                  "border-transparent"
-                )}>
-                  {item.tier}
-                </Badge>
-                <span className="text-sm font-semibold text-emerald-400">${item.price}</span>
-              </div>
-            </div>
+              {item.tier}
+            </span>
+            <span className="text-sm font-bold text-emerald-400">${item.price}</span>
           </div>
         </div>
 
-        {/* Ratings Grid (Mini chart style from briefing) */}
-        <div className="border-b border-white/[0.08] p-4">
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            Avaliacao
-          </p>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-lg bg-white/[0.04] p-2.5 text-center">
-              <RatingStars rating={ratings.performance} />
-              <p className="mt-1 text-[10px] font-medium text-slate-400">Performance</p>
-            </div>
-            <div className="rounded-lg bg-white/[0.04] p-2.5 text-center">
-              <RatingStars rating={ratings.build} />
-              <p className="mt-1 text-[10px] font-medium text-slate-400">Construcao</p>
-            </div>
-            <div className="rounded-lg bg-white/[0.04] p-2.5 text-center">
-              <RatingStars rating={ratings.value} />
-              <p className="mt-1 text-[10px] font-medium text-slate-400">Custo-Benef</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Specs */}
-        <div className="border-b border-white/[0.08] p-4">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            Especificacoes
-          </p>
-          <p className="text-sm text-slate-300">{getSpecLine(item)}</p>
-        </div>
-
-        {/* Tags */}
-        <div className="p-4">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            Categorias
-          </p>
-          <div className="flex flex-wrap gap-1.5">
+        {/* Tags - Vertical */}
+        <div className="mb-4 flex flex-col items-center">
+          <p className="text-[10px] font-semibold uppercase text-slate-500 mb-2.5">Características</p>
+          <div className="flex gap-2">
             {item.tags.map((tag) => {
               const style = TAG_STYLES[tag]
               return (
-                <Badge
+                <span
                   key={tag}
                   className={cn(
-                    "rounded-full border px-2.5 py-1 text-[10px] font-medium",
+                    "rounded-full border px-3 py-1.5 text-[9px] font-semibold uppercase text-center block",
                     style.bg,
                     style.text,
                     style.border
                   )}
                 >
                   {formatLabel(tag)}
-                </Badge>
+                </span>
               )
             })}
+          </div>
+        </div>
+
+        {/* Specifications - Vertical */}
+        <div className="flex flex-col items-center">
+          <p className="text-[10px] font-semibold uppercase text-slate-500 mb-2.5">Especificações</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            {getAllSpecs(item).slice(0, 4).map((spec) => (
+              <div key={spec.label} className="bg-white/[0.05] rounded-lg p-2.5 border border-white/[0.08]">
+                <p className="text-[9px] text-slate-500 font-medium mb-1">{spec.label}</p>
+                <p className="text-sm font-bold text-slate-100">{spec.value}</p>
+              </div>
+            ))}
           </div>
         </div>
       </TooltipContent>

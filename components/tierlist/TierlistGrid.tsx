@@ -131,74 +131,78 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
       {/* Main Grid */}
       <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0d1117] shadow-lg">
         {/* Desktop Grid View */}
-        <div className="hidden md:block overflow-x-auto">
-          <div className="min-w-[900px]">
-            {/* Column Headers */}
-            <div className="grid grid-cols-[80px_repeat(4,1fr)] border-b border-white/[0.08] bg-[#0a0d14]">
-              <div className="p-3 text-center">
+        <table className="hidden md:table w-full border-collapse">
+          <thead>
+            <tr className="bg-[#0a0d14]">
+              <th className="border-r border-white/[0.08] w-20 h-12 text-center">
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
                   Tier
                 </span>
-              </div>
+              </th>
               {TAG_COLUMNS.map((column) => (
-                <div key={column.key} className="border-l border-white/[0.08] p-3 text-center">
+                <th 
+                  key={column.key}
+                  className="border-r border-white/[0.08] h-12 text-center last:border-r-0"
+                >
                   <span className={cn("text-xs font-semibold uppercase tracking-wider", column.color)}>
                     {column.title}
                   </span>
-                </div>
+                </th>
               ))}
-            </div>
-
-            {/* Tier Rows */}
+            </tr>
+          </thead>
+          <tbody>
             {itemsByTier.map((tierRow, tierIndex) => (
-              <div 
-                key={tierRow.key} 
+              <tr 
+                key={tierRow.key}
                 className={cn(
-                  "grid grid-cols-[80px_repeat(4,1fr)]",
+                  "",
                   tierIndex < itemsByTier.length - 1 && "border-b border-white/[0.08]"
                 )}
               >
                 {/* Tier Badge */}
-                <div className={cn(
-                  "flex flex-col items-center justify-center bg-gradient-to-b p-3",
+                <td className={cn(
+                  "border-r border-white/[0.08] w-20 h-48 align-middle text-center bg-gradient-to-b",
                   tierRow.gradient
                 )}>
-                  <span className={cn("text-2xl font-black", tierRow.textColor)}>
+                  <div className={cn("text-2xl font-black", tierRow.textColor)}>
                     {tierRow.label}
-                  </span>
+                  </div>
                   {tierRow.totalItems > 0 && (
-                    <span className={cn("text-[10px] font-medium opacity-80", tierRow.textColor)}>
+                    <div className={cn("text-[10px] font-medium opacity-80 mt-1", tierRow.textColor)}>
                       {tierRow.totalItems} items
-                    </span>
+                    </div>
                   )}
-                </div>
+                </td>
 
                 {/* Items by Column */}
                 {tierRow.itemsByColumn.map((column, colIndex) => (
-                  <div 
+                  <td 
                     key={`${tierRow.key}-${column.key}`}
                     className={cn(
-                      "min-h-[100px] border-l border-white/[0.08] p-2",
+                      "border-r border-white/[0.08] align-top h-48 last:border-r-0",
                       colIndex % 2 === 0 ? "bg-white/[0.01]" : "bg-transparent"
                     )}
                   >
-                    <div className="space-y-2">
+                    <div className="p-2 h-full flex items-start justify-center">
                       {column.items.length > 0 ? (
-                        column.items.map((item) => (
-                          <PeripheralCard key={item.id} {...item} />
-                        ))
+                        <div className="grid grid-cols-2 gap-3 w-full auto-rows-max">
+                          {column.items.map((item) => (
+                            <PeripheralCard key={item.id} {...item} />
+                          ))}
+                        </div>
                       ) : (
-                        <div className="flex h-full min-h-[80px] items-center justify-center">
+                        <div className="flex h-full items-center justify-center">
                           <span className="text-xs text-slate-600">-</span>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </td>
                 ))}
-              </div>
+              </tr>
             ))}
-          </div>
-        </div>
+          </tbody>
+        </table>
 
         {/* Mobile Card View */}
         <div className="md:hidden">

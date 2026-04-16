@@ -4,59 +4,42 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  ChevronDown,
-  Headphones,
-  Keyboard,
+  Clock3,
+  Instagram,
   LayoutGrid,
   Menu,
-  Mouse,
+  MessageCircle,
+  Music,
   Newspaper,
-  Square,
-  Tablet,
+  Twitter,
   X,
+  Youtube,
 } from "lucide-react"
-import { FaDiscord, FaInstagram, FaTiktok, FaTwitter, FaYoutube } from "react-icons/fa"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const SOCIAL_LINKS = [
-  { label: "YouTube", icon: FaYoutube, href: "https://youtube.com/@sunano", color: "hover:text-red-400" },
-  { label: "Twitter", icon: FaTwitter, href: "https://twitter.com/sunano", color: "hover:text-sky-400" },
-  { label: "TikTok", icon: FaTiktok, href: "https://tiktok.com/@sunano", color: "hover:text-pink-400" },
-  { label: "Discord", icon: FaDiscord, href: "https://discord.gg/sunano", color: "hover:text-indigo-400" },
-  { label: "Instagram", icon: FaInstagram, href: "https://instagram.com/sunano", color: "hover:text-pink-500" },
+  { label: "YouTube", icon: Youtube, href: "https://youtube.com/@sunano" },
+  { label: "Twitter", icon: Twitter, href: "https://twitter.com/sunano" },
+  { label: "TikTok", icon: Music, href: "https://tiktok.com/@sunano" },
+  { label: "Discord", icon: MessageCircle, href: "https://discord.gg/sunano" },
+  { label: "Instagram", icon: Instagram, href: "https://instagram.com/sunano" },
 ]
 
 type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
 
 interface PublicSidebarProps {
-  selectedCategory: Category
   onCategoryChange: (category: Category) => void
-  isTierlistMenuOpen: boolean
-  onTierlistMenuToggle: (open: boolean) => void
 }
 
-const CATEGORY_META: { key: Category; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { key: "all", label: "Todas Categorias", icon: LayoutGrid },
-  { key: "keyboard", label: "Teclados", icon: Keyboard },
-  { key: "mouse", label: "Mouses", icon: Mouse },
-  { key: "mousepad", label: "Mousepads", icon: Square },
-  { key: "glasspad", label: "Glasspads", icon: Tablet },
-  { key: "iem", label: "IEMs", icon: Headphones },
-  { key: "headset", label: "Headsets", icon: Headphones },
-]
-
 const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: LayoutGrid },
+  { href: "/", label: "Tier List", icon: LayoutGrid },
   { href: "/blog", label: "Blog e Reviews", icon: Newspaper },
 ]
 
 export function PublicSidebar({
-  selectedCategory,
   onCategoryChange,
-  isTierlistMenuOpen,
-  onTierlistMenuToggle,
 }: PublicSidebarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const pathname = usePathname()
@@ -76,97 +59,36 @@ export function PublicSidebar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-screen w-64 shrink-0 flex-col border-r border-white/[0.08] bg-[#0d1117] transition-transform duration-300 md:relative md:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex h-screen w-64 shrink-0 flex-col border-r border-white/[0.08] bg-[#0d1117] transition-transform duration-300 md:relative md:inset-auto md:h-full md:translate-x-0",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Header / Logo */}
-        <div className="flex items-center gap-3 border-b border-white/[0.08] px-5 py-4">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 font-bold text-white shadow-lg shadow-cyan-500/20">
-            S
-          </div>
-          <div className="flex flex-col">
-            <span className="text-base font-semibold tracking-tight text-slate-50">Sunano</span>
-            <span className="text-[10px] font-medium uppercase tracking-widest text-slate-500">Tierlist</span>
-          </div>
-        </div>
-
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 overflow-hidden px-3 pt-6 pb-4">
           {/* Main Nav */}
           <div className="space-y-1">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon
               const isActive = item.href === "/" ? isHomePage : pathname?.startsWith(item.href)
-              const isTierlistItem = item.href === "/"
 
               return (
                 <div key={item.href}>
-                  <div className="flex items-center">
-                    <Link
-                      href={item.href}
-                      onClick={() => {
-                        if (isTierlistItem) onCategoryChange("all")
-                        setIsMobileOpen(false)
-                      }}
-                      className={cn(
-                        "flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
-                        isActive
-                          ? "bg-cyan-500/10 text-cyan-300"
-                          : "text-slate-300 hover:bg-white/[0.05] hover:text-slate-100"
-                      )}
-                    >
-                      <Icon className="size-[18px]" />
-                      <span>{item.label}</span>
-                    </Link>
-                    {isTierlistItem && (
-                      <button
-                        aria-label="Toggle tierlist menu"
-                        className={cn(
-                          "rounded-md p-2 text-slate-400 transition-colors hover:bg-white/[0.05] hover:text-slate-200"
-                        )}
-                        onClick={() => onTierlistMenuToggle(!isTierlistMenuOpen)}
-                        type="button"
-                      >
-                        <ChevronDown
-                          className={cn(
-                            "size-4 transition-transform duration-200",
-                            isTierlistMenuOpen ? "rotate-180" : "rotate-0"
-                          )}
-                        />
-                      </button>
+                  <Link
+                    href={item.href}
+                    onClick={() => {
+                      if (item.href === "/") onCategoryChange("all")
+                      setIsMobileOpen(false)
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      isActive
+                        ? "bg-cyan-500/10 text-cyan-300"
+                        : "text-slate-300 hover:bg-white/[0.05] hover:text-slate-100"
                     )}
-                  </div>
-
-                  {/* Tierlist Subcategories */}
-                  {isTierlistItem && isTierlistMenuOpen && (
-                    <div className="ml-3 mt-1 space-y-0.5 border-l border-white/[0.08] pl-3">
-                      {CATEGORY_META.map((category) => {
-                        const CategoryIcon = category.icon
-                        const active = selectedCategory === category.key && isHomePage
-
-                        return (
-                          <button
-                            className={cn(
-                              "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm transition-all",
-                              active
-                                ? "bg-white/[0.08] text-slate-100"
-                                : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
-                            )}
-                            key={category.key}
-                            onClick={() => {
-                              onCategoryChange(category.key)
-                              setIsMobileOpen(false)
-                            }}
-                            type="button"
-                          >
-                            <CategoryIcon className="size-4 opacity-70" />
-                            <span>{category.label}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
+                  >
+                    <Icon className="size-[18px]" />
+                    <span>{item.label}</span>
+                  </Link>
                 </div>
               )
             })}
@@ -197,6 +119,23 @@ export function PublicSidebar({
           </div>
         </nav>
 
+        {/* Changelog Link */}
+        <div className="border-t border-white/[0.08] px-3 py-3">
+          <Link
+            href="/changelog"
+            onClick={() => setIsMobileOpen(false)}
+            className={cn(
+              "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+              pathname?.startsWith("/changelog")
+                ? "bg-cyan-500/10 text-cyan-300"
+                : "text-slate-300 hover:bg-white/[0.05] hover:text-slate-100"
+            )}
+          >
+            <Clock3 className="size-[16px]" />
+            <span>Changelog</span>
+          </Link>
+        </div>
+
         {/* Social Links */}
         <div className="border-t border-white/[0.08] px-4 py-4">
           <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
@@ -212,10 +151,7 @@ export function PublicSidebar({
                   target="_blank"
                   rel="noreferrer"
                   aria-label={link.label}
-                  className={cn(
-                    "flex size-9 items-center justify-center rounded-lg bg-white/[0.05] text-slate-400 transition-all hover:bg-white/[0.1]",
-                    link.color
-                  )}
+                  className="flex size-9 items-center justify-center rounded-lg bg-white/[0.05] text-slate-400 transition-all hover:bg-white/[0.1] hover:text-slate-200"
                 >
                   <Icon className="size-4" />
                 </a>
