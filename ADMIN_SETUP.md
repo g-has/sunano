@@ -62,26 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_peripherals_tier ON peripherals(tier);
 1. No **SQL Editor**, execute:
 
 ```sql
--- Habilitar RLS na tabela
-ALTER TABLE peripherals ENABLE ROW LEVEL SECURITY;
-
--- Política de leitura pública
-CREATE POLICY "Peripherals are publicly readable" 
-ON peripherals FOR SELECT 
-USING (true);
-
--- Política de escrita (você pode ajustar para autenticação depois)
-CREATE POLICY "Peripherals can be inserted" 
-ON peripherals FOR INSERT 
-WITH CHECK (true);
-
-CREATE POLICY "Peripherals can be updated" 
-ON peripherals FOR UPDATE 
-USING (true);
-
-CREATE POLICY "Peripherals can be deleted" 
-ON peripherals FOR DELETE 
-USING (true);
+-- Copie e cole o conteúdo de [supabase/security.sql](supabase/security.sql)
 ```
 
 ### 5. Configurar Storage Policies
@@ -99,8 +80,9 @@ USING (bucket_id = 'peripherals');
 
 **Política de Upload:**
 ```
-CREATE POLICY "Public upload access"
+CREATE POLICY "Authenticated upload access"
 ON storage.objects FOR INSERT
+TO authenticated
 WITH CHECK (bucket_id = 'peripherals');
 ```
 
@@ -110,6 +92,9 @@ WITH CHECK (bucket_id = 'peripherals');
 2. Copie:
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+> A `anon` key é pública por design e pode ir para o navegador.
+> Nunca coloque a `service_role` key em código client-side ou em arquivos `NEXT_PUBLIC_*`.
 
 ### 7. Configurar .env.local
 
