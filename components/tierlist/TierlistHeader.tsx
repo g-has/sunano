@@ -37,27 +37,6 @@ export function TierlistHeader({ categoryLabel }: TierlistHeaderProps) {
       </div>
 
       {/* Quick Links / Social Banner */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-4 py-3">
-        <span className="text-xs font-medium text-cyan-300">Acompanhe no YouTube para reviews completos</span>
-        <a 
-          href="https://youtube.com/@sunano" 
-          target="_blank" 
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/30"
-        >
-          <ExternalLink className="size-3" />
-          YouTube
-        </a>
-        <a 
-          href="https://discord.gg/sunano" 
-          target="_blank" 
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-medium text-indigo-300 transition-colors hover:bg-indigo-500/30"
-        >
-          <ExternalLink className="size-3" />
-          Discord
-        </a>
-      </div>
     </header>
   )
 }
