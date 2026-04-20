@@ -21,17 +21,6 @@ export default function AdminLoginPage() {
                   Entre com sua conta Supabase para gerenciar periféricos, posts e configurações do site.
                 </p>
               </div>
-
-              <div className="grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
-                  <p className="font-medium text-slate-100">Protegido por sessão</p>
-                  <p className="mt-1 text-slate-400">As rotas admin exigem login autenticado.</p>
-                </div>
-                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
-                  <p className="font-medium text-slate-100">Escrita controlada</p>
-                  <p className="mt-1 text-slate-400">RLS bloqueia escrita sem usuário autenticado.</p>
-                </div>
-              </div>
             </div>
           </div>
 

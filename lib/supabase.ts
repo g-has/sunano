@@ -29,10 +29,13 @@ export type Database = {
         Row: {
           id: string
           peripheral_id: string
+          author_id: string | null
           title: string
           slug: string
           excerpt: string | null
           cover_image_url: string | null
+          cover_thumbnail_url: string | null
+          read_time_minutes: number
           video_url: string | null
           content: string
           is_published: boolean
@@ -41,6 +44,18 @@ export type Database = {
         }
         Insert: Omit<Database["public"]["Tables"]["blog_posts"]["Row"], "id" | "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["blog_posts"]["Insert"]>
+      }
+      admin_profiles: {
+        Row: {
+          id: string
+          email: string | null
+          display_name: string | null
+          avatar_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["admin_profiles"]["Row"], "created_at" | "updated_at">
+        Update: Partial<Database["public"]["Tables"]["admin_profiles"]["Insert"]>
       }
     }
   }

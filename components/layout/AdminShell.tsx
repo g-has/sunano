@@ -42,18 +42,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <div className="border-b border-white/[0.08] px-4 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 font-bold text-white shadow-lg shadow-cyan-500/20">
-                S
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-slate-50">Sunano</span>
-                <span className="text-[10px] font-medium uppercase tracking-widest text-cyan-400">Admin</span>
-              </div>
-            </div>
-          </div>
-
           <nav className="flex-1 overflow-hidden px-3 pt-6 pb-4">
             <div className="space-y-1">
               {NAV_ITEMS.map((item) => {

@@ -79,6 +79,16 @@ const TAG_COLUMNS: { key: Tag; title: string; color: string }[] = [
   { key: "comfort", title: "Conforto", color: "text-amber-300" },
 ]
 
+function getPrimaryColumnKey(item: Peripheral): Tag | null {
+  const firstMatchingTag = item.tags.find((tag) => TAG_COLUMNS.some((column) => column.key === tag))
+
+  if (item.category === "mouse") {
+    return firstMatchingTag ?? "versatile"
+  }
+
+  return null
+}
+
 interface TierlistGridProps {
   filtered: Peripheral[]
 }
@@ -91,7 +101,16 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
     ...tier,
     itemsByColumn: TAG_COLUMNS.map((column) => ({
       ...column,
-      items: filtered.filter((item) => item.tier === tier.key && item.tags.includes(column.key)),
+      items: filtered.filter((item) => {
+        if (item.tier !== tier.key) return false
+
+        const primaryColumnKey = getPrimaryColumnKey(item)
+        if (primaryColumnKey) {
+          return column.key === primaryColumnKey
+        }
+
+        return item.tags.includes(column.key)
+      }),
     })),
     totalItems: filtered.filter((item) => item.tier === tier.key).length,
   }))

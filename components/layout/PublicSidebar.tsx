@@ -30,12 +30,12 @@ const SOCIAL_LINKS = [
 type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
 
 interface PublicSidebarProps {
-  onCategoryChange: (category: Category) => void
+  onCategoryChange?: (category: Category) => void
 }
 
 const NAV_ITEMS = [
   { href: "/", label: "Tier List", icon: LayoutGrid },
-  { href: "/blog", label: "Blog e Reviews", icon: Newspaper },
+  { href: "/blog", label: "Reviews", icon: Newspaper },
 ]
 
 export function PublicSidebar({
@@ -76,7 +76,7 @@ export function PublicSidebar({
                   <Link
                     href={item.href}
                     onClick={() => {
-                      if (item.href === "/") onCategoryChange("all")
+                      if (item.href === "/") onCategoryChange?.("all")
                       setIsMobileOpen(false)
                     }}
                     className={cn(
@@ -109,13 +109,6 @@ export function PublicSidebar({
                 Soon
               </span>
             </div>
-            <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-500">
-              <div className="size-[18px] rounded bg-white/[0.05]" />
-              <span>Importador</span>
-              <span className="ml-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300">
-                Soon
-              </span>
-            </div>
           </div>
         </nav>
 
@@ -134,37 +127,6 @@ export function PublicSidebar({
             <Clock3 className="size-[16px]" />
             <span>Changelog</span>
           </Link>
-        </div>
-
-        {/* Social Links */}
-        <div className="border-t border-white/[0.08] px-4 py-4">
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            Redes Sociais
-          </p>
-          <div className="flex items-center gap-2">
-            {SOCIAL_LINKS.map((link) => {
-              const Icon = link.icon
-              return (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={link.label}
-                  className="flex size-9 items-center justify-center rounded-lg bg-white/[0.05] text-slate-400 transition-all hover:bg-white/[0.1] hover:text-slate-200"
-                >
-                  <Icon className="size-4" />
-                </a>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-white/[0.08] px-4 py-3">
-          <p className="text-[10px] text-slate-600">
-            Feito com carinho por Sunano
-          </p>
         </div>
       </aside>
 

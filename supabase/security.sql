@@ -3,6 +3,7 @@
 
 alter table if exists public.peripherals enable row level security;
 alter table if exists public.blog_posts enable row level security;
+alter table if exists public.admin_profiles enable row level security;
 
 drop policy if exists "Peripherals are publicly readable" on public.peripherals;
 drop policy if exists "Peripherals can be inserted" on public.peripherals;
@@ -61,6 +62,35 @@ on public.blog_posts
 for delete
 to authenticated
 using (true);
+
+drop policy if exists "Admin profiles are publicly readable" on public.admin_profiles;
+drop policy if exists "Admin profiles can be inserted by owner" on public.admin_profiles;
+drop policy if exists "Admin profiles can be updated by owner" on public.admin_profiles;
+drop policy if exists "Admin profiles can be deleted by owner" on public.admin_profiles;
+
+create policy "Admin profiles are publicly readable"
+on public.admin_profiles
+for select
+using (true);
+
+create policy "Admin profiles can be inserted by owner"
+on public.admin_profiles
+for insert
+to authenticated
+with check (auth.uid() = id);
+
+create policy "Admin profiles can be updated by owner"
+on public.admin_profiles
+for update
+to authenticated
+using (auth.uid() = id)
+with check (auth.uid() = id);
+
+create policy "Admin profiles can be deleted by owner"
+on public.admin_profiles
+for delete
+to authenticated
+using (auth.uid() = id);
 
 -- Keep the bucket public for reads, but never allow unauthenticated uploads.
 alter table if exists storage.objects enable row level security;

@@ -1,0 +1,133 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import { FilterBar } from "./FilterBar"
+import { TierlistGrid } from "./TierlistGrid"
+
+type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
+type Tier = "T0" | "T0.5" | "T1" | "T2"
+type MouseShape = "symmetrical" | "ergonomic"
+type KeyboardLayout = "60%" | "75%" | "tkl" | "full-size"
+type PriceBand = "all" | "budget" | "mid" | "premium"
+type Tag = "competitive" | "versatile" | "value" | "comfort"
+
+type Peripheral = {
+  id: string
+  name: string
+  brand: string
+  category: Category
+  tier: Tier
+  price: number
+  tags: Tag[]
+  specs: {
+    mouseShape?: MouseShape
+    keyboardLayout?: KeyboardLayout
+    connectivity?: "wired" | "wireless"
+    size?: "small" | "medium" | "large"
+    surface?: "cloth" | "hybrid" | "glass"
+    driver?: string
+    profile?: string
+  }
+}
+
+interface TierlistContentProps {
+  initialData: Peripheral[]
+  categoryLabels: Record<string, string>
+}
+
+function getPriceBand(price: number): Exclude<PriceBand, "all"> {
+  if (price <= 80) return "budget"
+  if (price <= 160) return "mid"
+  return "premium"
+}
+
+export function TierlistContent({ initialData, categoryLabels }: TierlistContentProps) {
+  const [query, setQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState<Category>("all")
+  const [selectedBrand, setSelectedBrand] = useState("all")
+  const [selectedPriceBand, setSelectedPriceBand] = useState<PriceBand>("all")
+  const [selectedMouseShape, setSelectedMouseShape] = useState<MouseShape | "all">("all")
+  const [selectedKeyboardLayout, setSelectedKeyboardLayout] = useState<KeyboardLayout | "all">("all")
+
+  const categoryLabel = categoryLabels[selectedCategory]
+
+  const handleCategoryChange = (category: Category) => {
+    setSelectedCategory(category)
+    setSelectedBrand("all")
+    setSelectedMouseShape("all")
+    setSelectedKeyboardLayout("all")
+  }
+
+  const availableBrands = useMemo(() => {
+    const inCategory =
+      selectedCategory === "all"
+        ? initialData
+        : initialData.filter((item) => item.category === selectedCategory)
+    return ["all", ...Array.from(new Set(inCategory.map((item) => item.brand)))]
+  }, [selectedCategory, initialData])
+
+  const filtered = useMemo(() => {
+    return initialData.filter((item) => {
+      if (selectedCategory !== "all" && item.category !== selectedCategory) return false
+
+      const searchable = `${item.name} ${item.brand} ${item.specs.driver ?? ""} ${item.specs.profile ?? ""}`
+        .toLowerCase()
+      const matchesQuery = query.trim() === "" || searchable.includes(query.trim().toLowerCase())
+      const matchesBrand = selectedBrand === "all" || item.brand === selectedBrand
+      const matchesPrice = selectedPriceBand === "all" || getPriceBand(item.price) === selectedPriceBand
+
+      const matchesMouseShape =
+        selectedCategory !== "mouse" ||
+        selectedMouseShape === "all" ||
+        item.specs.mouseShape === selectedMouseShape
+
+      const matchesKeyboardLayout =
+        selectedCategory !== "keyboard" ||
+        selectedKeyboardLayout === "all" ||
+        item.specs.keyboardLayout === selectedKeyboardLayout
+
+      return matchesQuery && matchesBrand && matchesPrice && matchesMouseShape && matchesKeyboardLayout
+    })
+  }, [query, selectedCategory, selectedBrand, selectedPriceBand, selectedMouseShape, selectedKeyboardLayout, initialData])
+
+  const activeFiltersCount = useMemo(() => {
+    return [selectedBrand, selectedPriceBand, selectedMouseShape, selectedKeyboardLayout].filter(
+      (value) => value !== "all",
+    ).length + (query.trim() ? 1 : 0)
+  }, [query, selectedBrand, selectedPriceBand, selectedMouseShape, selectedKeyboardLayout])
+
+  const resetFilters = () => {
+    setQuery("")
+    setSelectedBrand("all")
+    setSelectedPriceBand("all")
+    setSelectedMouseShape("all")
+    setSelectedKeyboardLayout("all")
+  }
+
+  return (
+    <>
+      <FilterBar
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
+        query={query}
+        onQueryChange={setQuery}
+        selectedBrand={selectedBrand}
+        onBrandChange={setSelectedBrand}
+        selectedPriceBand={selectedPriceBand}
+        onPriceBandChange={setSelectedPriceBand}
+        selectedMouseShape={selectedMouseShape}
+        onMouseShapeChange={setSelectedMouseShape}
+        selectedKeyboardLayout={selectedKeyboardLayout}
+        onKeyboardLayoutChange={setSelectedKeyboardLayout}
+        availableBrands={availableBrands}
+        activeFiltersCount={activeFiltersCount}
+        filteredCount={filtered.length}
+        onReset={resetFilters}
+        showMouseShapeFilter={selectedCategory === "mouse"}
+        showKeyboardLayoutFilter={selectedCategory === "keyboard"}
+      />
+
+      <TierlistGrid filtered={filtered} />
+    </>
+  )
+}

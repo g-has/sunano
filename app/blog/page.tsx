@@ -1,24 +1,57 @@
 "use client"
 
-import { Suspense, useEffect, useMemo, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Search } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { SearchComponent, type SearchItem } from "@/components/ui/search-bar"
+import { GlassBlogCard } from "@/components/ui/glass-blog-card-shadcnui"
 import { supabase } from "@/lib/supabase"
 import { PublicSidebar } from "@/components/layout/PublicSidebar"
+import { getBlogImageWithFallback } from "@/lib/blog-images"
 
 type BlogPost = {
   id: string
   title: string
   slug: string
+  author_id?: string | null
   excerpt: string | null
   cover_image_url: string | null
+  cover_thumbnail_url: string | null
+  read_time_minutes: number | null
   created_at: string
+  admin_profiles?: { display_name: string | null; avatar_url: string | null; email: string | null } | null
   peripherals?: { id: string; name: string; brand: string }[] | null
+}
+
+function getDefaultAuthorName(email: string | null | undefined) {
+  if (!email) return null
+  const [localPart] = email.split("@")
+  return localPart || null
+}
+
+function getArticleMeta(post: BlogPost) {
+  const relatedPeripheral = Array.isArray(post.peripherals) ? post.peripherals[0] ?? null : null
+
+  return {
+    title: post.title,
+    excerpt: post.excerpt ?? relatedPeripheral?.name ?? "Artigo publicado no blog",
+    image: getBlogImageWithFallback(post.cover_thumbnail_url, post.cover_image_url, "thumbnail"),
+    author: {
+      name:
+        post.admin_profiles?.display_name?.trim() ||
+        getDefaultAuthorName(post.admin_profiles?.email) ||
+        "Sunano",
+      avatar: post.admin_profiles?.avatar_url || "https://github.com/shadcn.png",
+    },
+    date: new Date(post.created_at).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+    readTime: `${Math.max(1, post.read_time_minutes ?? 1)} min read`,
+    tags: [relatedPeripheral?.brand ?? "Blog"].filter(Boolean),
+  }
 }
 
 function BlogPageContent() {
@@ -27,52 +60,99 @@ function BlogPageContent() {
 
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
-  const [query, setQuery] = useState("")
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([])
 
   useEffect(() => {
     loadPosts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [peripheralFilter])
 
+  useEffect(() => {
+    setFilteredPosts(posts)
+  }, [posts])
+
   async function loadPosts() {
     setLoading(true)
 
-    let request = supabase
-      .from("blog_posts")
-      .select("id, title, slug, excerpt, cover_image_url, created_at, peripherals(id, name, brand)")
-      .eq("is_published", true)
-      .order("created_at", { ascending: false })
+    const selectWithThumbnail =
+      "id, title, slug, author_id, excerpt, cover_image_url, cover_thumbnail_url, read_time_minutes, created_at, admin_profiles(display_name, avatar_url, email), peripherals(id, name, brand)"
+    const selectLegacy = "id, title, slug, excerpt, cover_image_url, created_at, peripherals(id, name, brand)"
 
-    if (peripheralFilter) {
-      request = request.eq("peripheral_id", peripheralFilter)
+    const buildQuery = (selectClause: string) => {
+      let query = supabase
+        .from("blog_posts")
+        .select(selectClause)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+
+      if (peripheralFilter) {
+        query = query.eq("peripheral_id", peripheralFilter)
+      }
+
+      return query
     }
 
-    const { data } = await request
-    setPosts((data ?? []) as unknown as BlogPost[])
+    let { data, error } = await buildQuery(selectWithThumbnail)
+
+    if (
+      error?.message?.includes("cover_thumbnail_url") ||
+      error?.message?.includes("author_id") ||
+      error?.message?.includes("admin_profiles") ||
+      error?.message?.includes("read_time_minutes")
+    ) {
+      const legacyResponse = await buildQuery(selectLegacy)
+      data = legacyResponse.data
+      error = legacyResponse.error
+    }
+
+    if (error) {
+      setPosts([])
+      setLoading(false)
+      return
+    }
+
+    const normalizedPosts = ((data ?? []) as Array<Partial<BlogPost>>).map((post) => ({
+      ...post,
+      cover_thumbnail_url: post.cover_thumbnail_url ?? null,
+      read_time_minutes: post.read_time_minutes ?? null,
+    }))
+
+    setPosts(normalizedPosts as BlogPost[])
     setLoading(false)
   }
 
-  const filteredPosts = useMemo(() => {
-    if (!query.trim()) return posts
+  const handleFilteredDataChange = useCallback(
+    (items: SearchItem[]) => {
+      const nextPosts = items
+        .map((item) => posts.find((post) => post.id === item.id))
+        .filter((post): post is BlogPost => Boolean(post))
 
-    const normalized = query.toLowerCase()
-    return posts.filter((post) => {
-      const relatedPeripheral = Array.isArray(post.peripherals)
-        ? post.peripherals[0]
-        : null
+      setFilteredPosts(nextPosts)
+    },
+    [posts]
+  )
 
-      const text = `${post.title} ${post.excerpt ?? ""} ${relatedPeripheral?.name ?? ""} ${relatedPeripheral?.brand ?? ""}`.toLowerCase()
-      return text.includes(normalized)
+  const searchData: SearchItem[] = useMemo(() => {
+    return posts.map((post) => {
+      const relatedPeripheral = Array.isArray(post.peripherals) ? post.peripherals[0] ?? null : null
+
+      return {
+        id: post.id,
+        title: post.title,
+        description: post.excerpt ?? relatedPeripheral?.name ?? "Artigo publicado no blog",
+        tags: [relatedPeripheral?.brand ?? "Blog"].filter(Boolean),
+        creator: relatedPeripheral?.brand ?? "Blog",
+      }
     })
-  }, [posts, query])
+  }, [posts])
+
+  const currentPosts = filteredPosts
 
   return (
     <div className="min-h-screen bg-[#0a0d14] text-slate-100 flex pt-16">
       {/* Sidebar */}
       <div className="hidden md:flex md:sticky md:top-16 md:h-[calc(100vh-64px)] md:shrink-0">
-        <PublicSidebar
-          onCategoryChange={() => {}}
-        />
+        <PublicSidebar />
       </div>
 
       {/* Main Content */}
@@ -82,7 +162,7 @@ function BlogPageContent() {
           <div className="space-y-4">
             <div>
               <h1 className="font-display text-3xl font-bold tracking-tight text-slate-50 md:text-4xl">
-                Blog e Reviews
+                Reviews
               </h1>
               <p className="mt-1 text-sm text-slate-400">
                 Artigos, reviews completos e analises detalhadas dos perifericos da tierlist.
@@ -90,23 +170,12 @@ function BlogPageContent() {
             </div>
           </div>
 
-          {/* Search & Filter Bar */}
-          <Card className="border-white/[0.08] bg-[#0d1117]">
-            <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
-                <Input
-                  className="h-10 border-white/[0.1] bg-white/[0.02] pl-10 placeholder:text-slate-500"
-                  placeholder="Buscar no blog..."
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                />
-              </div>
-              <Badge variant="secondary" className="w-fit rounded-full bg-cyan-500/15 px-3 py-1.5 text-xs text-cyan-300">
-                {filteredPosts.length} artigo(s)
-              </Badge>
-            </CardContent>
-          </Card>
+          <SearchComponent
+            data={searchData}
+            placeholder="Buscar no blog..."
+            label="Sort by"
+            onFilteredDataChange={handleFilteredDataChange}
+          />
 
           {/* Posts Grid */}
           {loading ? (
@@ -116,61 +185,30 @@ function BlogPageContent() {
                 <span>Carregando artigos...</span>
               </div>
             </div>
-          ) : filteredPosts.length === 0 ? (
-            <Card className="border-white/[0.08] bg-[#0d1117]">
-              <CardContent className="py-12 text-center">
-                <p className="text-slate-400">Nenhum artigo encontrado.</p>
-                <p className="mt-2 text-sm text-slate-500">
-                  Novos reviews e analises serao publicados em breve.
-                </p>
-              </CardContent>
-            </Card>
+          ) : currentPosts.length === 0 ? (
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0d1117] p-10 text-center">
+              <p className="text-slate-400">Nenhum artigo encontrado.</p>
+              <p className="mt-2 text-sm text-slate-500">
+                Novos reviews e analises serao publicados em breve.
+              </p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {filteredPosts.map((post) => {
-                const relatedPeripheral = Array.isArray(post.peripherals)
-                  ? post.peripherals[0]
-                  : null
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {currentPosts.map((post) => {
+                const meta = getArticleMeta(post)
 
                 return (
-                  <Link key={post.id} href={`/blog/${post.slug}`}>
-                    <Card className="group h-full border-white/[0.08] bg-[#0d1117] transition-all hover:border-cyan-500/30 hover:bg-[#131921]">
-                      {post.cover_image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={post.cover_image_url}
-                          alt={post.title}
-                          className="h-44 w-full rounded-t-xl object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-44 items-center justify-center rounded-t-xl bg-gradient-to-br from-cyan-500/10 to-cyan-500/5">
-                          <span className="text-4xl font-bold text-cyan-500/20">S</span>
-                        </div>
-                      )}
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg text-slate-50 group-hover:text-cyan-300 transition-colors">
-                          {post.title}
-                        </CardTitle>
-                        <CardDescription className="text-sm">
-                          {relatedPeripheral 
-                            ? `${relatedPeripheral.brand} / ${relatedPeripheral.name}` 
-                            : "Artigo Geral"
-                          }
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <p className="line-clamp-2 text-sm text-slate-400">
-                          {post.excerpt ?? "Sem resumo disponivel"}
-                        </p>
-                        <p className="text-xs text-slate-600">
-                          {new Date(post.created_at).toLocaleDateString("pt-BR", {
-                            day: "2-digit",
-                            month: "long",
-                            year: "numeric"
-                          })}
-                        </p>
-                      </CardContent>
-                    </Card>
+                  <Link key={post.id} href={`/blog/${post.slug}`} className="block">
+                    <GlassBlogCard
+                      className="max-w-none"
+                      title={meta.title}
+                      excerpt={meta.excerpt}
+                      image={meta.image}
+                      author={meta.author}
+                      date={meta.date}
+                      readTime={meta.readTime}
+                      tags={meta.tags}
+                    />
                   </Link>
                 )
               })}
@@ -181,9 +219,7 @@ function BlogPageContent() {
 
       {/* Mobile Sidebar */}
       <div className="md:hidden">
-        <PublicSidebar
-          onCategoryChange={() => {}}
-        />
+        <PublicSidebar />
       </div>
     </div>
   )
