@@ -4,6 +4,7 @@ import { Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { CARD_TAG_STYLES, CARD_TIER_STYLES } from "@/lib/tierlist-theme"
 
 type Tag = "competitive" | "versatile" | "value" | "comfort"
 type Tier = "T0" | "T0.5" | "T1" | "T2"
@@ -12,6 +13,7 @@ interface PeripheralCardProps {
   id: string
   name: string
   brand: string
+  image_url: string | null
   price: number
   tier: Tier
   category: string
@@ -40,20 +42,6 @@ function formatLabel(value: string) {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ")
-}
-
-const TAG_STYLES: Record<Tag, { bg: string; text: string; border: string }> = {
-  competitive: { bg: "bg-red-500/15", text: "text-red-300", border: "border-red-500/30" },
-  versatile: { bg: "bg-cyan-500/15", text: "text-cyan-300", border: "border-cyan-500/30" },
-  value: { bg: "bg-emerald-500/15", text: "text-emerald-300", border: "border-emerald-500/30" },
-  comfort: { bg: "bg-amber-500/15", text: "text-amber-300", border: "border-amber-500/30" },
-}
-
-const TIER_STYLES: Record<Tier, { bg: string; text: string; glow: string }> = {
-  "T0": { bg: "bg-gradient-to-br from-red-500 to-red-600", text: "text-white", glow: "shadow-red-500/30" },
-  "T0.5": { bg: "bg-gradient-to-br from-orange-500 to-orange-600", text: "text-white", glow: "shadow-orange-500/30" },
-  "T1": { bg: "bg-gradient-to-br from-yellow-500 to-yellow-600", text: "text-slate-900", glow: "shadow-yellow-500/30" },
-  "T2": { bg: "bg-gradient-to-br from-blue-500 to-blue-600", text: "text-white", glow: "shadow-blue-500/30" },
 }
 
 function RatingStars({ rating, max = 5 }: { rating: number; max?: number }) {
@@ -99,9 +87,9 @@ function getAllSpecs(item: PeripheralCardProps): Array<{ label: string; value: s
 }
 
 export function PeripheralCard({ ...item }: PeripheralCardProps) {
-  const tierStyle = TIER_STYLES[item.tier]
+  const tierStyle = CARD_TIER_STYLES[item.tier]
   const primaryTag = item.tags[0]
-  const tagStyle = primaryTag ? TAG_STYLES[primaryTag] : TAG_STYLES.versatile
+  const tagStyle = primaryTag ? CARD_TAG_STYLES[primaryTag] : CARD_TAG_STYLES.versatile
   
   // Default ratings if not provided
   const ratings = item.ratings || {
@@ -118,11 +106,20 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
           <div className="relative w-20 h-20">
             {/* Avatar/Image */}
             <div className={cn(
-              "grid size-20 place-items-center rounded-lg text-3xl font-black shadow-lg relative",
+              "grid size-20 place-items-center overflow-hidden rounded-lg text-3xl font-black shadow-lg relative",
               tierStyle.bg,
               tierStyle.text,
             )}>
-              {item.brand.slice(0, 2).toUpperCase()}
+              {item.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={item.name}
+                  className="h-full w-full object-cover"
+                  src={item.image_url}
+                />
+              ) : (
+                item.brand.slice(0, 2).toUpperCase()
+              )}
               
               {/* Price Tag - Top Right */}
               <Badge className="absolute top-0 right-0 rounded-sm h-5 px-1.5 py-0.5 m-1 text-[10px]" variant="secondary">
@@ -152,11 +149,20 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
         {/* Header - Centered */}
         <div className="flex flex-col items-center gap-3">
           <div className={cn(
-            "grid size-12 place-items-center rounded-lg text-base font-bold shadow-lg",
+            "grid size-12 place-items-center overflow-hidden rounded-lg text-base font-bold shadow-lg",
             tierStyle.bg,
             tierStyle.text,
           )}>
-            {item.brand.slice(0, 2).toUpperCase()}
+            {item.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                alt={item.name}
+                className="h-full w-full object-cover"
+                src={item.image_url}
+              />
+            ) : (
+              item.brand.slice(0, 2).toUpperCase()
+            )}
           </div>
           <div className="text-center">
             <h4 className="text-sm font-bold text-slate-50">{item.name}</h4>
@@ -179,7 +185,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
           <p className="text-[10px] font-semibold uppercase text-slate-500 mb-2.5">Características</p>
           <div className="flex gap-2">
             {item.tags.map((tag) => {
-              const style = TAG_STYLES[tag]
+              const style = CARD_TAG_STYLES[tag]
               return (
                 <span
                   key={tag}

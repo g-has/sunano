@@ -70,35 +70,50 @@ export default function BlogPostPage() {
     async function loadPost(postSlug: string) {
       setLoading(true)
 
-      const selectWithThumbnail =
-        "id, title, slug, author_id, excerpt, cover_image_url, cover_thumbnail_url, video_url, content, created_at, admin_profiles(display_name, avatar_url, email), peripherals(name, brand)"
-      const selectLegacy =
-        "id, title, slug, excerpt, cover_image_url, video_url, content, created_at, peripherals(name, brand)"
-
+      // Try with full query including author data (without read_time_minutes since it might not exist)
       let { data, error } = await supabase
         .from("blog_posts")
-        .select(selectWithThumbnail)
+        .select(
+          "id, title, slug, author_id, excerpt, cover_image_url, cover_thumbnail_url, video_url, content, created_at, admin_profiles(display_name, avatar_url, email), peripherals(name, brand)"
+        )
         .eq("slug", postSlug)
         .eq("is_published", true)
         .single()
 
-      if (
-        error?.message?.includes("cover_thumbnail_url") ||
-        error?.message?.includes("author_id") ||
-        error?.message?.includes("admin_profiles")
-      ) {
-        const legacyResponse = await supabase
+      // If error, try without cover_thumbnail_url
+      if (error) {
+        const retryResponse = await supabase
           .from("blog_posts")
-          .select(selectLegacy)
+          .select(
+            "id, title, slug, author_id, excerpt, cover_image_url, video_url, content, created_at, admin_profiles(display_name, avatar_url, email), peripherals(name, brand)"
+          )
           .eq("slug", postSlug)
           .eq("is_published", true)
           .single()
 
-        data = legacyResponse.data
-        error = legacyResponse.error
+        if (!retryResponse.error) {
+          data = retryResponse.data
+          error = retryResponse.error
+        }
+      }
+
+      // If still error, try basic query without author
+      if (error) {
+        const basicResponse = await supabase
+          .from("blog_posts")
+          .select(
+            "id, title, slug, excerpt, cover_image_url, video_url, content, created_at, peripherals(name, brand)"
+          )
+          .eq("slug", postSlug)
+          .eq("is_published", true)
+          .single()
+
+        data = basicResponse.data
+        error = basicResponse.error
       }
 
       if (error) {
+        console.error("Error loading blog post:", error)
         setPost(null)
         setLoading(false)
         return

@@ -56,9 +56,63 @@ create table if not exists public.admin_profiles (
   email text,
   display_name text,
   avatar_url text,
+  role text not null default 'admin',
+  permissions jsonb not null default jsonb_build_object(
+    'dashboard_read', true,
+    'profile_read', true,
+    'profile_write', true,
+    'settings_read', true,
+    'settings_write', true,
+    'peripherals_read', false,
+    'peripherals_write', false,
+    'blog_read', false,
+    'blog_write', false,
+    'tiers_read', false,
+    'tiers_write', false,
+    'maintenance_read', false,
+    'maintenance_write', false
+  ),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table if exists public.admin_profiles
+  add column if not exists role text not null default 'admin';
+
+alter table if exists public.admin_profiles
+  add column if not exists permissions jsonb not null default jsonb_build_object(
+    'dashboard_read', true,
+    'profile_read', true,
+    'profile_write', true,
+    'settings_read', true,
+    'settings_write', true,
+    'peripherals_read', false,
+    'peripherals_write', false,
+    'blog_read', false,
+    'blog_write', false,
+    'tiers_read', false,
+    'tiers_write', false,
+    'maintenance_read', false,
+    'maintenance_write', false
+  );
+
+update public.admin_profiles
+set role = 'webmaster',
+  permissions = jsonb_build_object(
+    'dashboard_read', true,
+    'peripherals_read', true,
+    'peripherals_write', true,
+    'blog_read', true,
+    'blog_write', true,
+    'settings_read', true,
+    'settings_write', true,
+    'tiers_read', true,
+    'tiers_write', true,
+    'profile_read', true,
+    'profile_write', true,
+    'maintenance_read', true,
+    'maintenance_write', true
+  );
 
 alter table if exists public.blog_posts
   add column if not exists author_id uuid;

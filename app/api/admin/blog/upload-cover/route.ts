@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { hasAdminPermission } from "@/lib/admin-permissions"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
@@ -24,6 +25,16 @@ export async function POST(request: Request) {
         { error: "Sessão expirada. Entre novamente no admin." },
         { status: 401 }
       )
+    }
+
+    const { data: profile } = await supabase
+      .from("admin_profiles")
+      .select("id, role, permissions")
+      .eq("id", authData.user.id)
+      .maybeSingle()
+
+    if (!profile || !hasAdminPermission(profile, "blog_write")) {
+      return NextResponse.json({ error: "Sem permissão para enviar imagens." }, { status: 403 })
     }
 
     const formData = await request.formData()

@@ -14,6 +14,13 @@ type AdminProfile = {
   email: string | null
   display_name: string
   avatar_url: string | null
+  role: "admin" | "webmaster"
+  permissions: Record<string, boolean>
+}
+
+type AdminUser = AdminProfile & {
+  created_at: string
+  updated_at: string
 }
 
 function getNameFallback(email: string | null | undefined) {
@@ -32,6 +39,9 @@ export default function SettingsPage() {
   const [displayName, setDisplayName] = useState("")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [role, setRole] = useState<"admin" | "webmaster">("admin")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
   useEffect(() => {
     loadProfile()
@@ -55,6 +65,7 @@ export default function SettingsPage() {
       setDisplayName(data.profile.display_name)
       setAvatarUrl(data.profile.avatar_url)
       setAvatarPreview(data.profile.avatar_url)
+      setRole(data.profile.role)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar perfil")
     } finally {
@@ -129,11 +140,47 @@ export default function SettingsPage() {
       setEmail(data.profile.email)
       setAvatarUrl(data.profile.avatar_url)
       setAvatarPreview(data.profile.avatar_url)
+      setRole(data.profile.role)
       setSuccess("Perfil atualizado com sucesso.")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar perfil")
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function updatePassword() {
+    try {
+      setError(null)
+      setSuccess(null)
+
+      if (newPassword.length < 8) {
+        setError("A senha deve ter no mínimo 8 caracteres.")
+        return
+      }
+
+      if (newPassword !== confirmPassword) {
+        setError("As senhas não conferem.")
+        return
+      }
+
+      const response = await fetch("/api/admin/profile/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: newPassword }),
+      })
+
+      const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean } | null
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error ?? "Erro ao alterar senha")
+      }
+
+      setNewPassword("")
+      setConfirmPassword("")
+      setSuccess("Senha atualizada com sucesso.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao alterar senha")
     }
   }
 
@@ -209,6 +256,45 @@ export default function SettingsPage() {
               Prévia da autoria: <span className="text-slate-300">{previewName}</span>
             </p>
           </div>
+
+          {role === "webmaster" ? (
+            <div className="space-y-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-amber-100">Alterar senha</h3>
+                <p className="text-xs text-amber-200/80">
+                  Esta área é exclusiva para o WEB Master.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-100">Nova senha</label>
+                  <Input
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    className="border-white/10 bg-white/5"
+                    placeholder="Digite a nova senha"
+                    type="password"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-100">Confirmar senha</label>
+                  <Input
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    className="border-white/10 bg-white/5"
+                    placeholder="Repita a nova senha"
+                    type="password"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={updatePassword}>Salvar nova senha</Button>
+              </div>
+            </div>
+          ) : null}
 
           <div className="flex justify-end">
             <Button onClick={saveProfile} disabled={saving || uploading}>

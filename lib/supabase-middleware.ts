@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import type { Database } from "@/lib/supabase"
+import type { AdminProfile } from "@/lib/admin-permissions"
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } })
@@ -26,6 +27,13 @@ export async function updateSession(request: NextRequest) {
   )
 
   const { data } = await supabase.auth.getUser()
+  const { data: profile } = data.user
+    ? await supabase
+        .from("admin_profiles")
+        .select("id, email, display_name, avatar_url, role, permissions")
+        .eq("id", data.user.id)
+        .maybeSingle()
+    : { data: null }
 
-  return { response, user: data.user }
+  return { response, user: data.user, profile: (profile as AdminProfile | null) ?? null }
 }

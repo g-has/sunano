@@ -119,3 +119,13 @@ h3,
 .tier-badge-t2 {
   background: linear-gradient(135deg, oklch(0.6 0.15 250) 0%, oklch(0.5 0.13 245) 100%);
 }
+
+/* Interactive elements - cursor pointer */
+a,
+button,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+[onclick] {
+  cursor: pointer;
+}

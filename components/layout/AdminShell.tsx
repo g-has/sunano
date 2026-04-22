@@ -2,29 +2,66 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Eye, Home, LogOut, Menu, NotebookPen, Package, Settings, X } from "lucide-react"
+import { BarChart3, Eye, Gift, Home, LogOut, Menu, NotebookPen, Package, Settings, Users, X } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { logoutAction } from "@/app/admin/actions"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { hasAdminPermission, type AdminPermissionKey, type AdminProfile, isWebMaster } from "@/lib/admin-permissions"
 
 const NAV_ITEMS = [
-  { href: "/admin", label: "Dashboard", icon: Home },
-  { href: "/admin/peripherals", label: "Perifericos", icon: Package },
-  { href: "/admin/blog", label: "Blog & Reviews", icon: NotebookPen },
-  { href: "/admin/tiers", label: "Gerenciar Tiers", icon: BarChart3 },
-  { href: "/admin/settings", label: "Configuracoes", icon: Settings },
+  { href: "/admin", label: "Dashboard", icon: Home, permission: "dashboard_read" },
+  { href: "/admin/peripherals", label: "Perifericos", icon: Package, permission: "peripherals_read" },
+  { href: "/admin/blog", label: "Blog & Reviews", icon: NotebookPen, permission: "blog_read" },
+  { href: "/admin/offers", label: "Ofertas", icon: Gift, permission: "offers_read" },
+  { href: "/admin/users", label: "Usuarios", icon: Users, requiresWebMaster: true },
+  { href: "/admin/settings", label: "Configuracoes", icon: Settings, permission: "settings_read" },
 ]
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [profile, setProfile] = useState<AdminProfile | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadProfile() {
+      try {
+        const response = await fetch("/api/admin/profile")
+        const data = (await response.json().catch(() => null)) as
+          | { profile?: AdminProfile }
+          | null
+
+        if (!response.ok || !data?.profile || !isMounted) return
+
+        setProfile(data.profile)
+      } catch {
+        if (isMounted) setProfile(null)
+      }
+    }
+
+    loadProfile()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin"
     return pathname.startsWith(href) && href !== "/"
   }
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (!profile) return true
+    if ("requiresWebMaster" in item && item.requiresWebMaster) {
+      return isWebMaster(profile)
+    }
+    if (!("permission" in item) || !item.permission) return true
+    return hasAdminPermission(profile, item.permission as AdminPermissionKey)
+  })
 
   return (
     <div className="min-h-screen bg-[#0a0d14] text-slate-100">
@@ -44,7 +81,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         >
           <nav className="flex-1 overflow-hidden px-3 pt-6 pb-4">
             <div className="space-y-1">
-              {NAV_ITEMS.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon
                 const active = isActive(item.href)
 

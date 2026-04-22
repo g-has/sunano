@@ -25,7 +25,7 @@ export async function GET() {
 
     const { data: profile, error } = await supabase
       .from("admin_profiles")
-      .select("id, email, display_name, avatar_url")
+      .select("id, email, display_name, avatar_url, role, permissions")
       .eq("id", authData.user.id)
       .maybeSingle()
 
@@ -43,6 +43,8 @@ export async function GET() {
         email,
         display_name: displayName,
         avatar_url: profile?.avatar_url ?? null,
+        role: profile?.role ?? "admin",
+        permissions: profile?.permissions ?? {},
       },
     })
   } catch {
@@ -69,18 +71,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Sessão expirada. Entre novamente no admin." }, { status: 401 })
     }
 
+    const { data: currentProfile } = await supabase
+      .from("admin_profiles")
+      .select("id, email, display_name, avatar_url, role, permissions")
+      .eq("id", authData.user.id)
+      .maybeSingle()
+
+    if (!currentProfile) {
+      return NextResponse.json({ error: "Perfil administrativo não encontrado." }, { status: 403 })
+    }
+
     const email = authData.user.email ?? null
     const incomingDisplayName = parsed.data.display_name?.trim() || null
     const displayName = incomingDisplayName || defaultNameFromEmail(email)
 
+    const payload = {
+      id: authData.user.id,
+      email,
+      display_name: displayName,
+      avatar_url: parsed.data.avatar_url?.trim() || null,
+      role: currentProfile.role,
+      permissions: currentProfile.permissions,
+    }
+
     const { error } = await supabase.from("admin_profiles").upsert(
+      payload,
       {
-        id: authData.user.id,
-        email,
-        display_name: displayName,
-        avatar_url: parsed.data.avatar_url?.trim() || null,
+        onConflict: "id",
       },
-      { onConflict: "id" }
     )
 
     if (error) {
@@ -94,6 +112,8 @@ export async function POST(request: Request) {
         email,
         display_name: displayName,
         avatar_url: parsed.data.avatar_url?.trim() || null,
+        role: currentProfile.role,
+        permissions: currentProfile.permissions ?? {},
       },
     })
   } catch {

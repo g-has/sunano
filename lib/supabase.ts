@@ -1,9 +1,9 @@
-import { createClient } from "@supabase/supabase-js"
+import { createBrowserClient } from "@supabase/ssr"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
 export type Database = {
   public: {
@@ -51,6 +51,8 @@ export type Database = {
           email: string | null
           display_name: string | null
           avatar_url: string | null
+          role: "admin" | "webmaster"
+          permissions: Record<string, boolean>
           created_at: string
           updated_at: string
         }

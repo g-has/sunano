@@ -71,41 +71,56 @@ function BlogPageContent() {
     setFilteredPosts(posts)
   }, [posts])
 
+  // Load author data for posts that don't have it
+  useEffect(() => {
+    const postsNeedingAuthors = posts.filter((p) => p.author_id && !p.admin_profiles)
+
+    if (postsNeedingAuthors.length === 0) return
+
+    async function loadAuthors() {
+      const authorIds = [...new Set(postsNeedingAuthors.map((p) => p.author_id).filter(Boolean))]
+
+      const { data: authorsData } = await supabase
+        .from("admin_profiles")
+        .select("id, display_name, avatar_url, email")
+        .in("id", authorIds)
+
+      if (authorsData) {
+        const authorsMap = new Map(authorsData.map((a) => [a.id, a]))
+
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.author_id && !post.admin_profiles
+              ? { ...post, admin_profiles: authorsMap.get(post.author_id) || null }
+              : post
+          )
+        )
+      }
+    }
+
+    loadAuthors()
+  }, [posts])
+
   async function loadPosts() {
     setLoading(true)
 
-    const selectWithThumbnail =
-      "id, title, slug, author_id, excerpt, cover_image_url, cover_thumbnail_url, read_time_minutes, created_at, admin_profiles(display_name, avatar_url, email), peripherals(id, name, brand)"
-    const selectLegacy = "id, title, slug, excerpt, cover_image_url, created_at, peripherals(id, name, brand)"
+    // Build base query
+    let baseQuery = supabase
+      .from("blog_posts")
+      .select(
+        "id, title, slug, author_id, excerpt, cover_image_url, cover_thumbnail_url, read_time_minutes, created_at, peripherals(id, name, brand)"
+      )
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
 
-    const buildQuery = (selectClause: string) => {
-      let query = supabase
-        .from("blog_posts")
-        .select(selectClause)
-        .eq("is_published", true)
-        .order("created_at", { ascending: false })
-
-      if (peripheralFilter) {
-        query = query.eq("peripheral_id", peripheralFilter)
-      }
-
-      return query
+    if (peripheralFilter) {
+      baseQuery = baseQuery.eq("peripheral_id", peripheralFilter)
     }
 
-    let { data, error } = await buildQuery(selectWithThumbnail)
-
-    if (
-      error?.message?.includes("cover_thumbnail_url") ||
-      error?.message?.includes("author_id") ||
-      error?.message?.includes("admin_profiles") ||
-      error?.message?.includes("read_time_minutes")
-    ) {
-      const legacyResponse = await buildQuery(selectLegacy)
-      data = legacyResponse.data
-      error = legacyResponse.error
-    }
+    const { data, error } = await baseQuery
 
     if (error) {
+      console.error("Error loading blog posts:", error)
       setPosts([])
       setLoading(false)
       return

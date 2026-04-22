@@ -13,6 +13,17 @@ When enabled:
 - Non-authenticated API requests return `503`
 - Logged-in admin users keep normal access
 
+## Admin access
+
+- `webmaster` has full access to every permission and cannot be limited by role rules.
+- Regular `admin` users receive permissions through the `permissions` JSON on `admin_profiles`.
+- Password changes are only available to `webmaster` accounts.
+- The login screen includes a password reset action that always confirms the email was sent.
+
+## Environment
+
+Copy [.env.example](.env.example) and set the Supabase keys plus the SMTP placeholders used by Auth email delivery.
+
 ## Adding components
 
 To add components to your app, run the following command:

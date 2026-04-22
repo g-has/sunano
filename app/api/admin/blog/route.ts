@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
+import { hasAdminPermission } from "@/lib/admin-permissions"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 const blogPostSchema = z.object({
@@ -84,6 +85,16 @@ export async function POST(request: Request) {
         { error: "Sessão expirada. Entre novamente no admin." },
         { status: 401 }
       )
+    }
+
+    const { data: profile } = await supabase
+      .from("admin_profiles")
+      .select("id, role, permissions")
+      .eq("id", authData.user.id)
+      .maybeSingle()
+
+    if (!profile || !hasAdminPermission(profile, "blog_write")) {
+      return NextResponse.json({ error: "Sem permissão para salvar artigos." }, { status: 403 })
     }
 
     const { error: profileEnsureError } = await supabase.from("admin_profiles").upsert(
@@ -185,8 +196,9 @@ export async function POST(request: Request) {
     }
 
     if (isMissingColumnError(result.error?.message, "read_time_minutes")) {
+      // For updates, always include read_time_minutes calculation
       const insertPayload = parsed.data.id
-        ? payloadWithoutReadTime
+        ? payload // Use full payload with read_time_minutes for updates
         : { ...payloadWithoutReadTime, author_id: authData.user.id }
 
       result = parsed.data.id
@@ -197,8 +209,20 @@ export async function POST(request: Request) {
     }
 
     if (isMissingColumnError(result.error?.message, "read_time_minutes") && isMissingColumnError(result.error?.message, "cover_thumbnail_url")) {
+      // For updates, create a payload without thumbnail but WITH read_time_minutes
+      const payloadForThisCase = {
+        peripheral_id: payload.peripheral_id,
+        title: payload.title,
+        excerpt: payload.excerpt,
+        cover_image_url: payload.cover_image_url,
+        read_time_minutes: payload.read_time_minutes,
+        video_url: payload.video_url,
+        content: payload.content,
+        is_published: payload.is_published,
+      }
+
       const insertPayload = parsed.data.id
-        ? payloadWithoutReadTimeOrThumbnail
+        ? payloadForThisCase
         : { ...payloadWithoutReadTimeOrThumbnail, author_id: authData.user.id }
 
       result = parsed.data.id

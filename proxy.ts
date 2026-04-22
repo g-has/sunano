@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
+import { hasAdminPermission, isWebMaster, type AdminPermissionKey } from "@/lib/admin-permissions"
 import { updateSession } from "@/lib/supabase-middleware"
 
 function isMaintenanceEnabled() {
@@ -12,6 +13,35 @@ function copyCookies(source: NextResponse, destination: NextResponse) {
   source.cookies.getAll().forEach((cookie) => {
     destination.cookies.set(cookie.name, cookie.value, cookie)
   })
+}
+
+function getRequiredPermission(pathname: string): AdminPermissionKey | null {
+  if (pathname === "/admin") return "dashboard_read"
+  if (pathname.startsWith("/admin/peripherals/new") || /^\/admin\/peripherals\/[^/]+$/.test(pathname)) {
+    return "peripherals_write"
+  }
+  if (pathname.startsWith("/admin/peripherals")) return "peripherals_read"
+  if (pathname.startsWith("/admin/blog/new") || /^\/admin\/blog\/[^/]+$/.test(pathname)) {
+    return "blog_write"
+  }
+  if (pathname.startsWith("/admin/blog")) return "blog_read"
+  if (pathname.startsWith("/admin/offers/new")) return "offers_write"
+  if (pathname.startsWith("/admin/offers")) return "offers_read"
+  if (pathname.startsWith("/admin/users")) return null
+  if (pathname.startsWith("/admin/settings")) return "settings_read"
+  if (pathname.startsWith("/admin/tiers")) return "tiers_read"
+  if (pathname.startsWith("/admin/maintenance")) return "maintenance_read"
+  return "dashboard_read"
+}
+
+function requiresWritePermission(pathname: string) {
+  return (
+    pathname.startsWith("/admin/peripherals/new") ||
+    /^\/admin\/peripherals\/[^/]+$/.test(pathname) ||
+    pathname.startsWith("/admin/blog/new") ||
+    /^\/admin\/blog\/[^/]+$/.test(pathname) ||
+    pathname.startsWith("/admin/offers/new")
+  )
 }
 
 export async function proxy(request: NextRequest) {
@@ -31,9 +61,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const { response, user } = await updateSession(request)
+  const { response, user, profile } = await updateSession(request)
 
-  if (maintenanceMode && !user) {
+  if (maintenanceMode && !profile) {
     if (isLoginRoute) {
       return response
     }
@@ -50,7 +80,7 @@ export async function proxy(request: NextRequest) {
     return redirectResponse
   }
 
-  if (!user && !isLoginRoute) {
+  if (!profile && !isLoginRoute) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = "/admin/login"
 
@@ -59,13 +89,39 @@ export async function proxy(request: NextRequest) {
     return redirectResponse
   }
 
-  if (user && isLoginRoute) {
+  if (profile && isLoginRoute) {
     const adminUrl = request.nextUrl.clone()
     adminUrl.pathname = "/admin"
 
     const redirectResponse = NextResponse.redirect(adminUrl)
     copyCookies(response, redirectResponse)
     return redirectResponse
+  }
+
+  if (profile && pathname.startsWith("/admin/users") && !isWebMaster(profile)) {
+    const adminUrl = request.nextUrl.clone()
+    adminUrl.pathname = "/admin"
+
+    const redirectResponse = NextResponse.redirect(adminUrl)
+    copyCookies(response, redirectResponse)
+    return redirectResponse
+  }
+
+  if (profile && isAdminRoute && !isLoginRoute) {
+    const requiredPermission = getRequiredPermission(pathname)
+    const hasAccess = requiredPermission ? hasAdminPermission(profile, requiredPermission) : true
+    const hasWriteAccess = requiredPermission && requiresWritePermission(pathname)
+      ? hasAdminPermission(profile, requiredPermission)
+      : hasAccess
+
+    if (!hasAccess || !hasWriteAccess) {
+      const adminUrl = request.nextUrl.clone()
+      adminUrl.pathname = "/admin"
+
+      const redirectResponse = NextResponse.redirect(adminUrl)
+      copyCookies(response, redirectResponse)
+      return redirectResponse
+    }
   }
 
   return response

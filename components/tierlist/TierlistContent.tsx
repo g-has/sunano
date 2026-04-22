@@ -15,6 +15,7 @@ type Peripheral = {
   id: string
   name: string
   brand: string
+  image_url: string | null
   category: Category
   tier: Tier
   price: number
@@ -27,6 +28,8 @@ type Peripheral = {
     surface?: "cloth" | "hybrid" | "glass"
     driver?: string
     profile?: string
+    adminValueBand?: string
+    adminRecommendedBand?: string
   }
 }
 

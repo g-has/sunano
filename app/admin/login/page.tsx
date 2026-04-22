@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
             <div className="relative space-y-6">
               <div className="inline-flex items-center gap-3 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200">
                 <span className="size-2 rounded-full bg-cyan-300" />
-                Admin acess only
+                Acesso administrativo
               </div>
 
               <div className="space-y-3">
@@ -18,7 +18,7 @@ export default function AdminLoginPage() {
                   Acesso ao painel administrativo.
                 </h1>
                 <p className="max-w-xl text-base leading-7 text-slate-400">
-                  Entre com sua conta Supabase para gerenciar periféricos, posts e configurações do site.
+                  Entre com sua conta para cuidar do site com segurança. Se precisar, você também pode pedir um novo acesso por email.
                 </p>
               </div>
             </div>

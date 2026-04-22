@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  BadgePercent,
   Clock3,
   Instagram,
   LayoutGrid,
@@ -36,6 +37,7 @@ interface PublicSidebarProps {
 const NAV_ITEMS = [
   { href: "/", label: "Tier List", icon: LayoutGrid },
   { href: "/blog", label: "Reviews", icon: Newspaper },
+  { href: "/offers", label: "Ofertas", icon: BadgePercent },
 ]
 
 export function PublicSidebar({

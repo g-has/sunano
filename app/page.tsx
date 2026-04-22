@@ -20,6 +20,7 @@ export default async function Page() {
     id: p.id,
     name: p.name,
     brand: p.brand,
+    image_url: p.image_url,
     category: p.category as "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset",
     tier: p.tier as "T0" | "T0.5" | "T1" | "T2",
     price: p.price,
@@ -32,6 +33,8 @@ export default async function Page() {
       surface?: "cloth" | "hybrid" | "glass"
       driver?: string
       profile?: string
+      adminValueBand?: string
+      adminRecommendedBand?: string
     },
   }))
 
