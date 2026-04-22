@@ -209,7 +209,7 @@ export default function BlogPostPage() {
                 </div>
               ) : null}
 
-              <article className="whitespace-pre-wrap text-sm leading-7 text-slate-200">
+              <article className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm leading-7 text-slate-200">
                 {post.content}
               </article>
 
