@@ -33,5 +33,6 @@ export function TierlistHeader({ categoryLabel }: TierlistHeaderProps) {
     //   </div>
     // </header>
     <></>
+
   )
 }
