@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
 
 type MouseShape = "symmetrical" | "ergonomic"
@@ -14,16 +15,6 @@ type PriceBand = "all" | "budget" | "mid" | "premium"
 type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
 
 const KEYBOARD_LAYOUTS: KeyboardLayout[] = ["60%", "75%", "tkl", "full-size"]
-const CATEGORY_OPTIONS: { key: Category; label: string }[] = [
-  { key: "all", label: "Todas" },
-  { key: "keyboard", label: "Teclados" },
-  { key: "mouse", label: "Mouses" },
-  { key: "mousepad", label: "Mousepads" },
-  { key: "glasspad", label: "Glasspads" },
-  { key: "iem", label: "IEMs" },
-  { key: "headset", label: "Headsets" },
-]
-
 function formatLabel(value: string) {
   return value
     .split("-")
@@ -72,10 +63,22 @@ export function FilterBar({
   showMouseShapeFilter,
   showKeyboardLayoutFilter,
 }: FilterBarProps) {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
+  const categoryOptions: { key: Category; label: string }[] = [
+    { key: "all", label: isEnglish ? "All" : "Todas" },
+    { key: "keyboard", label: isEnglish ? "Keyboards" : "Teclados" },
+    { key: "mouse", label: isEnglish ? "Mice" : "Mouses" },
+    { key: "mousepad", label: "Mousepads" },
+    { key: "glasspad", label: "Glasspads" },
+    { key: "iem", label: "IEMs" },
+    { key: "headset", label: "Headsets" },
+  ]
+
   return (
     <div className="space-y-3 rounded-xl border border-white/[0.08] bg-[#0d1117] p-4">
       <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
-        {CATEGORY_OPTIONS.map((category) => {
+        {categoryOptions.map((category) => {
           const active = selectedCategory === category.key
 
           return (
@@ -102,10 +105,10 @@ export function FilterBar({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
           <Input
-            aria-label="Buscar perifericos"
+            aria-label={isEnglish ? "Search peripherals" : "Buscar perifericos"}
             className="h-10 border-white/[0.1] bg-white/[0.02] pl-10 text-sm placeholder:text-slate-500 focus-visible:border-cyan-500/50 focus-visible:ring-cyan-500/20"
             onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Buscar produtos, marcas, sensores..."
+            placeholder={isEnglish ? "Search products, brands, sensors..." : "Buscar produtos, marcas, sensores..."}
             value={query}
           />
         </div>
@@ -123,7 +126,7 @@ export function FilterBar({
                 )}
               >
                 <SlidersHorizontal className="size-4" />
-                Filtros
+                {isEnglish ? "Filters" : "Filtros"}
                 {activeFiltersCount > 0 && (
                   <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-cyan-500/20 text-xs font-medium text-cyan-300">
                     {activeFiltersCount}
@@ -136,9 +139,9 @@ export function FilterBar({
               className="w-80 space-y-4 rounded-xl border-white/[0.1] bg-[#0d1117] p-4 shadow-xl sm:w-96"
             >
               <div>
-                <h3 className="text-sm font-semibold text-slate-100">Filtrar Tierlist</h3>
+                <h3 className="text-sm font-semibold text-slate-100">{isEnglish ? "Filter Tierlist" : "Filtrar Tierlist"}</h3>
                 <p className="mt-0.5 text-xs text-slate-400">
-                  Preco, marca e opcoes especificas por categoria.
+                  {isEnglish ? "Price, brand, and category-specific options." : "Preco, marca e opcoes especificas por categoria."}
                 </p>
               </div>
 
@@ -152,12 +155,12 @@ export function FilterBar({
                   </label>
                   <Select onValueChange={onBrandChange} value={selectedBrand}>
                     <SelectTrigger className="border-white/[0.1] bg-white/[0.02]">
-                      <SelectValue placeholder="Marca" />
+                      <SelectValue placeholder={isEnglish ? "Brand" : "Marca"} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableBrands.map((brand) => (
                         <SelectItem key={brand} value={brand}>
-                          {brand === "all" ? "Todas" : formatLabel(brand)}
+                          {brand === "all" ? (isEnglish ? "All" : "Todas") : formatLabel(brand)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -167,18 +170,18 @@ export function FilterBar({
                 {/* Price Filter */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                    Faixa de Preco
+                    {isEnglish ? "Price Range" : "Faixa de Preco"}
                   </label>
                   <Select
                     onValueChange={(value) => onPriceBandChange(value as PriceBand)}
                     value={selectedPriceBand}
                   >
                     <SelectTrigger className="border-white/[0.1] bg-white/[0.02]">
-                      <SelectValue placeholder="Preco" />
+                      <SelectValue placeholder={isEnglish ? "Price" : "Preco"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="budget">Budget (ate $80)</SelectItem>
+                      <SelectItem value="all">{isEnglish ? "All" : "Todos"}</SelectItem>
+                      <SelectItem value="budget">{isEnglish ? "Budget (up to $80)" : "Budget (ate $80)"}</SelectItem>
                       <SelectItem value="mid">Mid ($81 - $160)</SelectItem>
                       <SelectItem value="premium">Premium ($160+)</SelectItem>
                     </SelectContent>
@@ -189,7 +192,7 @@ export function FilterBar({
                 {showMouseShapeFilter && (
                   <div className="space-y-2">
                     <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                      Shape do Mouse
+                      {isEnglish ? "Mouse Shape" : "Shape do Mouse"}
                     </label>
                     <Select
                       onValueChange={(value) => onMouseShapeChange(value as MouseShape | "all")}
@@ -199,9 +202,9 @@ export function FilterBar({
                         <SelectValue placeholder="Shape" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="symmetrical">Simetrico</SelectItem>
-                        <SelectItem value="ergonomic">Ergonomico</SelectItem>
+                        <SelectItem value="all">{isEnglish ? "All" : "Todos"}</SelectItem>
+                        <SelectItem value="symmetrical">{isEnglish ? "Symmetrical" : "Simetrico"}</SelectItem>
+                        <SelectItem value="ergonomic">{isEnglish ? "Ergonomic" : "Ergonomico"}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -211,7 +214,7 @@ export function FilterBar({
                 {showKeyboardLayoutFilter && (
                   <div className="space-y-2">
                     <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                      Layout do Teclado
+                      {isEnglish ? "Keyboard Layout" : "Layout do Teclado"}
                     </label>
                     <Select
                       onValueChange={(value) => onKeyboardLayoutChange(value as KeyboardLayout | "all")}
@@ -221,7 +224,7 @@ export function FilterBar({
                         <SelectValue placeholder="Layout" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="all">{isEnglish ? "All" : "Todos"}</SelectItem>
                         {KEYBOARD_LAYOUTS.map((layout) => (
                           <SelectItem key={layout} value={layout}>
                             {layout.toUpperCase()}
@@ -244,7 +247,7 @@ export function FilterBar({
               className="gap-1.5 text-slate-400 hover:text-slate-200"
             >
               <X className="size-4" />
-              Limpar
+              {isEnglish ? "Clear" : "Limpar"}
             </Button>
           )}
         </div>
@@ -253,12 +256,12 @@ export function FilterBar({
       {/* Active Filters Display */}
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary" className="rounded-full bg-white/[0.05] px-3 py-1 text-xs text-slate-300">
-          {filteredCount} {filteredCount === 1 ? "item" : "itens"} encontrados
+          {filteredCount} {filteredCount === 1 ? (isEnglish ? "item" : "item") : (isEnglish ? "items" : "itens")} {isEnglish ? "found" : "encontrados"}
         </Badge>
         
         {query.trim() && (
           <Badge variant="outline" className="gap-1.5 rounded-full border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
-            Busca: {query.trim()}
+            {isEnglish ? "Search" : "Busca"}: {query.trim()}
             <button onClick={() => onQueryChange("")} className="hover:text-cyan-200">
               <X className="size-3" />
             </button>

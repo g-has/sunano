@@ -7,24 +7,50 @@ import { useFormStatus } from "react-dom"
 import { loginAction } from "@/app/admin/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useLocale } from "@/lib/locale-context"
 
 const initialState = { error: null as string | null }
 
-function SubmitButton() {
+const LOGIN_ERROR_MESSAGES = {
+  missing_credentials: {
+    en: "Enter email and password.",
+    pt: "Informe email e senha.",
+  },
+  invalid_credentials: {
+    en: "Invalid credentials.",
+    pt: "Credenciais invalidas.",
+  },
+  no_admin_access: {
+    en: "Account has no admin access.",
+    pt: "Conta sem acesso ao admin.",
+  },
+} as const
+
+function SubmitButton({ isEnglish }: { isEnglish: boolean }) {
   const { pending } = useFormStatus()
 
   return (
     <Button className="w-full" disabled={pending} type="submit">
-      {pending ? "Entrando..." : "Entrar"}
+      {pending ? (isEnglish ? "Signing in..." : "Entrando...") : (isEnglish ? "Sign in" : "Entrar")}
     </Button>
   )
 }
 
 export function AdminLoginForm() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [state, formAction] = useActionState(loginAction, initialState)
   const formRef = useRef<HTMLFormElement | null>(null)
   const [resetMessage, setResetMessage] = useState<string | null>(null)
   const [resetPending, setResetPending] = useState(false)
+
+  const localizedError = state.error
+    ? LOGIN_ERROR_MESSAGES[state.error as keyof typeof LOGIN_ERROR_MESSAGES]
+      ? isEnglish
+        ? LOGIN_ERROR_MESSAGES[state.error as keyof typeof LOGIN_ERROR_MESSAGES].en
+        : LOGIN_ERROR_MESSAGES[state.error as keyof typeof LOGIN_ERROR_MESSAGES].pt
+      : state.error
+    : null
 
   async function handleForgotPassword() {
     const formElement = formRef.current
@@ -42,9 +68,9 @@ export function AdminLoginForm() {
         body: JSON.stringify({ email }),
       })
 
-      setResetMessage("Se o email estiver cadastrado, enviamos as instruções.")
+      setResetMessage(isEnglish ? "If the email is registered, we sent the instructions." : "Se o email estiver cadastrado, enviamos as instruções.")
     } catch {
-      setResetMessage("Se o email estiver cadastrado, enviamos as instruções.")
+      setResetMessage(isEnglish ? "If the email is registered, we sent the instructions." : "Se o email estiver cadastrado, enviamos as instruções.")
     } finally {
       setResetPending(false)
     }
@@ -68,21 +94,21 @@ export function AdminLoginForm() {
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-slate-200" htmlFor="password">
-          Senha
+          {isEnglish ? "Password" : "Senha"}
         </label>
         <Input
           autoComplete="current-password"
           className="border-white/10 bg-white/[0.04] text-slate-50 placeholder:text-slate-500"
           id="password"
           name="password"
-          placeholder="Sua senha"
+          placeholder={isEnglish ? "Your password" : "Sua senha"}
           type="password"
         />
       </div>
 
-      {state.error ? (
+      {localizedError ? (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-          {state.error}
+          {localizedError}
         </div>
       ) : null}
 
@@ -92,7 +118,7 @@ export function AdminLoginForm() {
         </div>
       ) : null}
 
-      <SubmitButton />
+      <SubmitButton isEnglish={isEnglish} />
 
       <Button
         className="w-full"
@@ -101,7 +127,7 @@ export function AdminLoginForm() {
         type="button"
         variant="ghost"
       >
-        {resetPending ? "Enviando..." : "Esqueci minha senha"}
+        {resetPending ? (isEnglish ? "Sending..." : "Enviando...") : (isEnglish ? "Forgot my password" : "Esqueci minha senha")}
       </Button>
     </form>
   )

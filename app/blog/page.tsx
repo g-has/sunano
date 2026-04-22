@@ -9,6 +9,7 @@ import { GlassBlogCard } from "@/components/ui/glass-blog-card-shadcnui"
 import { supabase } from "@/lib/supabase"
 import { PublicSidebar } from "@/components/layout/PublicSidebar"
 import { getBlogImageWithFallback } from "@/lib/blog-images"
+import { useLocale } from "@/lib/locale-context"
 
 type BlogPost = {
   id: string
@@ -30,12 +31,13 @@ function getDefaultAuthorName(email: string | null | undefined) {
   return localPart || null
 }
 
-function getArticleMeta(post: BlogPost) {
+function getArticleMeta(post: BlogPost, locale: "pt-BR" | "en-US") {
   const relatedPeripheral = Array.isArray(post.peripherals) ? post.peripherals[0] ?? null : null
+  const isEnglish = locale === "en-US"
 
   return {
     title: post.title,
-    excerpt: post.excerpt ?? relatedPeripheral?.name ?? "Artigo publicado no blog",
+    excerpt: post.excerpt ?? relatedPeripheral?.name ?? (isEnglish ? "Article published on the blog" : "Artigo publicado no blog"),
     image: getBlogImageWithFallback(post.cover_thumbnail_url, post.cover_image_url, "thumbnail"),
     author: {
       name:
@@ -44,7 +46,7 @@ function getArticleMeta(post: BlogPost) {
         "Sunano",
       avatar: post.admin_profiles?.avatar_url || "https://github.com/shadcn.png",
     },
-    date: new Date(post.created_at).toLocaleDateString("pt-BR", {
+    date: new Date(post.created_at).toLocaleDateString(locale, {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -55,6 +57,8 @@ function getArticleMeta(post: BlogPost) {
 }
 
 function BlogPageContent() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const searchParams = useSearchParams()
   const peripheralFilter = searchParams.get("peripheral")
 
@@ -154,7 +158,7 @@ function BlogPageContent() {
       return {
         id: post.id,
         title: post.title,
-        description: post.excerpt ?? relatedPeripheral?.name ?? "Artigo publicado no blog",
+        description: post.excerpt ?? relatedPeripheral?.name ?? (isEnglish ? "Article published on the blog" : "Artigo publicado no blog"),
         tags: [relatedPeripheral?.brand ?? "Blog"].filter(Boolean),
         creator: relatedPeripheral?.brand ?? "Blog",
       }
@@ -180,14 +184,16 @@ function BlogPageContent() {
                 Reviews
               </h1>
               <p className="mt-1 text-sm text-slate-400">
-                Artigos, reviews completos e analises detalhadas dos perifericos da tierlist.
+                {isEnglish
+                  ? "Articles, full reviews, and detailed analysis of tierlist peripherals."
+                  : "Artigos, reviews completos e analises detalhadas dos perifericos da tierlist."}
               </p>
             </div>
           </div>
 
           <SearchComponent
             data={searchData}
-            placeholder="Buscar no blog..."
+            placeholder={isEnglish ? "Search blog..." : "Buscar no blog..."}
             label="Sort by"
             onFilteredDataChange={handleFilteredDataChange}
           />
@@ -197,20 +203,20 @@ function BlogPageContent() {
             <div className="flex items-center justify-center py-12">
               <div className="flex items-center gap-3 text-slate-400">
                 <div className="size-5 animate-spin rounded-full border-2 border-slate-600 border-t-cyan-400" />
-                <span>Carregando artigos...</span>
+                <span>{isEnglish ? "Loading articles..." : "Carregando artigos..."}</span>
               </div>
             </div>
           ) : currentPosts.length === 0 ? (
             <div className="rounded-2xl border border-white/[0.08] bg-[#0d1117] p-10 text-center">
-              <p className="text-slate-400">Nenhum artigo encontrado.</p>
+              <p className="text-slate-400">{isEnglish ? "No articles found." : "Nenhum artigo encontrado."}</p>
               <p className="mt-2 text-sm text-slate-500">
-                Novos reviews e analises serao publicados em breve.
+                {isEnglish ? "New reviews and analysis will be published soon." : "Novos reviews e analises serao publicados em breve."}
               </p>
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {currentPosts.map((post) => {
-                const meta = getArticleMeta(post)
+                const meta = getArticleMeta(post, locale)
 
                 return (
                   <Link key={post.id} href={`/blog/${post.slug}`} className="block">
@@ -247,7 +253,7 @@ export default function BlogPage() {
         <div className="min-h-screen bg-[#0a0d14] flex items-center justify-center">
           <div className="flex items-center gap-3 text-slate-400">
             <div className="size-5 animate-spin rounded-full border-2 border-slate-600 border-t-cyan-400" />
-            <span>Carregando blog...</span>
+            <span>Loading blog...</span>
           </div>
         </div>
       }

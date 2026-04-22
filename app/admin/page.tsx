@@ -1,32 +1,11 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowRight, BarChart3, CheckCircle2, NotebookPen, Package, Plus, Sparkles, Users } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
-
-const QUICK_ACTIONS = [
-  {
-    href: "/admin/peripherals/new",
-    label: "Adicionar periférico",
-    description: "Crie um novo item para o site",
-    icon: Plus,
-    color: "cyan",
-  },
-  {
-    href: "/admin/peripherals",
-    label: "Ver periféricos",
-    description: "Organize a lista já cadastrada",
-    icon: Package,
-    color: "emerald",
-  },
-  {
-    href: "/admin/blog",
-    label: "Escrever post",
-    description: "Publique novidades e análises",
-    icon: NotebookPen,
-    color: "amber",
-  },
-]
 
 const COLOR_STYLES = {
   cyan: {
@@ -56,6 +35,32 @@ const COLOR_STYLES = {
 }
 
 export default function AdminPage() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
+  const quickActions = [
+    {
+      href: "/admin/peripherals/new",
+      label: isEnglish ? "Add peripheral" : "Adicionar periférico",
+      description: isEnglish ? "Create a new site item" : "Crie um novo item para o site",
+      icon: Plus,
+      color: "cyan",
+    },
+    {
+      href: "/admin/peripherals",
+      label: isEnglish ? "View peripherals" : "Ver periféricos",
+      description: isEnglish ? "Organize the current list" : "Organize a lista já cadastrada",
+      icon: Package,
+      color: "emerald",
+    },
+    {
+      href: "/admin/blog",
+      label: isEnglish ? "Write post" : "Escrever post",
+      description: isEnglish ? "Publish updates and analysis" : "Publique novidades e análises",
+      icon: NotebookPen,
+      color: "amber",
+    },
+  ]
+
   return (
     <div className="space-y-6">
       <section className="overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1117] shadow-[0_24px_80px_rgba(0,0,0,0.22)]">
@@ -64,14 +69,16 @@ export default function AdminPage() {
           <div className="relative max-w-3xl space-y-4">
             <p className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
               <Sparkles className="size-3.5" />
-              Área de organização
+              {isEnglish ? "Organization area" : "Área de organização"}
             </p>
             <div className="space-y-2">
               <h1 className="font-display text-3xl font-bold tracking-tight text-slate-50 md:text-4xl">
-                O que você quer fazer hoje?
+                {isEnglish ? "What do you want to do today?" : "O que você quer fazer hoje?"}
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-slate-300 md:text-base">
-                Escolha uma ação rápida abaixo para atualizar o site, publicar conteúdo ou revisar o que já está no ar.
+                {isEnglish
+                  ? "Choose a quick action below to update the site, publish content, or review what is already live."
+                  : "Escolha uma ação rápida abaixo para atualizar o site, publicar conteúdo ou revisar o que já está no ar."}
               </p>
             </div>
           </div>
@@ -80,10 +87,10 @@ export default function AdminPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-          Atalhos rápidos
+          {isEnglish ? "Quick shortcuts" : "Atalhos rápidos"}
         </h2>
         <div className="space-y-3">
-          {QUICK_ACTIONS.map((action) => {
+          {quickActions.map((action) => {
             const Icon = action.icon
             const styles = COLOR_STYLES[action.color as keyof typeof COLOR_STYLES]
 
@@ -124,7 +131,7 @@ export default function AdminPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-          Resumo rápido
+          {isEnglish ? "Quick summary" : "Resumo rápido"}
         </h2>
 
         <Card className="border-white/[0.08] bg-[#0d1117]">
@@ -133,15 +140,15 @@ export default function AdminPage() {
               <Package className="mt-0.5 size-5 text-cyan-300" />
               <div>
                 <p className="text-sm font-medium text-slate-100">Itens cadastrados</p>
-                <p className="mt-1 text-sm text-slate-400">20 periféricos prontos para revisão e ajustes.</p>
+                <p className="mt-1 text-sm text-slate-400">{isEnglish ? "20 peripherals ready for review and adjustments." : "20 periféricos prontos para revisão e ajustes."}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
               <NotebookPen className="mt-0.5 size-5 text-amber-300" />
               <div>
-                <p className="text-sm font-medium text-slate-100">Conteúdo</p>
-                <p className="mt-1 text-sm text-slate-400">Você pode criar novos posts ou atualizar os existentes.</p>
+                <p className="text-sm font-medium text-slate-100">{isEnglish ? "Content" : "Conteúdo"}</p>
+                <p className="mt-1 text-sm text-slate-400">{isEnglish ? "You can create new posts or update existing ones." : "Você pode criar novos posts ou atualizar os existentes."}</p>
               </div>
             </div>
 
@@ -149,7 +156,7 @@ export default function AdminPage() {
               <Users className="mt-0.5 size-5 text-emerald-300" />
               <div>
                 <p className="text-sm font-medium text-slate-100">Experiência do visitante</p>
-                <p className="mt-1 text-sm text-slate-400">Quando terminar, volte ao site para conferir como ficou para o público.</p>
+                <p className="mt-1 text-sm text-slate-400">{isEnglish ? "When done, return to the site to review the public experience." : "Quando terminar, volte ao site para conferir como ficou para o público."}</p>
               </div>
             </div>
           </CardContent>
@@ -158,22 +165,22 @@ export default function AdminPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
-          Dicas úteis
+          {isEnglish ? "Useful tips" : "Dicas úteis"}
         </h2>
 
         <Card className="border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5">
           <CardContent className="space-y-3 p-5 md:p-6">
             <p className="flex items-start gap-3 text-sm text-slate-300">
               <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-300" />
-              <span>Mantenha os nomes e descrições simples para facilitar a leitura.</span>
+              <span>{isEnglish ? "Keep names and descriptions simple for better readability." : "Mantenha os nomes e descrições simples para facilitar a leitura."}</span>
             </p>
             <p className="flex items-start gap-3 text-sm text-slate-300">
               <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-300" />
-              <span>Use imagens e textos curtos para deixar a página mais agradável.</span>
+              <span>{isEnglish ? "Use images and short text to keep pages cleaner." : "Use imagens e textos curtos para deixar a página mais agradável."}</span>
             </p>
             <p className="flex items-start gap-3 text-sm text-slate-300">
               <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-300" />
-              <span>Revise antes de publicar para evitar retrabalho.</span>
+              <span>{isEnglish ? "Review before publishing to avoid rework." : "Revise antes de publicar para evitar retrabalho."}</span>
             </p>
           </CardContent>
         </Card>

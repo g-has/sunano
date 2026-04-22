@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useLocale } from "@/lib/locale-context"
 import { supabase } from "@/lib/supabase"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
@@ -26,11 +27,11 @@ type Tier = "T0" | "T0.5" | "T1" | "T2"
 type Tag = "competitive" | "versatile" | "value" | "comfort"
 
 const peripheralSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  brand: z.string().min(1, "Marca é obrigatória"),
+  name: z.string().min(1, "Name is required"),
+  brand: z.string().min(1, "Brand is required"),
   category: z.enum(["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset"]),
   tier: z.enum(["T0", "T0.5", "T1", "T2"]),
-  price: z.number().positive("Preço deve ser maior que 0"),
+  price: z.number().positive("Price must be greater than 0"),
   mouseShape: z.string().optional(),
   keyboardLayout: z.string().optional(),
   connectivity: z.string().optional(),
@@ -51,6 +52,8 @@ interface PeripheralEditProps {
 }
 
 export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) => {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const router = useRouter()
   const [uploading, setUploading] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -106,7 +109,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar periférico")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load peripheral" : "Erro ao carregar periférico"))
     }
   }
 
@@ -116,7 +119,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
       // Validar tags
       if (selectedTags.length === 0) {
-        setError("Selecione pelo menos uma tag")
+        setError(isEnglish ? "Select at least one tag" : "Selecione pelo menos uma tag")
         return
       }
 
@@ -169,7 +172,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
       router.push("/admin/peripherals")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save" : "Erro ao salvar"))
     } finally {
       setUploading(false)
     }
@@ -198,15 +201,15 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       <Link href="/admin/peripherals">
         <Button className="gap-2" variant="ghost">
           <ChevronLeft className="size-4" />
-          Voltar
+          {isEnglish ? "Back" : "Voltar"}
         </Button>
       </Link>
 
       <Card className="border-white/10 bg-[#131a28]/90">
         <CardHeader className="border-b border-white/10">
-          <CardTitle>{peripheralId ? "Editar Periférico" : "Novo Periférico"}</CardTitle>
+          <CardTitle>{peripheralId ? (isEnglish ? "Edit Peripheral" : "Editar Periférico") : (isEnglish ? "New Peripheral" : "Novo Periférico")}</CardTitle>
           <CardDescription>
-            {peripheralId ? "Edite as informações do periférico" : "Crie um novo periférico"}
+            {peripheralId ? (isEnglish ? "Edit peripheral information" : "Edite as informações do periférico") : (isEnglish ? "Create a new peripheral" : "Crie um novo periférico")}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
@@ -215,7 +218,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Imagem */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-100">Imagem</label>
+              <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Image" : "Imagem"}</label>
               <div className="flex gap-4 items-start">
                 {imagePreview && (
                   <div className="relative w-32 h-32 rounded-lg border border-white/10 overflow-hidden">
@@ -232,7 +235,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   />
                   <div className="flex flex-col items-center gap-2">
                     <Upload className="size-6 text-slate-400" />
-                    <div className="text-sm text-slate-300">Clique para enviar ou arraste a imagem</div>
+                    <div className="text-sm text-slate-300">{isEnglish ? "Click to upload or drag the image" : "Clique para enviar ou arraste a imagem"}</div>
                   </div>
                 </label>
               </div>
@@ -241,7 +244,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
             {/* Informações Básicas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-100">Nome</label>
+                <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Name" : "Nome"}</label>
                 <Input
                   className="border-white/10 bg-white/5"
                   placeholder="Ex: Logitech G Pro X Superlight 2"
@@ -253,7 +256,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-100">Marca</label>
+                <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Brand" : "Marca"}</label>
                 <Input
                   className="border-white/10 bg-white/5"
                   placeholder="Ex: Logitech"
@@ -265,7 +268,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-100">Preço ($)</label>
+                <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Price ($)" : "Preço ($)"}</label>
                 <Input
                   className="border-white/10 bg-white/5"
                   placeholder="159"
@@ -279,7 +282,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-100">Categoria</label>
+                <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Category" : "Categoria"}</label>
                 <Select
                   onValueChange={(value) => form.setValue("category", value as Category)}
                   value={form.watch("category")}
@@ -319,7 +322,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
             {/* Tags */}
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-slate-100">Tags</label>
+              <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Tags" : "Tags"}</label>
               <div className="flex gap-2 flex-wrap">
                 {TAGS_OPTIONS.map((tag) => (
                   <Badge
@@ -337,16 +340,16 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                 ))}
               </div>
               {selectedTags.length === 0 && (
-                <p className="text-red-400 text-xs">Seleção de pelo menos uma tag é obrigatória</p>
+                <p className="text-red-400 text-xs">{isEnglish ? "At least one tag selection is required" : "Seleção de pelo menos uma tag é obrigatória"}</p>
               )}
               <p className="text-xs text-slate-400">
-                Selecionadas: {selectedTags.length} de {TAGS_OPTIONS.length}
+                {isEnglish ? "Selected" : "Selecionadas"}: {selectedTags.length} {isEnglish ? "of" : "de"} {TAGS_OPTIONS.length}
               </p>
             </div>
 
             {/* Specs Específicas por Categoria */}
             <div className="space-y-4 border-t border-white/10 pt-6">
-              <h3 className="font-semibold text-slate-100">Especificações</h3>
+              <h3 className="font-semibold text-slate-100">{isEnglish ? "Specifications" : "Especificações"}</h3>
 
               {form.watch("category") === "mouse" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -439,10 +442,10 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
             {/* Botões */}
             <div className="flex gap-3 justify-end border-t border-white/10 pt-6">
               <Link href="/admin/peripherals">
-                <Button variant="outline">Cancelar</Button>
+                <Button variant="outline">{isEnglish ? "Cancel" : "Cancelar"}</Button>
               </Link>
               <Button disabled={uploading || form.formState.isSubmitting} type="submit">
-                {uploading || form.formState.isSubmitting ? "Salvando..." : "Salvar"}
+                {uploading || form.formState.isSubmitting ? (isEnglish ? "Saving..." : "Salvando...") : (isEnglish ? "Save" : "Salvar")}
               </Button>
             </div>
           </form>

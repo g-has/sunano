@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from "@/lib/supabase"
 import { PublicSidebar } from "@/components/layout/PublicSidebar"
 import { getBlogImageWithFallback } from "@/lib/blog-images"
+import { useLocale } from "@/lib/locale-context"
 
 type BlogPost = {
   id: string
@@ -61,6 +62,8 @@ function getVideoEmbedUrl(url: string | null) {
 }
 
 export default function BlogPostPage() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const { slug } = useParams<{ slug: string }>()
   const [post, setPost] = useState<BlogPost | null>(null)
   const [loading, setLoading] = useState(true)
@@ -133,16 +136,16 @@ export default function BlogPostPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f1420] p-8 text-slate-300">Carregando artigo...</div>
+      <div className="min-h-screen bg-[#0f1420] p-8 text-slate-300">{isEnglish ? "Loading article..." : "Carregando artigo..."}</div>
     )
   }
 
   if (!post) {
     return (
       <div className="min-h-screen bg-[#0f1420] p-8 text-slate-300">
-        <p>Artigo não encontrado.</p>
+        <p>{isEnglish ? "Article not found." : "Artigo não encontrado."}</p>
         <Link href="/blog" className="mt-4 inline-block">
-          <Button variant="outline">Voltar ao blog</Button>
+          <Button variant="outline">{isEnglish ? "Back to blog" : "Voltar ao blog"}</Button>
         </Link>
       </div>
     )
@@ -172,11 +175,11 @@ export default function BlogPostPage() {
               <div className="flex flex-wrap items-center gap-2">
                 {post.peripherals ? (
                   <Badge variant="secondary" className="bg-cyan-500/15 text-cyan-200">
-                    {relatedPeripheral ? `${relatedPeripheral.brand} • ${relatedPeripheral.name}` : "Sem periférico"}
+                    {relatedPeripheral ? `${relatedPeripheral.brand} • ${relatedPeripheral.name}` : (isEnglish ? "No peripheral" : "Sem periférico")}
                   </Badge>
                 ) : null}
                 <Badge variant="outline" className="border-white/10 bg-white/[0.03] text-slate-300">
-                  {new Date(post.created_at).toLocaleDateString("pt-BR")}
+                  {new Date(post.created_at).toLocaleDateString(locale)}
                 </Badge>
               </div>
               <div className="flex items-center gap-3 text-slate-300">
@@ -185,7 +188,7 @@ export default function BlogPostPage() {
                   <AvatarFallback>{authorName.slice(0, 1).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <p className="text-sm">
-                  Por <span className="font-semibold text-slate-100">{authorName}</span>
+                  {isEnglish ? "By" : "Por"} <span className="font-semibold text-slate-100">{authorName}</span>
                 </p>
               </div>
               <CardTitle className="text-3xl text-slate-50 md:text-4xl">{post.title}</CardTitle>
@@ -196,7 +199,7 @@ export default function BlogPostPage() {
               {embedUrl ? (
                 <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
                   <iframe
-                    title="Video relacionado"
+                    title={isEnglish ? "Related video" : "Video relacionado"}
                     src={embedUrl}
                     className="h-[360px] w-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -205,7 +208,7 @@ export default function BlogPostPage() {
                 </div>
               ) : post.video_url ? (
                 <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
-                  Video externo: <a className="text-sky-300 underline" href={post.video_url} target="_blank" rel="noreferrer">{post.video_url}</a>
+                  {isEnglish ? "External video:" : "Video externo:"} <a className="text-sky-300 underline" href={post.video_url} target="_blank" rel="noreferrer">{post.video_url}</a>
                 </div>
               ) : null}
 
@@ -215,10 +218,10 @@ export default function BlogPostPage() {
 
               <div className="flex flex-wrap gap-3">
                 <Link href="/blog">
-                  <Button variant="outline">Voltar ao blog</Button>
+                  <Button variant="outline">{isEnglish ? "Back to blog" : "Voltar ao blog"}</Button>
                 </Link>
                 <Link href="/">
-                  <Button>Ver tierlist</Button>
+                  <Button>{isEnglish ? "View tier list" : "Ver tierlist"}</Button>
                 </Link>
               </div>
             </CardContent>

@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { useLocale } from "@/lib/locale-context"
 import { supabase } from "@/lib/supabase"
 import {
   CARD_TAG_STYLES,
@@ -65,12 +66,12 @@ interface Peripheral {
 }
 
 const CATEGORY_META = [
-  { key: "keyboard" as Category, label: "Teclado" },
-  { key: "mouse" as Category, label: "Mouse" },
-  { key: "mousepad" as Category, label: "Mousepad" },
-  { key: "glasspad" as Category, label: "Glasspad" },
-  { key: "iem" as Category, label: "Fone IEM" },
-  { key: "headset" as Category, label: "Headset" },
+  { key: "keyboard" as Category, en: "Keyboard", pt: "Teclado" },
+  { key: "mouse" as Category, en: "Mouse", pt: "Mouse" },
+  { key: "mousepad" as Category, en: "Mousepad", pt: "Mousepad" },
+  { key: "glasspad" as Category, en: "Glasspad", pt: "Glasspad" },
+  { key: "iem" as Category, en: "IEM", pt: "Fone IEM" },
+  { key: "headset" as Category, en: "Headset", pt: "Headset" },
 ]
 
 const TIER_ROWS: { key: Tier; label: string; accent: string; textColor: string }[] = [
@@ -88,10 +89,10 @@ const COLUMNS: { key: Tag; title: string }[] = [
 ]
 
 const TAGS_OPTIONS: Tag[] = ["competitive", "versatile", "value", "comfort"]
-const RATING_MODES: { key: RatingMode; label: string }[] = [
-  { key: "performance", label: "Performance" },
-  { key: "value", label: "Custo-Beneficio" },
-  { key: "recommended", label: "Recomendado" },
+const RATING_MODES: { key: RatingMode; en: string; pt: string }[] = [
+  { key: "performance", en: "Performance", pt: "Performance" },
+  { key: "value", en: "Value", pt: "Custo-Beneficio" },
+  { key: "recommended", en: "Recommended", pt: "Recomendado" },
 ]
 
 type PriceBand = "budget" | "mid" | "premium"
@@ -103,7 +104,8 @@ type ModeColumn = {
 }
 
 type ModeConfig = {
-  description: string
+  enDescription: string
+  ptDescription: string
   columns: ModeColumn[]
   getColumnKeys: (item: Peripheral) => string[]
   sortItems: (items: Peripheral[]) => Peripheral[]
@@ -196,20 +198,23 @@ const RECOMMENDED_COLUMNS: ModeColumn[] = [
 
 const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
   performance: {
-    description: "Ordenado por desempenho puro",
+    enDescription: "Sorted by pure performance",
+    ptDescription: "Ordenado por desempenho puro",
     columns: PERFORMANCE_COLUMNS,
     getColumnKeys: getPerformanceColumnKeys,
     sortItems: (items) =>
       [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
   },
   value: {
-    description: "Distribuído por faixa de preco dentro de cada tier",
+    enDescription: "Grouped by price range within each tier",
+    ptDescription: "Distribuído por faixa de preco dentro de cada tier",
     columns: VALUE_COLUMNS,
     getColumnKeys: (item) => [getStoredModeColumn(item, "adminValueBand", getPriceBand(item.price))],
     sortItems: (items) => [...items].sort((left, right) => left.price - right.price || left.name.localeCompare(right.name)),
   },
   recommended: {
-    description: "Escolhas sugeridas por Sunano, priorizando equilibrio geral",
+    enDescription: "Suggested picks by Sunano, prioritizing overall balance",
+    ptDescription: "Escolhas sugeridas por Sunano, priorizando equilibrio geral",
     columns: RECOMMENDED_COLUMNS,
     getColumnKeys: (item) => {
       const score = getRecommendedScore(item)
@@ -229,6 +234,9 @@ function DraggablePeripheralCard({
   item: Peripheral
   onDelete: (id: string) => void
 }) {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.id,
   })
@@ -343,7 +351,9 @@ function DraggablePeripheralCard({
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-slate-100">{item.name}</p>
                 <p className="mt-0.5 text-xs text-slate-500">
-                  {item.brand} • {CATEGORY_META.find((category) => category.key === item.category)?.label}
+                  {item.brand} • {(isEnglish
+                    ? CATEGORY_META.find((category) => category.key === item.category)?.en
+                    : CATEGORY_META.find((category) => category.key === item.category)?.pt)}
                 </p>
               </div>
               <Badge className={`rounded-md px-2 py-1 text-center text-[10px] font-bold ${tierStyle.bg} ${tierStyle.text}`} variant="secondary">
@@ -387,7 +397,7 @@ function DraggablePeripheralCard({
                   </Badge>
                 ))
               ) : (
-                <span className="text-xs text-slate-300">Sem tags</span>
+                <span className="text-xs text-slate-300">{isEnglish ? "No tags" : "Sem tags"}</span>
               )}
             </div>
           </div>
@@ -437,6 +447,8 @@ function DroppableColumn({
 
 
 export default function AdminPeripheralsPage() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [peripherals, setPeripherals] = useState<Peripheral[]>([])
   const [selectedCategory, setSelectedCategory] = useState<Category>("mouse")
   const [ratingMode, setRatingMode] = useState<RatingMode>("performance")
@@ -474,7 +486,7 @@ export default function AdminPeripheralsPage() {
       if (err) throw err
       setPeripherals(data || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load" : "Erro ao carregar"))
     } finally {
       setLoading(false)
     }
@@ -539,7 +551,7 @@ export default function AdminPeripheralsPage() {
       if (err) throw err
     } catch (err) {
       setPeripherals(peripherals)
-      setError(err instanceof Error ? err.message : "Erro ao atualizar")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to update" : "Erro ao atualizar"))
     }
   }
 
@@ -557,7 +569,7 @@ export default function AdminPeripheralsPage() {
       setPeripherals(peripherals.filter((p) => p.id !== deleteDialog.id))
       setDeleteDialog({ open: false, id: "" })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao deletar")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to delete" : "Erro ao deletar"))
     } finally {
       setDeleting(false)
     }
@@ -584,13 +596,15 @@ export default function AdminPeripheralsPage() {
       setTagsDialog({ open: false, item: null })
     } catch (err) {
       setPeripherals(peripherals)
-      setError(err instanceof Error ? err.message : "Erro ao salvar tags")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save tags" : "Erro ao salvar tags"))
     }
   }
 
-  const categoryLabel = CATEGORY_META.find((c) => c.key === selectedCategory)?.label ?? "Tierlist"
+  const selectedCategoryMeta = CATEGORY_META.find((c) => c.key === selectedCategory)
+  const categoryLabel = selectedCategoryMeta ? (isEnglish ? selectedCategoryMeta.en : selectedCategoryMeta.pt) : "Tierlist"
   const filtered = peripherals.filter((item) => item.category === selectedCategory)
   const modeConfig = MODE_CONFIGS[ratingMode]
+  const modeDescription = isEnglish ? modeConfig.enDescription : modeConfig.ptDescription
 
   const itemsByTier = useMemo(
     () =>
@@ -613,12 +627,12 @@ export default function AdminPeripheralsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-50">
             Admin Tierlist - {categoryLabel}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Arraste e solte para reorganizar. Clique para editar.</p>
+          <p className="text-sm text-slate-400 mt-1">{isEnglish ? "Drag and drop to reorder. Click to edit." : "Arraste e solte para reorganizar. Clique para editar."}</p>
         </div>
         <Link href="/admin/peripherals/new">
           <Button className="gap-2">
             <Plus className="size-4" />
-            Novo Periférico
+            {isEnglish ? "New Peripheral" : "Novo Periférico"}
           </Button>
         </Link>
       </div>
@@ -627,7 +641,7 @@ export default function AdminPeripheralsPage() {
       <div className="space-y-3 rounded-xl border border-white/[0.08] bg-[#0d1117] p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span className="text-sm font-semibold text-slate-300">Categoria:</span>
+            <span className="text-sm font-semibold text-slate-300">{isEnglish ? "Category:" : "Categoria:"}</span>
             <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as Category)}>
               <SelectTrigger className="w-48 border-white/10 bg-white/5 h-9">
                 <SelectValue />
@@ -635,7 +649,7 @@ export default function AdminPeripheralsPage() {
               <SelectContent>
                 {CATEGORY_META.map((cat) => (
                   <SelectItem key={cat.key} value={cat.key}>
-                    {cat.label}
+                    {isEnglish ? cat.en : cat.pt}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -653,11 +667,12 @@ export default function AdminPeripheralsPage() {
                     : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
                 }`}
               >
-                {mode.label}
+                {isEnglish ? mode.en : mode.pt}
               </button>
             ))}
           </div>
         </div>
+        <p className="text-xs text-slate-500">{modeDescription}</p>
       </div>
 
       {/* Error Alert */}
@@ -671,7 +686,7 @@ export default function AdminPeripheralsPage() {
       {/* Tierlist Grid */}
       {loading ? (
         <Card className="border-white/[0.08] bg-[#0d1117] shadow-lg">
-          <CardContent className="pt-6 text-center text-slate-400">Carregando...</CardContent>
+          <CardContent className="pt-6 text-center text-slate-400">{isEnglish ? "Loading..." : "Carregando..."}</CardContent>
         </Card>
       ) : (
         <>
@@ -738,7 +753,7 @@ export default function AdminPeripheralsPage() {
               <Alert className="border-amber-500/30 bg-amber-500/10">
                 <AlertCircle className="size-3.5 text-amber-400" />
                 <AlertDescription className="text-xs leading-5 text-amber-300">
-                  ⚠️ {filtered.filter((p) => p.tags.length === 0).length} periférico(s) sem tags. Clique para adicionar uma tag ou arraste para a tierlist.
+                  ⚠️ {filtered.filter((p) => p.tags.length === 0).length} {isEnglish ? "peripheral(s) without tags. Click to add a tag or drag into the tierlist." : "periférico(s) sem tags. Clique para adicionar uma tag ou arraste para a tierlist."}
                 </AlertDescription>
               </Alert>
 
@@ -767,7 +782,7 @@ export default function AdminPeripheralsPage() {
                             <div className="flex-1 min-w-0">
                               <p className="truncate text-xs font-bold text-slate-100">{item.name}</p>
                               <p className="text-[9px] text-slate-500">{item.brand}</p>
-                              <p className="mt-1 text-[10px] font-semibold text-slate-500">Sem tags</p>
+                              <p className="mt-1 text-[10px] font-semibold text-slate-500">{isEnglish ? "No tags" : "Sem tags"}</p>
                             </div>
 
                             <Button
@@ -796,9 +811,9 @@ export default function AdminPeripheralsPage() {
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
         <DialogContent className="border border-white/[0.12] bg-[#0a0e17]/95">
           <DialogHeader>
-            <DialogTitle>Deletar Periférico?</DialogTitle>
+            <DialogTitle>{isEnglish ? "Delete Peripheral?" : "Deletar Periférico?"}</DialogTitle>
             <DialogDescription>
-              Esta ação não pode ser desfeita.
+              {isEnglish ? "This action cannot be undone." : "Esta ação não pode ser desfeita."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -807,14 +822,14 @@ export default function AdminPeripheralsPage() {
               onClick={() => setDeleteDialog({ open: false, id: "" })}
               disabled={deleting}
             >
-              Cancelar
+              {isEnglish ? "Cancel" : "Cancelar"}
             </Button>
             <Button
               variant="destructive"
               onClick={confirmDelete}
               disabled={deleting}
             >
-              {deleting ? "Deletando..." : "Deletar"}
+              {deleting ? (isEnglish ? "Deleting..." : "Deletando...") : (isEnglish ? "Delete" : "Deletar")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -827,15 +842,15 @@ export default function AdminPeripheralsPage() {
       >
         <DialogContent className="border border-white/[0.12] bg-[#0a0e17]/95">
           <DialogHeader>
-            <DialogTitle>Adicionar Tags</DialogTitle>
+            <DialogTitle>{isEnglish ? "Add Tags" : "Adicionar Tags"}</DialogTitle>
             <DialogDescription>
-              Selecione as tags para {tagsDialog.item?.name}
+              {isEnglish ? "Select tags for" : "Selecione as tags para"} {tagsDialog.item?.name}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300">Tag principal</label>
+              <label className="text-xs font-semibold text-slate-300">{isEnglish ? "Primary tag" : "Tag principal"}</label>
               <Select value={selectedTag} onValueChange={(value) => setSelectedTag(value as Tag)}>
                 <SelectTrigger className="border-white/10 bg-white/5">
                   <SelectValue />
@@ -850,7 +865,7 @@ export default function AdminPeripheralsPage() {
               </Select>
             </div>
             <p className="text-xs text-slate-400">
-              O card vai aparecer em uma única coluna para evitar duplicação.
+              {isEnglish ? "The card will appear in a single column to avoid duplication." : "O card vai aparecer em uma única coluna para evitar duplicação."}
             </p>
           </div>
 
@@ -859,10 +874,10 @@ export default function AdminPeripheralsPage() {
               variant="outline"
               onClick={() => setTagsDialog({ open: false, item: null })}
             >
-              Cancelar
+              {isEnglish ? "Cancel" : "Cancelar"}
             </Button>
             <Button onClick={saveQuickTags}>
-              Salvar Tags
+              {isEnglish ? "Save Tags" : "Salvar Tags"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -870,7 +885,7 @@ export default function AdminPeripheralsPage() {
 
       {/* Total */}
       <div className="text-sm text-slate-400 text-center">
-        Total: {filtered.length} periféricos em {categoryLabel}
+        {isEnglish ? "Total" : "Total"}: {filtered.length} {isEnglish ? "peripherals in" : "periféricos em"} {categoryLabel}
       </div>
     </div>
   )

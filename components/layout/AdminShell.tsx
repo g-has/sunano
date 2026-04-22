@@ -7,22 +7,25 @@ import { useEffect, useState } from "react"
 
 import { logoutAction } from "@/app/admin/actions"
 import { Button } from "@/components/ui/button"
+import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
 import { hasAdminPermission, type AdminPermissionKey, type AdminProfile, isWebMaster } from "@/lib/admin-permissions"
 
-const NAV_ITEMS = [
-  { href: "/admin", label: "Dashboard", icon: Home, permission: "dashboard_read" },
-  { href: "/admin/peripherals", label: "Perifericos", icon: Package, permission: "peripherals_read" },
-  { href: "/admin/blog", label: "Blog & Reviews", icon: NotebookPen, permission: "blog_read" },
-  { href: "/admin/offers", label: "Ofertas", icon: Gift, permission: "offers_read" },
-  { href: "/admin/users", label: "Usuarios", icon: Users, requiresWebMaster: true },
-  { href: "/admin/settings", label: "Configuracoes", icon: Settings, permission: "settings_read" },
-]
-
 export function AdminShell({ children }: { children: React.ReactNode }) {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [profile, setProfile] = useState<AdminProfile | null>(null)
+
+  const navItems = [
+    { href: "/admin", label: isEnglish ? "Dashboard" : "Dashboard", icon: Home, permission: "dashboard_read" },
+    { href: "/admin/peripherals", label: isEnglish ? "Peripherals" : "Perifericos", icon: Package, permission: "peripherals_read" },
+    { href: "/admin/blog", label: isEnglish ? "Blog & Reviews" : "Blog & Reviews", icon: NotebookPen, permission: "blog_read" },
+    { href: "/admin/offers", label: isEnglish ? "Offers" : "Ofertas", icon: Gift, permission: "offers_read" },
+    { href: "/admin/users", label: isEnglish ? "Users" : "Usuarios", icon: Users, requiresWebMaster: true },
+    { href: "/admin/settings", label: isEnglish ? "Settings" : "Configuracoes", icon: Settings, permission: "settings_read" },
+  ]
 
   useEffect(() => {
     let isMounted = true
@@ -54,7 +57,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return pathname.startsWith(href) && href !== "/"
   }
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => {
+  const visibleNavItems = navItems.filter((item) => {
     if (!profile) return true
     if ("requiresWebMaster" in item && item.requiresWebMaster) {
       return isWebMaster(profile)
@@ -108,7 +111,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
             <div className="space-y-1">
               <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                Acoes
+                {isEnglish ? "Actions" : "Acoes"}
               </p>
               <Link
                 href="/"
@@ -116,7 +119,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition-all hover:bg-emerald-500/10 hover:text-emerald-300"
               >
                 <Eye className="size-[18px]" />
-                <span>Ver Site</span>
+                <span>{isEnglish ? "View Site" : "Ver Site"}</span>
               </Link>
               <form action={logoutAction}>
                 <Button
@@ -125,7 +128,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   variant="ghost"
                 >
                   <LogOut className="size-[18px]" />
-                  <span>Sair</span>
+                  <span>{isEnglish ? "Sign out" : "Sair"}</span>
                 </Button>
               </form>
             </div>

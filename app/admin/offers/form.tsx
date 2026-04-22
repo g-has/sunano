@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useLocale } from "@/lib/locale-context"
 import { supabase } from "@/lib/supabase"
 
 interface Offer {
@@ -46,6 +47,8 @@ interface OfferFormProps {
 }
 
 export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -102,7 +105,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
         const uploadData = (await uploadResponse.json()) as { ok?: boolean; error?: string; publicUrl?: string }
 
         if (!uploadResponse.ok || !uploadData.ok || !uploadData.publicUrl) {
-          throw new Error(uploadData.error ?? "Erro ao enviar imagem da oferta")
+          throw new Error(uploadData.error ?? (isEnglish ? "Failed to upload offer image" : "Erro ao enviar imagem da oferta"))
         }
 
         imageUrl = uploadData.publicUrl
@@ -134,12 +137,12 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
       const data = (await response.json()) as { ok?: boolean; error?: string }
 
       if (!response.ok || !data.ok) {
-        throw new Error(data.error ?? "Erro ao salvar oferta")
+        throw new Error(data.error ?? (isEnglish ? "Failed to save offer" : "Erro ao salvar oferta"))
       }
 
       onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar oferta")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save offer" : "Erro ao salvar oferta"))
     } finally {
       setUploading(false)
       setLoading(false)
@@ -168,19 +171,19 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
       )}
 
       <div className="space-y-2">
-        <Label className="text-sm font-semibold">Imagem da oferta (banner)</Label>
+        <Label className="text-sm font-semibold">{isEnglish ? "Offer image (banner)" : "Imagem da oferta (banner)"}</Label>
         <div className="flex items-start gap-4">
           {imagePreview && (
             <div className="h-28 w-40 overflow-hidden rounded-lg border border-white/10 bg-black/20">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt="Preview da oferta" className="h-full w-full object-cover" src={imagePreview} />
+              <img alt={isEnglish ? "Offer preview" : "Preview da oferta"} className="h-full w-full object-cover" src={imagePreview} />
             </div>
           )}
           <label className="flex-1 cursor-pointer rounded-lg border-2 border-dashed border-white/20 p-5 transition hover:border-white/40">
             <input accept="image/*" className="hidden" onChange={handleImageSelect} type="file" />
             <div className="flex flex-col items-center gap-2 text-center">
               <Upload className="size-5 text-slate-400" />
-              <p className="text-sm text-slate-300">Clique para enviar imagem da oferta</p>
+              <p className="text-sm text-slate-300">{isEnglish ? "Click to upload offer image" : "Clique para enviar imagem da oferta"}</p>
             </div>
           </label>
         </div>
@@ -188,7 +191,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name">Nome da Oferta</Label>
+          <Label htmlFor="name">{isEnglish ? "Offer Name" : "Nome da Oferta"}</Label>
           <Input
             id="name"
             value={formData.name}
@@ -199,7 +202,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="link">Link da Oferta</Label>
+          <Label htmlFor="link">{isEnglish ? "Offer Link" : "Link da Oferta"}</Label>
           <Input
             id="link"
             type="url"
@@ -213,7 +216,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="value">Valor</Label>
+          <Label htmlFor="value">{isEnglish ? "Price" : "Valor"}</Label>
           <Input
             id="value"
             type="number"
@@ -226,7 +229,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="currency">Moeda</Label>
+          <Label htmlFor="currency">{isEnglish ? "Currency" : "Moeda"}</Label>
           <Input
             id="currency"
             value={formData.currency}
@@ -236,7 +239,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="currency_symbol">Símbolo</Label>
+          <Label htmlFor="currency_symbol">{isEnglish ? "Symbol" : "Símbolo"}</Label>
           <Input
             id="currency_symbol"
             value={formData.currency_symbol}
@@ -251,7 +254,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label>Periférico Vinculado (Opcional)</Label>
+          <Label>{isEnglish ? "Linked Peripheral (Optional)" : "Periférico Vinculado (Opcional)"}</Label>
           <Select
             value={formData.peripheral_id || NO_PERIPHERAL_VALUE}
             onValueChange={(value) =>
@@ -262,10 +265,10 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione um periférico" />
+              <SelectValue placeholder={isEnglish ? "Select a peripheral" : "Selecione um periférico"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NO_PERIPHERAL_VALUE}>Sem periférico vinculado</SelectItem>
+              <SelectItem value={NO_PERIPHERAL_VALUE}>{isEnglish ? "No linked peripheral" : "Sem periférico vinculado"}</SelectItem>
               {peripherals.map((peripheral) => (
                 <SelectItem key={peripheral.id} value={peripheral.id}>
                   {peripheral.brand} - {peripheral.name}
@@ -276,7 +279,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="coupon_code">Código do Cupom (Opcional)</Label>
+          <Label htmlFor="coupon_code">{isEnglish ? "Coupon Code (Optional)" : "Código do Cupom (Opcional)"}</Label>
           <Input
             id="coupon_code"
             value={formData.coupon_code}
@@ -286,7 +289,7 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="expires_at">Data de Expiração (Opcional)</Label>
+          <Label htmlFor="expires_at">{isEnglish ? "Expiration Date (Optional)" : "Data de Expiração (Opcional)"}</Label>
           <Input
             id="expires_at"
             type="date"
@@ -303,11 +306,11 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
           onClick={onCancel}
           disabled={loading || uploading}
         >
-          Cancelar
+          {isEnglish ? "Cancel" : "Cancelar"}
         </Button>
         <Button type="submit" disabled={loading || uploading}>
           {(loading || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {offer ? "Atualizar" : "Criar"} Oferta
+          {offer ? (isEnglish ? "Update" : "Atualizar") : (isEnglish ? "Create" : "Criar")} {isEnglish ? "Offer" : "Oferta"}
         </Button>
       </div>
     </form>

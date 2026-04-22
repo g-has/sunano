@@ -1,4 +1,4 @@
-export type LocaleCode = "pt-BR"
+export type LocaleCode = "pt-BR" | "en-US"
 
 export type LanguageEntry = {
   code: LocaleCode
@@ -17,6 +17,12 @@ export const LANGUAGE_OPTIONS: LanguageEntry[] = [
     nativeLabel: "Português (Brasil)",
     shortLabel: "PT",
   },
+  {
+    code: "en-US",
+    label: "English",
+    nativeLabel: "English (US)",
+    shortLabel: "EN",
+  },
 ]
 
 export const I18N = {
@@ -24,6 +30,12 @@ export const I18N = {
     topbar: {
       languageLabel: "Idioma",
       languageHelper: "Escolha o idioma da interface",
+    },
+  },
+  "en-US": {
+    topbar: {
+      languageLabel: "Language",
+      languageHelper: "Choose the interface language",
     },
   },
 } as const

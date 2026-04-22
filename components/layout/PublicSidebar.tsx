@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
 
 const SOCIAL_LINKS = [
@@ -34,19 +35,20 @@ interface PublicSidebarProps {
   onCategoryChange?: (category: Category) => void
 }
 
-const NAV_ITEMS = [
-  { href: "/", label: "Tier List", icon: LayoutGrid },
-  { href: "/blog", label: "Reviews", icon: Newspaper },
-  { href: "/offers", label: "Ofertas", icon: BadgePercent },
-]
-
 export function PublicSidebar({
   onCategoryChange,
 }: PublicSidebarProps) {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const pathname = usePathname()
 
   const isHomePage = pathname === "/"
+  const navItems = [
+    { href: "/", label: isEnglish ? "Tier List" : "Tier List", icon: LayoutGrid },
+    { href: "/blog", label: isEnglish ? "Reviews" : "Reviews", icon: Newspaper },
+    { href: "/offers", label: isEnglish ? "Offers" : "Ofertas", icon: BadgePercent },
+  ]
 
   return (
     <>
@@ -69,7 +71,7 @@ export function PublicSidebar({
         <nav className="flex-1 overflow-hidden px-3 pt-6 pb-4">
           {/* Main Nav */}
           <div className="space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon
               const isActive = item.href === "/" ? isHomePage : pathname?.startsWith(item.href)
 
@@ -102,11 +104,11 @@ export function PublicSidebar({
           {/* Coming Soon Section */}
           <div className="space-y-1">
             <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-              Em Breve
+              {isEnglish ? "Coming Soon" : "Em Breve"}
             </p>
             <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-500">
               <div className="size-[18px] rounded bg-white/[0.05]" />
-              <span>Loja</span>
+              <span>{isEnglish ? "Store" : "Loja"}</span>
               <span className="ml-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300">
                 Soon
               </span>

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
+import { enUS, ptBR } from "date-fns/locale"
 import {
   Plus,
   Pencil,
@@ -42,6 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useLocale } from "@/lib/locale-context"
 
 interface Offer {
   id: string
@@ -83,6 +84,8 @@ const ITEMS_PER_PAGE = 5
 const ALL_PERIPHERALS = "__all_peripherals__"
 
 export default function AdminOffersPage() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [offers, setOffers] = useState<Offer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -111,14 +114,14 @@ export default function AdminOffersPage() {
       const data = (await response.json().catch(() => null)) as OffersResponse | null
 
       if (!response.ok || !data?.offers) {
-        throw new Error(data?.error ?? "Erro ao carregar ofertas")
+        throw new Error(data?.error ?? (isEnglish ? "Failed to load offers" : "Erro ao carregar ofertas"))
       }
 
       setOffers(data.offers)
       setWarning(data.warning ?? null)
       setCurrentPage(1)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar ofertas")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load offers" : "Erro ao carregar ofertas"))
     } finally {
       setLoading(false)
     }
@@ -134,13 +137,13 @@ export default function AdminOffersPage() {
 
       if (!response.ok) {
         const data = (await response.json().catch(() => null)) as { error?: string } | null
-        throw new Error(data?.error ?? "Erro ao atualizar status da oferta")
+        throw new Error(data?.error ?? (isEnglish ? "Failed to update offer status" : "Erro ao atualizar status da oferta"))
       }
 
       await loadOffers()
       setStatusAction(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar status da oferta")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to update offer status" : "Erro ao atualizar status da oferta"))
     }
   }
 
@@ -201,9 +204,9 @@ export default function AdminOffersPage() {
       expired: "secondary",
     }
     const labels: Record<string, string> = {
-      active: "Ativa",
-      cancelled: "Cancelada",
-      expired: "Expirada",
+      active: isEnglish ? "Active" : "Ativa",
+      cancelled: isEnglish ? "Cancelled" : "Cancelada",
+      expired: isEnglish ? "Expired" : "Expirada",
     }
     return <Badge variant={variants[status] || "default"}>{labels[status] || status}</Badge>
   }
@@ -212,17 +215,17 @@ export default function AdminOffersPage() {
     if (offer.status === "cancelled") {
       return {
         nextStatus: "active" as const,
-        title: "Reativar oferta",
-        description: "Deseja reativar esta oferta? Ela voltará a aparecer como ativa no site.",
-        confirmLabel: "Reativar",
+        title: isEnglish ? "Reactivate offer" : "Reativar oferta",
+        description: isEnglish ? "Do you want to reactivate this offer? It will appear as active again on the site." : "Deseja reativar esta oferta? Ela voltará a aparecer como ativa no site.",
+        confirmLabel: isEnglish ? "Reactivate" : "Reativar",
       }
     }
 
     return {
       nextStatus: "cancelled" as const,
-      title: "Cancelar oferta",
-      description: "Deseja cancelar esta oferta? Ela ficará marcada como cancelada e poderá ser reativada depois.",
-      confirmLabel: "Cancelar",
+      title: isEnglish ? "Cancel offer" : "Cancelar oferta",
+      description: isEnglish ? "Do you want to cancel this offer? It will be marked as cancelled and can be reactivated later." : "Deseja cancelar esta oferta? Ela ficará marcada como cancelada e poderá ser reativada depois.",
+      confirmLabel: isEnglish ? "Cancel" : "Cancelar",
     }
   }
 
@@ -236,14 +239,14 @@ export default function AdminOffersPage() {
       <Alert className="border-amber-300/60 bg-amber-50/90 py-2.5 [&>svg]:left-3 [&>svg~*]:pl-7">
         <AlertCircle className="size-3.5 text-amber-700" />
         <AlertDescription className="text-xs leading-5 text-amber-900">
-          <strong>Isenção:</strong> as ofertas são de terceiros, altamente voláteis e podem mudar a qualquer momento. Não nos responsabilizamos por preço, estoque, prazo ou disponibilidade.
+          <strong>{isEnglish ? "Disclaimer:" : "Isenção:"}</strong> {isEnglish ? "offers come from third parties, are highly volatile, and may change at any time. We are not responsible for price, stock, delivery time, or availability." : "as ofertas são de terceiros, altamente voláteis e podem mudar a qualquer momento. Não nos responsabilizamos por preço, estoque, prazo ou disponibilidade."}
         </AlertDescription>
       </Alert>
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Ofertas</h1>
-          <p className="text-gray-500">Gerencie todas as ofertas do sistema</p>
+          <h1 className="text-3xl font-bold tracking-tight">{isEnglish ? "Offers" : "Ofertas"}</h1>
+          <p className="text-gray-500">{isEnglish ? "Manage all offers in the system" : "Gerencie todas as ofertas do sistema"}</p>
         </div>
 
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -255,14 +258,14 @@ export default function AdminOffersPage() {
               }}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Nova Oferta
+              {isEnglish ? "New Offer" : "Nova Oferta"}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto border-white/10 bg-[#0d1117] sm:max-w-3xl">
             <DialogHeader>
-              <DialogTitle className="text-slate-50">{editingOffer ? "Editar Oferta" : "Criar Nova Oferta"}</DialogTitle>
+              <DialogTitle className="text-slate-50">{editingOffer ? (isEnglish ? "Edit Offer" : "Editar Oferta") : (isEnglish ? "Create New Offer" : "Criar Nova Oferta")}</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Cadastre os dados essenciais da oferta e uma imagem de destaque.
+                {isEnglish ? "Register the offer essential data and a highlight image." : "Cadastre os dados essenciais da oferta e uma imagem de destaque."}
               </DialogDescription>
             </DialogHeader>
             <OfferForm
@@ -297,22 +300,22 @@ export default function AdminOffersPage() {
 
       <div className="grid gap-3 rounded-xl border border-white/[0.08] bg-[#0d1117] p-4 md:grid-cols-2">
         <div className="space-y-1">
-          <p className="text-xs font-medium text-slate-400">Busca textual</p>
+          <p className="text-xs font-medium text-slate-400">{isEnglish ? "Text search" : "Busca textual"}</p>
           <Input
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Buscar por nome, cupom, marca ou periférico"
+            placeholder={isEnglish ? "Search by name, coupon, brand, or peripheral" : "Buscar por nome, cupom, marca ou periférico"}
             className="border-white/10 bg-white/[0.03] text-slate-100 placeholder:text-slate-500"
           />
         </div>
         <div className="space-y-1">
-          <p className="text-xs font-medium text-slate-400">Filtrar por periférico</p>
+          <p className="text-xs font-medium text-slate-400">{isEnglish ? "Filter by peripheral" : "Filtrar por periférico"}</p>
           <Select value={selectedPeripheralId} onValueChange={setSelectedPeripheralId}>
             <SelectTrigger className="border-white/10 bg-white/[0.03] text-slate-100">
-              <SelectValue placeholder="Todos os periféricos" />
+              <SelectValue placeholder={isEnglish ? "All peripherals" : "Todos os periféricos"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_PERIPHERALS}>Todos os periféricos</SelectItem>
+              <SelectItem value={ALL_PERIPHERALS}>{isEnglish ? "All peripherals" : "Todos os periféricos"}</SelectItem>
               {peripheralOptions.map((option) => (
                 <SelectItem key={option.id} value={option.id}>
                   {option.label}
@@ -327,18 +330,18 @@ export default function AdminOffersPage() {
         <div className="flex items-center justify-center py-14">
           <div className="flex items-center gap-3 text-slate-400">
             <Loader2 className="size-5 animate-spin" />
-            <span>Carregando ofertas...</span>
+            <span>{isEnglish ? "Loading offers..." : "Carregando ofertas..."}</span>
           </div>
         </div>
       ) : offers.length === 0 ? (
         <div className="rounded-2xl border border-white/[0.08] bg-[#0d1117] p-10 text-center">
-          <p className="text-slate-300">Nenhuma oferta criada ainda</p>
-          <p className="mt-2 text-sm text-slate-500">Novas ofertas serão publicadas em breve.</p>
+          <p className="text-slate-300">{isEnglish ? "No offers created yet" : "Nenhuma oferta criada ainda"}</p>
+          <p className="mt-2 text-sm text-slate-500">{isEnglish ? "New offers will be published soon." : "Novas ofertas serão publicadas em breve."}</p>
         </div>
       ) : filteredOffers.length === 0 ? (
         <div className="rounded-2xl border border-white/[0.08] bg-[#0d1117] p-10 text-center">
-          <p className="text-slate-300">Nenhuma oferta encontrada para a busca aplicada.</p>
-          <p className="mt-2 text-sm text-slate-500">Tente outro termo ou altere o periférico selecionado.</p>
+          <p className="text-slate-300">{isEnglish ? "No offers found for the current search." : "Nenhuma oferta encontrada para a busca aplicada."}</p>
+          <p className="mt-2 text-sm text-slate-500">{isEnglish ? "Try another term or change the selected peripheral." : "Tente outro termo ou altere o periférico selecionado."}</p>
         </div>
       ) : (
         <>
@@ -355,7 +358,7 @@ export default function AdminOffersPage() {
                       <div className="mb-3 h-40 overflow-hidden rounded-lg border border-white/[0.08]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          alt={`Banner da oferta ${offer.name}`}
+                          alt={isEnglish ? `Offer banner ${offer.name}` : `Banner da oferta ${offer.name}`}
                           className="h-full w-full object-contain"
                           src={offer.image_url}
                         />
@@ -367,10 +370,10 @@ export default function AdminOffersPage() {
                           <CardTitle className="line-clamp-2 text-base text-slate-50">{offer.name}</CardTitle>
                           {getStatusBadge(offer.status)}
                           {expired && (
-                            <Badge className="bg-red-500/20 text-red-300 hover:bg-red-500/20">Expirada</Badge>
+                            <Badge className="bg-red-500/20 text-red-300 hover:bg-red-500/20">{isEnglish ? "Expired" : "Expirada"}</Badge>
                           )}
                         </div>
-                        <CardDescription className="text-xs text-slate-500">Oferta publicada recentemente</CardDescription>
+                        <CardDescription className="text-xs text-slate-500">{isEnglish ? "Recently published offer" : "Oferta publicada recentemente"}</CardDescription>
                       </div>
                       <a
                         href={offer.link}
@@ -394,7 +397,7 @@ export default function AdminOffersPage() {
 
                     {offer.coupon_code && (
                       <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/10 p-2 text-center">
-                        <p className="text-[11px] text-cyan-200">Cupom</p>
+                        <p className="text-[11px] text-cyan-200">{isEnglish ? "Coupon" : "Cupom"}</p>
                         <p className="font-mono text-sm font-semibold text-cyan-100">{offer.coupon_code}</p>
                       </div>
                     )}
@@ -402,7 +405,7 @@ export default function AdminOffersPage() {
                     <div className="space-y-1 text-xs text-slate-500">
                       {offer.expires_at && (
                         <p>
-                          Expira em {format(new Date(offer.expires_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          {isEnglish ? "Expires on" : "Expira em"} {format(new Date(offer.expires_at), isEnglish ? "MMMM dd, yyyy" : "dd 'de' MMMM 'de' yyyy", { locale: isEnglish ? enUS : ptBR })}
                         </p>
                       )}
                     </div>
@@ -418,7 +421,7 @@ export default function AdminOffersPage() {
                         }}
                       >
                         <Pencil className="h-4 w-4 mr-1" />
-                        Editar
+                        {isEnglish ? "Edit" : "Editar"}
                       </Button>
 
                       <AlertDialog
@@ -435,7 +438,7 @@ export default function AdminOffersPage() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <div className="flex gap-3 justify-end">
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogCancel>{isEnglish ? "Cancel" : "Cancelar"}</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleUpdateOfferStatus(offer.id, getOfferAction(offer).nextStatus)}
                               className={getOfferAction(offer).nextStatus === "active" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}
@@ -461,7 +464,7 @@ export default function AdminOffersPage() {
                         ) : (
                           <Trash2 className="h-4 w-4 mr-1" />
                         )}
-                        {offer.status === "cancelled" ? "Reativar" : "Cancelar"}
+                        {offer.status === "cancelled" ? (isEnglish ? "Reactivate" : "Reativar") : (isEnglish ? "Cancel" : "Cancelar")}
                       </Button>
                     </div>
                   </CardContent>
@@ -473,7 +476,7 @@ export default function AdminOffersPage() {
           {totalPages > 1 && (
             <div className="flex flex-col items-center gap-4 pt-2">
               <p className="text-sm text-slate-500">
-                Exibindo {startIdx + 1} a {Math.min(startIdx + ITEMS_PER_PAGE, filteredOffers.length)} de {filteredOffers.length} ofertas
+                {isEnglish ? "Showing" : "Exibindo"} {startIdx + 1} {isEnglish ? "to" : "a"} {Math.min(startIdx + ITEMS_PER_PAGE, filteredOffers.length)} {isEnglish ? "of" : "de"} {filteredOffers.length} {isEnglish ? "offers" : "ofertas"}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <Button
@@ -482,7 +485,7 @@ export default function AdminOffersPage() {
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                 >
-                  Anterior
+                  {isEnglish ? "Previous" : "Anterior"}
                 </Button>
 
                 <div className="flex gap-1">
@@ -505,7 +508,7 @@ export default function AdminOffersPage() {
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  Próxima
+                  {isEnglish ? "Next" : "Próxima"}
                 </Button>
               </div>
             </div>

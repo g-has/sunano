@@ -3,6 +3,7 @@
 import { Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
 import { CARD_TAG_STYLES, CARD_TIER_STYLES } from "@/lib/tierlist-theme"
 
@@ -72,21 +73,23 @@ function getSpecLine(item: PeripheralCardProps) {
   return parts.slice(0, 3).join(" / ")
 }
 
-function getAllSpecs(item: PeripheralCardProps): Array<{ label: string; value: string }> {
+function getAllSpecs(item: PeripheralCardProps, isEnglish: boolean): Array<{ label: string; value: string }> {
   const specs: Array<{ label: string; value: string }> = []
   
-  if (item.specs.connectivity) specs.push({ label: "Conectividade", value: formatLabel(item.specs.connectivity) })
-  if (item.specs.size) specs.push({ label: "Tamanho", value: formatLabel(item.specs.size) })
-  if (item.specs.driver) specs.push({ label: "Sensor", value: item.specs.driver })
-  if (item.specs.profile) specs.push({ label: "Perfil", value: item.specs.profile })
-  if (item.specs.mouseShape) specs.push({ label: "Forma", value: formatLabel(item.specs.mouseShape) })
+  if (item.specs.connectivity) specs.push({ label: isEnglish ? "Connectivity" : "Conectividade", value: formatLabel(item.specs.connectivity) })
+  if (item.specs.size) specs.push({ label: isEnglish ? "Size" : "Tamanho", value: formatLabel(item.specs.size) })
+  if (item.specs.driver) specs.push({ label: isEnglish ? "Sensor" : "Sensor", value: item.specs.driver })
+  if (item.specs.profile) specs.push({ label: isEnglish ? "Profile" : "Perfil", value: item.specs.profile })
+  if (item.specs.mouseShape) specs.push({ label: isEnglish ? "Shape" : "Forma", value: formatLabel(item.specs.mouseShape) })
   if (item.specs.keyboardLayout) specs.push({ label: "Layout", value: item.specs.keyboardLayout.toUpperCase() })
-  if (item.specs.surface) specs.push({ label: "Superfície", value: formatLabel(item.specs.surface) })
+  if (item.specs.surface) specs.push({ label: isEnglish ? "Surface" : "Superfície", value: formatLabel(item.specs.surface) })
   
   return specs
 }
 
 export function PeripheralCard({ ...item }: PeripheralCardProps) {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const tierStyle = CARD_TIER_STYLES[item.tier]
   const primaryTag = item.tags[0]
   const tagStyle = primaryTag ? CARD_TAG_STYLES[primaryTag] : CARD_TAG_STYLES.versatile
@@ -182,7 +185,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
 
         {/* Tags - Vertical */}
         <div className="mb-4 flex flex-col items-center">
-          <p className="text-[10px] font-semibold uppercase text-slate-500 mb-2.5">Características</p>
+          <p className="text-[10px] font-semibold uppercase text-slate-500 mb-2.5">{isEnglish ? "Features" : "Características"}</p>
           <div className="flex gap-2">
             {item.tags.map((tag) => {
               const style = CARD_TAG_STYLES[tag]
@@ -205,9 +208,9 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
 
         {/* Specifications - Vertical */}
         <div className="flex flex-col items-center">
-          <p className="text-[10px] font-semibold uppercase text-slate-500 mb-2.5">Especificações</p>
+          <p className="text-[10px] font-semibold uppercase text-slate-500 mb-2.5">{isEnglish ? "Specifications" : "Especificações"}</p>
           <div className="grid grid-cols-2 gap-2.5">
-            {getAllSpecs(item).slice(0, 4).map((spec) => (
+            {getAllSpecs(item, isEnglish).slice(0, 4).map((spec) => (
               <div key={spec.label} className="bg-white/[0.05] rounded-lg p-2.5 border border-white/[0.08]">
                 <p className="text-[9px] text-slate-500 font-medium mb-1">{spec.label}</p>
                 <p className="text-sm font-bold text-slate-100">{spec.value}</p>

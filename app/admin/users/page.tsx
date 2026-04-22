@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLocale } from "@/lib/locale-context"
 
 type AdminUser = AdminProfile & {
   created_at: string
@@ -22,6 +23,8 @@ type UsersResponse = {
 }
 
 export default function AdminUsersPage() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -41,7 +44,7 @@ export default function AdminUsersPage() {
       const data = (await response.json().catch(() => null)) as UsersResponse | null
 
       if (!response.ok || !data?.users) {
-        throw new Error(data?.error ?? "Erro ao carregar usuários")
+        throw new Error(data?.error ?? (isEnglish ? "Failed to load users" : "Erro ao carregar usuários"))
       }
 
       setCurrentUserId(data.current_user_id ?? null)
@@ -52,7 +55,7 @@ export default function AdminUsersPage() {
         }))
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar usuários")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load users" : "Erro ao carregar usuários"))
     } finally {
       setLoading(false)
     }
@@ -98,12 +101,12 @@ export default function AdminUsersPage() {
       const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean } | null
 
       if (!response.ok || !data?.ok) {
-        throw new Error(data?.error ?? "Erro ao salvar usuário")
+        throw new Error(data?.error ?? (isEnglish ? "Failed to save user" : "Erro ao salvar usuário"))
       }
 
       await loadUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar usuário")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save user" : "Erro ao salvar usuário"))
     } finally {
       setSavingId(null)
     }
@@ -119,14 +122,16 @@ export default function AdminUsersPage() {
           <div className="relative max-w-3xl space-y-4">
             <p className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
               <ShieldCheck className="size-3.5" />
-              Apenas WEB Master
+              {isEnglish ? "WEB Master only" : "Apenas WEB Master"}
             </p>
             <div className="space-y-2">
               <h1 className="font-display text-3xl font-bold tracking-tight text-slate-50 md:text-4xl">
-                Usuários e permissões
+                {isEnglish ? "Users and permissions" : "Usuários e permissões"}
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-slate-300 md:text-base">
-                Ajuste quem pode ver e editar cada parte do site. As permissões do WEB Master ficam bloqueadas no backend e não podem ser alteradas.
+                {isEnglish
+                  ? "Set who can view and edit each part of the site. WEB Master permissions are locked in the backend and cannot be changed."
+                  : "Ajuste quem pode ver e editar cada parte do site. As permissões do WEB Master ficam bloqueadas no backend e não podem ser alteradas."}
               </p>
             </div>
           </div>
@@ -138,14 +143,14 @@ export default function AdminUsersPage() {
       ) : null}
 
       {loading ? (
-        <div className="text-sm text-slate-400">Carregando usuários...</div>
+        <div className="text-sm text-slate-400">{isEnglish ? "Loading users..." : "Carregando usuários..."}</div>
       ) : null}
 
       <Card className="border-white/10 bg-[#131a28]/90">
         <CardHeader className="border-b border-white/10">
           <CardTitle className="flex items-center gap-2 text-slate-50">
             <UsersIcon className="size-5 text-cyan-400" />
-            Lista de usuários
+            {isEnglish ? "User list" : "Lista de usuários"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
@@ -171,13 +176,13 @@ export default function AdminUsersPage() {
                     </div>
                     <p className="text-sm text-slate-400">{user.email ?? "Sem email"}</p>
                     {locked ? (
-                      <p className="text-xs text-amber-200/80">Permissões do WEB Master ficam bloqueadas.</p>
+                      <p className="text-xs text-amber-200/80">{isEnglish ? "WEB Master permissions are locked." : "Permissões do WEB Master ficam bloqueadas."}</p>
                     ) : null}
                   </div>
 
                   <div className="min-w-[180px] space-y-2">
                     <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      Cargo
+                      {isEnglish ? "Role" : "Cargo"}
                     </label>
                     {locked ? (
                       <div className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-300">
@@ -212,7 +217,7 @@ export default function AdminUsersPage() {
                             onChange={(event) => updateUserPermission(user.id, feature.readKey, event.target.checked)}
                             type="checkbox"
                           />
-                          Ler
+                          {isEnglish ? "Read" : "Ler"}
                         </label>
                         <label className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#0f1520] px-3 py-2">
                           <input
@@ -221,7 +226,7 @@ export default function AdminUsersPage() {
                             onChange={(event) => updateUserPermission(user.id, feature.writeKey, event.target.checked)}
                             type="checkbox"
                           />
-                          Editar
+                          {isEnglish ? "Edit" : "Editar"}
                         </label>
                       </div>
                     </div>
@@ -230,7 +235,7 @@ export default function AdminUsersPage() {
 
                 <div className="mt-4 flex justify-end">
                   <Button onClick={() => saveUser(user)} disabled={savingId === user.id || locked}>
-                    {savingId === user.id ? "Salvando..." : locked ? "Bloqueado" : "Salvar permissões"}
+                    {savingId === user.id ? (isEnglish ? "Saving..." : "Salvando...") : locked ? (isEnglish ? "Locked" : "Bloqueado") : (isEnglish ? "Save permissions" : "Salvar permissões")}
                   </Button>
                 </div>
               </div>

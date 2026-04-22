@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter, Space_Grotesk } from "next/font/google"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { TopBar } from "@/components/layout/TopBar"
+import { LocaleProvider } from "@/lib/locale-context"
 
 import "./globals.css"
 
@@ -35,8 +36,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="bg-background">
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans`}>
-        <TopBar />
-        <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        <LocaleProvider>
+          <TopBar />
+          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        </LocaleProvider>
       </body>
     </html>
   )

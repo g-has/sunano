@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useLocale } from "@/lib/locale-context"
 import { supabase } from "@/lib/supabase"
 
 type BlogPost = {
@@ -27,6 +28,8 @@ type BlogPost = {
 }
 
 export default function AdminBlogPage() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -48,14 +51,14 @@ export default function AdminBlogPage() {
       if (err) throw err
       setPosts(((data ?? []) as unknown as BlogPost[]) ?? [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar artigos")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load articles" : "Erro ao carregar artigos"))
     } finally {
       setLoading(false)
     }
   }
 
   async function removePost(id: string) {
-    if (!confirm("Tem certeza que deseja excluir este artigo?")) return
+    if (!confirm(isEnglish ? "Are you sure you want to delete this article?" : "Tem certeza que deseja excluir este artigo?")) return
 
     const { error: err } = await supabase.from("blog_posts").delete().eq("id", id)
     if (err) {
@@ -71,12 +74,12 @@ export default function AdminBlogPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-50">Blog</h1>
-          <p className="text-sm text-slate-400 mt-1">Gerencie reviews e artigos relacionados aos periféricos</p>
+          <p className="text-sm text-slate-400 mt-1">{isEnglish ? "Manage reviews and peripheral-related articles" : "Gerencie reviews e artigos relacionados aos periféricos"}</p>
         </div>
         <Link href="/admin/blog/new">
           <Button className="gap-2">
             <Plus className="size-4" />
-            Novo artigo
+            {isEnglish ? "New article" : "Novo artigo"}
           </Button>
         </Link>
       </div>
@@ -87,23 +90,23 @@ export default function AdminBlogPage() {
 
       <Card className="border-white/10 bg-[#131a28]/90">
         <CardHeader>
-          <CardTitle>Artigos cadastrados</CardTitle>
+          <CardTitle>{isEnglish ? "Registered articles" : "Artigos cadastrados"}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-slate-400">Carregando...</p>
+            <p className="text-sm text-slate-400">{isEnglish ? "Loading..." : "Carregando..."}</p>
           ) : posts.length === 0 ? (
-            <p className="text-sm text-slate-400">Nenhum artigo cadastrado.</p>
+            <p className="text-sm text-slate-400">{isEnglish ? "No articles registered." : "Nenhum artigo cadastrado."}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/10">
-                    <TableHead>Título</TableHead>
-                    <TableHead>Periférico</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{isEnglish ? "Title" : "Título"}</TableHead>
+                    <TableHead>{isEnglish ? "Peripheral" : "Periférico"}</TableHead>
+                    <TableHead>{isEnglish ? "Status" : "Status"}</TableHead>
                     <TableHead>Slug</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="text-right">{isEnglish ? "Actions" : "Ações"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -120,14 +123,14 @@ export default function AdminBlogPage() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={post.is_published ? "default" : "secondary"}>
-                            {post.is_published ? "Publicado" : "Rascunho"}
+                            {post.is_published ? (isEnglish ? "Published" : "Publicado") : (isEnglish ? "Draft" : "Rascunho")}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-slate-300">/{post.slug}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-2">
                             <Link href={`/blog/${post.slug}`} target="_blank">
-                              <Button variant="outline" size="sm">Ver</Button>
+                              <Button variant="outline" size="sm">{isEnglish ? "View" : "Ver"}</Button>
                             </Link>
                             <Link href={`/admin/blog/${post.id}`}>
                               <Button variant="outline" size="icon" className="h-8 w-8">

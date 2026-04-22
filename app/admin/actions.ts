@@ -9,12 +9,18 @@ type AuthState = {
   error: string | null
 }
 
+const AUTH_ERRORS = {
+  missingCredentials: "missing_credentials",
+  invalidCredentials: "invalid_credentials",
+  noAdminAccess: "no_admin_access",
+} as const
+
 export async function loginAction(_: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get("email") || "").trim()
   const password = String(formData.get("password") || "")
 
   if (!email || !password) {
-    return { error: "Informe email e senha." }
+    return { error: AUTH_ERRORS.missingCredentials }
   }
 
   const supabase = await createSupabaseServerClient()
@@ -24,7 +30,7 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
   })
 
   if (error) {
-    return { error: "Credenciais invalidas." }
+    return { error: AUTH_ERRORS.invalidCredentials }
   }
 
   const { data: authData } = await supabase.auth.getUser()
@@ -38,12 +44,12 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
 
   if (!profile) {
     await supabase.auth.signOut()
-    return { error: "Conta sem acesso ao admin." }
+    return { error: AUTH_ERRORS.noAdminAccess }
   }
 
   if (!hasAdminPermission(profile, "dashboard_read")) {
     await supabase.auth.signOut()
-    return { error: "Conta sem acesso ao admin." }
+    return { error: AUTH_ERRORS.noAdminAccess }
   }
 
   redirect("/admin")

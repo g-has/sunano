@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { useLocale } from "@/lib/locale-context"
 
 type AdminProfile = {
   id: string
@@ -30,6 +31,8 @@ function getNameFallback(email: string | null | undefined) {
 }
 
 export default function SettingsPage() {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -58,7 +61,7 @@ export default function SettingsPage() {
         | null
 
       if (!response.ok || !data?.profile) {
-        throw new Error(data?.error ?? "Erro ao carregar perfil")
+        throw new Error(data?.error ?? (isEnglish ? "Failed to load profile" : "Erro ao carregar perfil"))
       }
 
       setEmail(data.profile.email)
@@ -67,7 +70,7 @@ export default function SettingsPage() {
       setAvatarPreview(data.profile.avatar_url)
       setRole(data.profile.role)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar perfil")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load profile" : "Erro ao carregar perfil"))
     } finally {
       setLoading(false)
     }
@@ -101,13 +104,13 @@ export default function SettingsPage() {
         | null
 
       if (!uploadResponse.ok || !uploadData?.publicUrl) {
-        throw new Error(uploadData?.error ?? "Erro ao enviar avatar")
+        throw new Error(uploadData?.error ?? (isEnglish ? "Failed to upload avatar" : "Erro ao enviar avatar"))
       }
 
       setAvatarUrl(uploadData.publicUrl)
       setAvatarPreview(uploadData.publicUrl)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao enviar avatar")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to upload avatar" : "Erro ao enviar avatar"))
     } finally {
       setUploading(false)
     }
@@ -133,7 +136,7 @@ export default function SettingsPage() {
         | null
 
       if (!response.ok || !data?.profile) {
-        throw new Error(data?.error ?? "Erro ao salvar perfil")
+        throw new Error(data?.error ?? (isEnglish ? "Failed to save profile" : "Erro ao salvar perfil"))
       }
 
       setDisplayName(data.profile.display_name)
@@ -141,9 +144,9 @@ export default function SettingsPage() {
       setAvatarUrl(data.profile.avatar_url)
       setAvatarPreview(data.profile.avatar_url)
       setRole(data.profile.role)
-      setSuccess("Perfil atualizado com sucesso.")
+      setSuccess(isEnglish ? "Profile updated successfully." : "Perfil atualizado com sucesso.")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar perfil")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save profile" : "Erro ao salvar perfil"))
     } finally {
       setSaving(false)
     }
@@ -155,12 +158,12 @@ export default function SettingsPage() {
       setSuccess(null)
 
       if (newPassword.length < 8) {
-        setError("A senha deve ter no mínimo 8 caracteres.")
+        setError(isEnglish ? "Password must be at least 8 characters." : "A senha deve ter no mínimo 8 caracteres.")
         return
       }
 
       if (newPassword !== confirmPassword) {
-        setError("As senhas não conferem.")
+        setError(isEnglish ? "Passwords do not match." : "As senhas não conferem.")
         return
       }
 
@@ -173,14 +176,14 @@ export default function SettingsPage() {
       const data = (await response.json().catch(() => null)) as { error?: string; ok?: boolean } | null
 
       if (!response.ok || !data?.ok) {
-        throw new Error(data?.error ?? "Erro ao alterar senha")
+        throw new Error(data?.error ?? (isEnglish ? "Failed to change password" : "Erro ao alterar senha"))
       }
 
       setNewPassword("")
       setConfirmPassword("")
-      setSuccess("Senha atualizada com sucesso.")
+      setSuccess(isEnglish ? "Password updated successfully." : "Senha atualizada com sucesso.")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao alterar senha")
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to change password" : "Erro ao alterar senha"))
     }
   }
 
@@ -189,21 +192,21 @@ export default function SettingsPage() {
   }, [displayName, email])
 
   if (loading) {
-    return <div className="text-sm text-slate-400">Carregando configurações...</div>
+    return <div className="text-sm text-slate-400">{isEnglish ? "Loading settings..." : "Carregando configurações..."}</div>
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-50">Configurações</h1>
-        <p className="mt-1 text-sm text-slate-400">Defina seu nome e foto usados como autoria dos reviews no blog.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-50">{isEnglish ? "Settings" : "Configurações"}</h1>
+        <p className="mt-1 text-sm text-slate-400">{isEnglish ? "Set your name and profile photo used as blog review authorship." : "Defina seu nome e foto usados como autoria dos reviews no blog."}</p>
       </div>
 
       <Card className="border-white/10 bg-[#131a28]/90">
         <CardHeader className="border-b border-white/10">
-          <CardTitle>Perfil do Admin</CardTitle>
+          <CardTitle>{isEnglish ? "Admin profile" : "Perfil do Admin"}</CardTitle>
           <CardDescription>
-            Se o nome ficar vazio, o sistema usa automaticamente a parte inicial do seu email.
+            {isEnglish ? "If the name is empty, the system automatically uses the first part of your email." : "Se o nome ficar vazio, o sistema usa automaticamente a parte inicial do seu email."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
@@ -231,74 +234,74 @@ export default function SettingsPage() {
                 />
                 <div className="flex items-center gap-2 text-sm text-slate-300">
                   <Upload className="size-4 text-slate-400" />
-                  {uploading ? "Enviando avatar..." : "Enviar foto de perfil"}
+                  {uploading ? (isEnglish ? "Uploading avatar..." : "Enviando avatar...") : (isEnglish ? "Upload profile photo" : "Enviar foto de perfil")}
                 </div>
               </label>
-              <p className="text-xs text-slate-500">Formatos aceitos: JPG, PNG ou WEBP. Tamanho máximo: 3MB.</p>
+              <p className="text-xs text-slate-500">{isEnglish ? "Accepted formats: JPG, PNG or WEBP. Max size: 3MB." : "Formatos aceitos: JPG, PNG ou WEBP. Tamanho máximo: 3MB."}</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-100">Email da conta</label>
+            <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Account email" : "Email da conta"}</label>
             <Input value={email ?? "-"} readOnly className="border-white/10 bg-white/5 text-slate-300" />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-100">Nome de exibição no blog</label>
+            <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Display name on blog" : "Nome de exibição no blog"}</label>
             <Input
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
               className="border-white/10 bg-white/5"
-              placeholder="Ex: Pedro"
+              placeholder={isEnglish ? "Ex: John" : "Ex: Pedro"}
               maxLength={80}
             />
             <p className="text-xs text-slate-500">
-              Prévia da autoria: <span className="text-slate-300">{previewName}</span>
+              {isEnglish ? "Author preview" : "Prévia da autoria"}: <span className="text-slate-300">{previewName}</span>
             </p>
           </div>
 
           {role === "webmaster" ? (
             <div className="space-y-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-amber-100">Alterar senha</h3>
+                <h3 className="text-sm font-semibold text-amber-100">{isEnglish ? "Change password" : "Alterar senha"}</h3>
                 <p className="text-xs text-amber-200/80">
-                  Esta área é exclusiva para o WEB Master.
+                  {isEnglish ? "This area is exclusive to WEB Master." : "Esta área é exclusiva para o WEB Master."}
                 </p>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-100">Nova senha</label>
+                  <label className="text-sm font-semibold text-slate-100">{isEnglish ? "New password" : "Nova senha"}</label>
                   <Input
                     value={newPassword}
                     onChange={(event) => setNewPassword(event.target.value)}
                     className="border-white/10 bg-white/5"
-                    placeholder="Digite a nova senha"
+                    placeholder={isEnglish ? "Enter the new password" : "Digite a nova senha"}
                     type="password"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-100">Confirmar senha</label>
+                  <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Confirm password" : "Confirmar senha"}</label>
                   <Input
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
                     className="border-white/10 bg-white/5"
-                    placeholder="Repita a nova senha"
+                    placeholder={isEnglish ? "Repeat the new password" : "Repita a nova senha"}
                     type="password"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end">
-                <Button onClick={updatePassword}>Salvar nova senha</Button>
+                <Button onClick={updatePassword}>{isEnglish ? "Save new password" : "Salvar nova senha"}</Button>
               </div>
             </div>
           ) : null}
 
           <div className="flex justify-end">
             <Button onClick={saveProfile} disabled={saving || uploading}>
-              {saving ? "Salvando..." : "Salvar perfil"}
+              {saving ? (isEnglish ? "Saving..." : "Salvando...") : (isEnglish ? "Save profile" : "Salvar perfil")}
             </Button>
           </div>
         </CardContent>

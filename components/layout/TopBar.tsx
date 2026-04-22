@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Check, ChevronDown, Globe, MessageCircle, Youtube } from "lucide-react"
 import {
   DropdownMenu,
@@ -11,14 +10,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  DEFAULT_LOCALE,
   getLanguageEntry,
-  getLocale,
   I18N,
   LANGUAGE_OPTIONS,
-  LANGUAGE_STORAGE_KEY,
   type LocaleCode,
 } from "@/lib/i18n"
+import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
 
 const SOCIAL_LINKS = [
@@ -27,20 +24,12 @@ const SOCIAL_LINKS = [
 ]
 
 export function TopBar() {
-  const [locale, setLocale] = useState<LocaleCode>(DEFAULT_LOCALE)
-
-  useEffect(() => {
-    const storedLocale = getLocale(window.localStorage.getItem(LANGUAGE_STORAGE_KEY))
-    setLocale(storedLocale)
-    document.documentElement.lang = storedLocale
-  }, [])
+  const { locale, setLocale } = useLocale()
 
   const selectedLanguage = getLanguageEntry(locale)
 
   const updateLocale = (nextLocale: LocaleCode) => {
     setLocale(nextLocale)
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLocale)
-    document.documentElement.lang = nextLocale
   }
 
   return (

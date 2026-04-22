@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 
 import { PeripheralCard } from "./PeripheralCard"
+import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
 import {
   RECOMMENDED_COLUMN_COLORS,
@@ -188,12 +189,64 @@ interface TierlistGridProps {
 }
 
 export function TierlistGrid({ filtered }: TierlistGridProps) {
+  const { locale } = useLocale()
+  const isEnglish = locale === "en-US"
   const [ratingMode, setRatingMode] = useState<RatingMode>("performance")
   const modeConfig = MODE_CONFIGS[ratingMode]
 
+  const tierRows: TierRow[] = [
+    {
+      key: "T0",
+      label: "T0",
+      description: isEnglish ? "Apex - Absolute reference" : "Apex - Referencia absoluta",
+      gradient: TIER_THEMES.T0.accent,
+      textColor: TIER_THEMES.T0.textColor,
+    },
+    {
+      key: "T0.5",
+      label: "T0.5",
+      description: isEnglish ? "Excellent - Almost perfect" : "Excelente - Quase perfeito",
+      gradient: TIER_THEMES["T0.5"].accent,
+      textColor: TIER_THEMES["T0.5"].textColor,
+    },
+    {
+      key: "T1",
+      label: "T1",
+      description: isEnglish ? "Meta - Great choice" : "Meta - Otima escolha",
+      gradient: TIER_THEMES.T1.accent,
+      textColor: TIER_THEMES.T1.textColor,
+    },
+    {
+      key: "T2",
+      label: "T2",
+      description: isEnglish ? "Solid - Great value" : "Solido - Bom custo-beneficio",
+      gradient: TIER_THEMES.T2.accent,
+      textColor: TIER_THEMES.T2.textColor,
+    },
+  ]
+
+  const ratingModes: { key: RatingMode; label: string }[] = [
+    { key: "performance", label: isEnglish ? "Performance" : "Performance" },
+    { key: "value", label: isEnglish ? "Value" : "Custo-Beneficio" },
+    { key: "recommended", label: isEnglish ? "Recommended" : "Recomendado" },
+  ]
+
+  const localizedModeDescription =
+    ratingMode === "performance"
+      ? isEnglish
+        ? "Sorted by pure performance"
+        : "Ordenado por desempenho puro"
+      : ratingMode === "value"
+        ? isEnglish
+          ? "Grouped by price range within each tier"
+          : "Distribuído por faixa de preco dentro de cada tier"
+        : isEnglish
+          ? "Suggested picks by Sunano, prioritizing overall balance"
+          : "Escolhas sugeridas por Sunano, priorizando equilibrio geral"
+
   const itemsByTier = useMemo(
     () =>
-      TIER_ROWS.map((tier) => {
+      tierRows.map((tier) => {
         const tierItems = modeConfig.sortItems(filtered.filter((item) => item.tier === tier.key))
 
         return {
@@ -205,7 +258,7 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
           totalItems: tierItems.length,
         }
       }),
-    [filtered, modeConfig]
+    [filtered, modeConfig, tierRows]
   )
 
   const hasItems = filtered.length > 0
@@ -214,11 +267,11 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
     <section className="space-y-4">
       <div className="flex flex-col gap-4 rounded-xl border border-white/[0.08] bg-[#0d1117] p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-medium text-slate-400">Voce esta vendo a tierlist ordenada por:</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-200">{modeConfig.description}</p>
+          <p className="text-xs font-medium text-slate-400">{isEnglish ? "You are viewing the tierlist sorted by:" : "Voce esta vendo a tierlist ordenada por:"}</p>
+          <p className="mt-0.5 text-sm font-semibold text-slate-200">{localizedModeDescription}</p>
         </div>
         <div className="flex rounded-lg border border-white/[0.1] bg-white/[0.02] p-1">
-          {RATING_MODES.map((mode) => (
+          {ratingModes.map((mode) => (
             <button
               key={mode.key}
               onClick={() => setRatingMode(mode.key)}
@@ -267,7 +320,7 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
                   <div className={cn("text-2xl font-black", tierRow.textColor)}>{tierRow.label}</div>
                   {tierRow.totalItems > 0 && (
                     <div className={cn("mt-1 text-[10px] font-medium opacity-80", tierRow.textColor)}>
-                      {tierRow.totalItems} items
+                      {tierRow.totalItems} {isEnglish ? "items" : "itens"}
                     </div>
                   )}
                 </td>
@@ -303,7 +356,7 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
         <div className="md:hidden">
           {!hasItems ? (
             <div className="p-8 text-center">
-              <p className="text-sm text-slate-400">Nenhum item encontrado com os filtros atuais.</p>
+              <p className="text-sm text-slate-400">{isEnglish ? "No items found with the current filters." : "Nenhum item encontrado com os filtros atuais."}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/[0.08]">
@@ -321,7 +374,7 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
                           {tierRow.description}
                         </span>
                       </div>
-                      <span className={cn("text-sm font-semibold", tierRow.textColor)}>{allTierItems.length} items</span>
+                      <span className={cn("text-sm font-semibold", tierRow.textColor)}>{allTierItems.length} {isEnglish ? "items" : "itens"}</span>
                     </div>
 
                     <div className="space-y-4 p-4">
