@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft, Upload } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { BLOG_IMAGE_STANDARDS } from "@/lib/blog-images"
 import { supabase } from "@/lib/supabase"
 
 type PeripheralOption = {
@@ -30,12 +31,9 @@ type PeripheralOption = {
 const postSchema = z.object({
   peripheral_id: z.string().min(1, "Selecione um periférico"),
   title: z.string().min(5, "Título deve ter no mínimo 5 caracteres"),
-  slug: z
-    .string()
-    .min(3, "Slug deve ter no mínimo 3 caracteres")
-    .regex(/^[a-z0-9-]+$/, "Use apenas letras minúsculas, números e hífen"),
   excerpt: z.string().optional(),
   cover_image_url: z.string().url("URL da imagem inválida").optional().or(z.literal("")),
+  cover_thumbnail_url: z.string().url("URL da imagem inválida").optional().or(z.literal("")),
   video_url: z.string().url("URL do vídeo inválida").optional().or(z.literal("")),
   content: z.string().min(20, "Conteúdo deve ter no mínimo 20 caracteres"),
   status: z.enum(["published", "draft"]),
@@ -47,21 +45,15 @@ interface BlogPostFormProps {
   postId?: string
 }
 
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-}
-
 export function BlogPostForm({ postId }: BlogPostFormProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState<"header" | "thumbnail" | null>(null)
+  const [headerImageFile, setHeaderImageFile] = useState<File | null>(null)
+  const [thumbnailImageFile, setThumbnailImageFile] = useState<File | null>(null)
+  const [headerPreview, setHeaderPreview] = useState<string | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [peripherals, setPeripherals] = useState<PeripheralOption[]>([])
 
   const form = useForm<PostFormData>({
@@ -69,16 +61,14 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
     defaultValues: {
       peripheral_id: "",
       title: "",
-      slug: "",
       excerpt: "",
       cover_image_url: "",
+      cover_thumbnail_url: "",
       video_url: "",
       content: "",
       status: "published",
     },
   })
-
-  const titleValue = form.watch("title")
 
   useEffect(() => {
     loadPeripherals()
@@ -119,13 +109,36 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
     form.reset({
       peripheral_id: data.peripheral_id,
       title: data.title,
-      slug: data.slug,
       excerpt: data.excerpt ?? "",
       cover_image_url: data.cover_image_url ?? "",
+      cover_thumbnail_url: data.cover_thumbnail_url ?? "",
       video_url: data.video_url ?? "",
       content: data.content,
       status: data.is_published ? "published" : "draft",
     })
+    setHeaderPreview(data.cover_image_url ?? null)
+    setThumbnailPreview(data.cover_thumbnail_url ?? null)
+  }
+
+  const handleCoverImageSelect = (event: React.ChangeEvent<HTMLInputElement>, variant: "header" | "thumbnail") => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (variant === "header") {
+      setHeaderImageFile(file)
+    } else {
+      setThumbnailImageFile(file)
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      if (variant === "header") {
+        setHeaderPreview(reader.result as string)
+      } else {
+        setThumbnailPreview(reader.result as string)
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   async function onSubmit(values: PostFormData) {
@@ -133,38 +146,92 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
       setSaving(true)
       setError(null)
 
-      const payload = {
-        peripheral_id: values.peripheral_id,
-        title: values.title,
-        slug: values.slug,
-        excerpt: values.excerpt?.trim() || null,
-        cover_image_url: values.cover_image_url?.trim() || null,
-        video_url: values.video_url?.trim() || null,
-        content: values.content,
-        is_published: values.status === "published",
+      let coverImageUrl = values.cover_image_url?.trim() || null
+      let coverThumbnailUrl = values.cover_thumbnail_url?.trim() || null
+
+      if (headerImageFile) {
+        setUploadingCover("header")
+        const uploadBody = new FormData()
+        uploadBody.append("file", headerImageFile)
+        uploadBody.append("title", values.title)
+        uploadBody.append("variant", "header")
+
+        const uploadResponse = await fetch("/api/admin/blog/upload-cover", {
+          method: "POST",
+          body: uploadBody,
+        })
+
+        const uploadData = (await uploadResponse.json().catch(() => null)) as
+          | { error?: string; publicUrl?: string }
+          | null
+
+        if (!uploadResponse.ok || !uploadData?.publicUrl) {
+          throw new Error(uploadData?.error ?? "Erro ao enviar imagem de capa")
+        }
+
+        coverImageUrl = uploadData.publicUrl
       }
 
-      if (postId) {
-        const { error: err } = await supabase
-          .from("blog_posts")
-          .update(payload)
-          .eq("id", postId)
+      if (thumbnailImageFile) {
+        setUploadingCover("thumbnail")
+        const uploadBody = new FormData()
+        uploadBody.append("file", thumbnailImageFile)
+        uploadBody.append("title", values.title)
+        uploadBody.append("variant", "thumbnail")
 
-        if (err) throw err
-      } else {
-        const { error: err } = await supabase.from("blog_posts").insert([payload])
-        if (err) throw err
+        const uploadResponse = await fetch("/api/admin/blog/upload-cover", {
+          method: "POST",
+          body: uploadBody,
+        })
+
+        const uploadData = (await uploadResponse.json().catch(() => null)) as
+          | { error?: string; publicUrl?: string }
+          | null
+
+        if (!uploadResponse.ok || !uploadData?.publicUrl) {
+          throw new Error(uploadData?.error ?? "Erro ao enviar miniatura")
+        }
+
+        coverThumbnailUrl = uploadData.publicUrl
+      }
+
+      const response = await fetch("/api/admin/blog", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: postId,
+          peripheral_id: values.peripheral_id,
+          title: values.title,
+          excerpt: values.excerpt?.trim() || null,
+          cover_image_url: coverImageUrl,
+          cover_thumbnail_url: coverThumbnailUrl,
+          video_url: values.video_url?.trim() || null,
+          content: values.content,
+          is_published: values.status === "published",
+        }),
+      })
+
+      const responseData = (await response.json().catch(() => null)) as
+        | { error?: string; ok?: boolean }
+        | null
+
+      if (!response.ok) {
+        throw new Error(responseData?.error ?? "Erro ao salvar artigo")
       }
 
       router.push("/admin/blog")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar artigo")
     } finally {
+      setUploadingCover(false)
       setSaving(false)
     }
   }
 
-  const selectedCoverUrl = form.watch("cover_image_url")
+  const selectedHeaderUrl = headerPreview ?? form.watch("cover_image_url")
+  const selectedThumbnailUrl = thumbnailPreview ?? form.watch("cover_thumbnail_url")
 
   const peripheralOptions = useMemo(
     () => peripherals.map((item) => ({ value: item.id, label: `${item.brand} - ${item.name}` })),
@@ -174,7 +241,7 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
   return (
     <div className="space-y-6">
       <Link href="/admin/blog">
-        <Button variant="ghost" className="gap-2">
+        <Button className="gap-2" variant="ghost">
           <ChevronLeft className="size-4" />
           Voltar para artigos
         </Button>
@@ -184,7 +251,7 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
         <CardHeader className="border-b border-white/10">
           <CardTitle>{postId ? "Editar artigo" : "Novo artigo"}</CardTitle>
           <CardDescription>
-            Conteúdo em texto + imagem por URL + vídeo somente por link.
+            Padrão principal de capa: card do blog. A capa de header é opcional e pode ser adaptada automaticamente.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
@@ -193,6 +260,19 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
           ) : null}
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-4 text-xs leading-5 text-slate-300">
+              <p className="font-semibold text-cyan-200">Padrões de imagem do blog</p>
+              <p>
+                Capa de card (padrão principal): proporção {BLOG_IMAGE_STANDARDS.thumbnail.aspectRatio}, resolução recomendada {BLOG_IMAGE_STANDARDS.thumbnail.width}x{BLOG_IMAGE_STANDARDS.thumbnail.height}. Essa imagem é usada na listagem de reviews e deve manter leitura boa em tamanho reduzido.
+              </p>
+              <p>
+                Capa de header (opcional): proporção {BLOG_IMAGE_STANDARDS.header.aspectRatio}, resolução recomendada {BLOG_IMAGE_STANDARDS.header.width}x{BLOG_IMAGE_STANDARDS.header.height}. Use imagem horizontal com assunto centralizado para evitar cortes no topo do artigo.
+              </p>
+              <p>
+                Fallback automático: se você enviar só a capa de card, o header é adaptado. Se enviar só a capa de header, o card também é adaptado.
+              </p>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-100">Periférico relacionado</label>
               <Select
@@ -215,39 +295,19 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
               ) : null}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-100">Título</label>
-                <Input
-                  className="border-white/10 bg-white/5"
-                  placeholder="Review: Logitech G Pro X Superlight 2"
-                  {...form.register("title")}
-                />
-                {form.formState.errors.title ? (
-                  <p className="text-xs text-red-400">{form.formState.errors.title.message}</p>
-                ) : null}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-100">Slug</label>
-                <div className="flex gap-2">
-                  <Input
-                    className="border-white/10 bg-white/5"
-                    placeholder="review-logitech-gpx2"
-                    {...form.register("slug")}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => form.setValue("slug", slugify(titleValue), { shouldValidate: true })}
-                  >
-                    Gerar
-                  </Button>
-                </div>
-                {form.formState.errors.slug ? (
-                  <p className="text-xs text-red-400">{form.formState.errors.slug.message}</p>
-                ) : null}
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-100">Título</label>
+              <Input
+                className="border-white/10 bg-white/5"
+                placeholder="Review: Logitech G Pro X Superlight 2"
+                {...form.register("title")}
+              />
+              <p className="text-xs text-slate-400">
+                O slug é gerado automaticamente no backend e não pode ser editado.
+              </p>
+              {form.formState.errors.title ? (
+                <p className="text-xs text-red-400">{form.formState.errors.title.message}</p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -261,18 +321,50 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-100">Imagem de capa (URL)</label>
-                <Input
-                  className="border-white/10 bg-white/5"
-                  placeholder="https://..."
-                  {...form.register("cover_image_url")}
-                />
+                <label className="text-sm font-semibold text-slate-100">Capa do header (Upload)</label>
+                <label className="block rounded-lg border-2 border-dashed border-white/20 p-5 cursor-pointer hover:border-white/40 transition">
+                  <input
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => handleCoverImageSelect(event, "header")}
+                    type="file"
+                  />
+                  <div className="flex items-center justify-center gap-2 text-sm text-slate-300">
+                    <Upload className="size-4 text-slate-400" />
+                    Clique para enviar a imagem principal
+                  </div>
+                </label>
+                <p className="text-xs text-slate-400">
+                  Capa opcional para topo do artigo. Padrão do header: {BLOG_IMAGE_STANDARDS.header.width}x{BLOG_IMAGE_STANDARDS.header.height} ({BLOG_IMAGE_STANDARDS.header.aspectRatio}), com enquadramento horizontal e foco no centro.
+                </p>
                 {form.formState.errors.cover_image_url ? (
                   <p className="text-xs text-red-400">{form.formState.errors.cover_image_url.message}</p>
                 ) : null}
               </div>
 
               <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-100">Capa do card (Upload)</label>
+                <label className="block rounded-lg border-2 border-dashed border-white/20 p-5 cursor-pointer hover:border-white/40 transition">
+                  <input
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => handleCoverImageSelect(event, "thumbnail")}
+                    type="file"
+                  />
+                  <div className="flex items-center justify-center gap-2 text-sm text-slate-300">
+                    <Upload className="size-4 text-slate-400" />
+                    Clique para enviar a miniatura
+                  </div>
+                </label>
+                <p className="text-xs text-slate-400">
+                  Padrão da capa de card: {BLOG_IMAGE_STANDARDS.thumbnail.width}x{BLOG_IMAGE_STANDARDS.thumbnail.height} ({BLOG_IMAGE_STANDARDS.thumbnail.aspectRatio}). Se não enviar, a miniatura será adaptada a partir da capa de header.
+                </p>
+                {form.formState.errors.cover_thumbnail_url ? (
+                  <p className="text-xs text-red-400">{form.formState.errors.cover_thumbnail_url.message}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-semibold text-slate-100">Vídeo (link externo)</label>
                 <Input
                   className="border-white/10 bg-white/5"
@@ -286,13 +378,31 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
               </div>
             </div>
 
-            {selectedCoverUrl ? (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase">Preview capa</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={selectedCoverUrl} alt="Capa" className="max-h-56 w-full rounded-lg border border-white/10 object-cover" />
-              </div>
-            ) : null}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {selectedHeaderUrl ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase">Preview header</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedHeaderUrl}
+                    alt="Capa do header"
+                    className="aspect-video w-full rounded-lg border border-white/10 object-cover"
+                  />
+                </div>
+              ) : null}
+
+              {selectedThumbnailUrl ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase">Preview card</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedThumbnailUrl}
+                    alt="Capa do card"
+                    className="aspect-[2/1] w-full rounded-lg border border-white/10 object-cover"
+                  />
+                </div>
+              ) : null}
+            </div>
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-100">Conteúdo do artigo</label>
@@ -323,8 +433,8 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={saving}>
-                {saving ? "Salvando..." : postId ? "Salvar alterações" : "Criar artigo"}
+              <Button type="submit" disabled={saving || Boolean(uploadingCover)}>
+                {saving || uploadingCover ? "Salvando..." : postId ? "Salvar alterações" : "Criar artigo"}
               </Button>
             </div>
           </form>

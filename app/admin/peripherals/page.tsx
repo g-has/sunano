@@ -18,7 +18,6 @@ import { CSS } from "@dnd-kit/utilities"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -35,9 +34,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { supabase } from "@/lib/supabase"
+import {
+  CARD_TAG_STYLES,
+  CARD_TIER_STYLES,
+  RECOMMENDED_COLUMN_COLORS,
+  TAG_COLUMN_COLORS,
+  TIER_THEMES,
+  VALUE_COLUMN_COLORS,
+} from "@/lib/tierlist-theme"
+
+type RatingMode = "performance" | "value" | "recommended"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
 type Tier = "T0" | "T0.5" | "T1" | "T2"
@@ -65,11 +73,11 @@ const CATEGORY_META = [
   { key: "headset" as Category, label: "Headset" },
 ]
 
-const TIER_ROWS: { key: Tier; label: string; accent: string }[] = [
-  { key: "T0", label: "T0", accent: "from-[#f06161] to-[#de4f54]" },
-  { key: "T0.5", label: "T0.5", accent: "from-[#f08d61] to-[#e06d4f]" },
-  { key: "T1", label: "T1", accent: "from-[#f1bb61] to-[#e0a84f]" },
-  { key: "T2", label: "T2", accent: "from-[#7c8ca8] to-[#56647d]" },
+const TIER_ROWS: { key: Tier; label: string; accent: string; textColor: string }[] = [
+  { key: "T0", label: "T0", accent: TIER_THEMES.T0.accent, textColor: TIER_THEMES.T0.textColor },
+  { key: "T0.5", label: "T0.5", accent: TIER_THEMES["T0.5"].accent, textColor: TIER_THEMES["T0.5"].textColor },
+  { key: "T1", label: "T1", accent: TIER_THEMES.T1.accent, textColor: TIER_THEMES.T1.textColor },
+  { key: "T2", label: "T2", accent: TIER_THEMES.T2.accent, textColor: TIER_THEMES.T2.textColor },
 ]
 
 const COLUMNS: { key: Tag; title: string }[] = [
@@ -80,6 +88,26 @@ const COLUMNS: { key: Tag; title: string }[] = [
 ]
 
 const TAGS_OPTIONS: Tag[] = ["competitive", "versatile", "value", "comfort"]
+const RATING_MODES: { key: RatingMode; label: string }[] = [
+  { key: "performance", label: "Performance" },
+  { key: "value", label: "Custo-Beneficio" },
+  { key: "recommended", label: "Recomendado" },
+]
+
+type PriceBand = "budget" | "mid" | "premium"
+
+type ModeColumn = {
+  key: string
+  title: string
+  color: string
+}
+
+type ModeConfig = {
+  description: string
+  columns: ModeColumn[]
+  getColumnKeys: (item: Peripheral) => string[]
+  sortItems: (items: Peripheral[]) => Peripheral[]
+}
 
 function getPrimaryTag(item: Peripheral): Tag | null {
   return item.tags[0] ?? null
@@ -90,12 +118,6 @@ function formatLabel(value: string) {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ")
-}
-
-function getPriceBand(price: number) {
-  if (price <= 80) return "budget"
-  if (price <= 160) return "mid"
-  return "premium"
 }
 
 function getSpecBadges(item: Peripheral) {
@@ -121,19 +143,97 @@ function getSecondaryLine(item: Peripheral) {
   return parts.join(" • ")
 }
 
+function getPriceBand(price: number): PriceBand {
+  if (price <= 80) return "budget"
+  if (price <= 160) return "mid"
+  return "premium"
+}
+
+function getTierScore(tier: Tier) {
+  if (tier === "T0") return 4
+  if (tier === "T0.5") return 3
+  if (tier === "T1") return 2
+  return 1
+}
+
+function getRecommendedScore(item: Peripheral) {
+  const tagScore = item.tags.reduce((accumulator, tag) => {
+    if (tag === "competitive") return accumulator + 0.8
+    if (tag === "versatile") return accumulator + 0.6
+    if (tag === "value") return accumulator + 0.7
+    if (tag === "comfort") return accumulator + 0.4
+    return accumulator
+  }, 0)
+
+  return getTierScore(item.tier) + tagScore - Math.min(item.price / 300, 1)
+}
+
+function getPerformanceColumnKeys(item: Peripheral) {
+  const primaryTag = getPrimaryTag(item)
+  if (item.category === "mouse") return [primaryTag ?? "versatile"]
+  return item.tags.length > 0 ? item.tags : ["value"]
+}
+
+function getStoredModeColumn(item: Peripheral, fieldName: string, fallbackValue: string) {
+  const storedValue = item.specs?.[fieldName]
+  return typeof storedValue === "string" && storedValue ? storedValue : fallbackValue
+}
+
+const PERFORMANCE_COLUMNS: ModeColumn[] = COLUMNS.map((column) => ({
+  ...column,
+  color: TAG_COLUMN_COLORS[column.key],
+}))
+const VALUE_COLUMNS: ModeColumn[] = [
+  { key: "budget", title: "Budget", color: VALUE_COLUMN_COLORS.budget },
+  { key: "mid", title: "Mid", color: VALUE_COLUMN_COLORS.mid },
+  { key: "premium", title: "Premium", color: VALUE_COLUMN_COLORS.premium },
+]
+const RECOMMENDED_COLUMNS: ModeColumn[] = [
+  { key: "top", title: "Top Picks", color: RECOMMENDED_COLUMN_COLORS.top },
+  { key: "strong", title: "Strong Picks", color: RECOMMENDED_COLUMN_COLORS.strong },
+  { key: "niche", title: "Niche Picks", color: RECOMMENDED_COLUMN_COLORS.niche },
+]
+
+const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
+  performance: {
+    description: "Ordenado por desempenho puro",
+    columns: PERFORMANCE_COLUMNS,
+    getColumnKeys: getPerformanceColumnKeys,
+    sortItems: (items) =>
+      [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
+  },
+  value: {
+    description: "Distribuído por faixa de preco dentro de cada tier",
+    columns: VALUE_COLUMNS,
+    getColumnKeys: (item) => [getStoredModeColumn(item, "adminValueBand", getPriceBand(item.price))],
+    sortItems: (items) => [...items].sort((left, right) => left.price - right.price || left.name.localeCompare(right.name)),
+  },
+  recommended: {
+    description: "Escolhas sugeridas por Sunano, priorizando equilibrio geral",
+    columns: RECOMMENDED_COLUMNS,
+    getColumnKeys: (item) => {
+      const score = getRecommendedScore(item)
+      const fallbackColumn = score >= 4.4 ? "top" : score >= 3.2 ? "strong" : "niche"
+      return [getStoredModeColumn(item, "adminRecommendedBand", fallbackColumn)]
+    },
+    sortItems: (items) =>
+      [...items].sort((left, right) => getRecommendedScore(right) - getRecommendedScore(left) || left.name.localeCompare(right.name)),
+  },
+}
+
 // Draggable Item Component
 function DraggablePeripheralCard({
   item,
-  onEdit,
   onDelete,
 }: {
   item: Peripheral
-  onEdit: (item: Peripheral) => void
   onDelete: (id: string) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.id,
   })
+  const tierStyle = CARD_TIER_STYLES[item.tier]
+  const tagStyle = item.tags[0] ? CARD_TAG_STYLES[item.tags[0]] : CARD_TAG_STYLES.versatile
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -151,19 +251,29 @@ function DraggablePeripheralCard({
           {...attributes}
           {...listeners}
         >
-          <Card className="group cursor-default overflow-visible border border-white/10 bg-white/[0.03] p-0 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-400/40 hover:bg-white/[0.05]">
+          <Card className="group cursor-default overflow-visible border border-white/[0.12] bg-[#0a0e17]/95 p-0 shadow-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.18] hover:bg-[#0a0e17]/95">
             <CardContent className="p-0">
               <div className="flex gap-2.5 p-2.5">
-                <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-indigo-700 text-sm font-bold text-white shadow-md shadow-sky-900/20">
-                  {item.brand.slice(0, 2).toUpperCase()}
+                <div className={`grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg text-sm font-bold shadow-lg ${tierStyle.bg} ${tierStyle.text}`}>
+                  {item.image_url ? (
+                    <Image
+                      src={item.image_url}
+                      alt={item.name}
+                      width={48}
+                      height={48}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    item.brand.slice(0, 2).toUpperCase()
+                  )}
                 </div>
 
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-semibold leading-tight text-slate-50">
+                    <h3 className="truncate text-xs font-bold leading-tight text-slate-100">
                       {item.name}
                     </h3>
-                    <p className="mt-0.5 text-[10px] font-medium tracking-[0.14em] text-slate-400 uppercase">
+                    <p className="mt-0.5 text-[9px] font-medium text-slate-500">
                       {item.brand}
                     </p>
                   </div>
@@ -171,7 +281,7 @@ function DraggablePeripheralCard({
                   <div className="flex flex-wrap gap-1">
                     {getSpecBadges(item).map((badge, index) => (
                       <Badge
-                        className="rounded-full border-white/10 bg-white/10 px-2 py-0 text-[10px] text-slate-100"
+                        className="rounded-sm border border-white/[0.08] bg-white/[0.05] px-1.5 py-0.5 text-[10px] text-slate-100"
                         key={`${item.id}-${badge}-${index}`}
                         variant="outline"
                       >
@@ -180,55 +290,21 @@ function DraggablePeripheralCard({
                     ))}
                   </div>
 
-                  <div className="truncate text-[10px] font-medium tracking-[0.12em] text-emerald-300 uppercase">
+                  <div className={`truncate text-[10px] font-semibold uppercase ${tagStyle.text}`}>
                     {getSecondaryLine(item)}
                   </div>
                 </div>
 
                 <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button className="h-7 w-7" size="icon" variant="ghost">
-                        <Edit className="size-3.5" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 border-white/10 bg-[#131a28]/90">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-300">Name</label>
-                          <Input
-                            defaultValue={item.name}
-                            className="border-white/10 bg-white/5 h-8 text-xs"
-                            placeholder="Nome do periférico"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-300">Brand</label>
-                          <Input
-                            defaultValue={item.brand}
-                            className="border-white/10 bg-white/5 h-8 text-xs"
-                            placeholder="Marca"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-300">Price ($)</label>
-                          <Input
-                            type="number"
-                            defaultValue={item.price}
-                            className="border-white/10 bg-white/5 h-8 text-xs"
-                            step="0.01"
-                          />
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => onEdit(item)}
-                          className="w-full h-8 text-xs"
-                        >
-                          Editar Completo
-                        </Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                  <Link href={`/admin/peripherals/${item.id}`}>
+                    <Button
+                      className="h-7 w-7 text-slate-300 hover:text-slate-100"
+                      size="icon"
+                      variant="ghost"
+                    >
+                      <Edit className="size-3.5" />
+                    </Button>
+                  </Link>
 
                   <Button
                     className="h-7 w-7 text-red-400 hover:text-red-300"
@@ -246,55 +322,66 @@ function DraggablePeripheralCard({
       </TooltipTrigger>
 
       <TooltipContent
-        arrowClassName="!bg-[#0f1620] !fill-[#0f1620]"
-        className="max-w-sm rounded-lg border border-sky-300/25 bg-[#0f1620]/97 p-4 text-left shadow-[0_25px_50px_rgba(0,0,0,0.8)] backdrop-blur"
+        arrowClassName="!bg-[#0a0e17] !fill-[#0a0e17]"
+        className="max-w-sm rounded-lg border border-white/[0.12] bg-[#0a0e17]/95 p-5 text-left shadow-xl backdrop-blur-md"
         sideOffset={12}
       >
         <div className="space-y-3.5">
-          <div className="border-b border-white/10 pb-3">
+          <div className="border-b border-white/[0.08] pb-3">
             <div className="flex items-start justify-between gap-3">
+              {item.image_url ? (
+                <div className={`size-12 shrink-0 overflow-hidden rounded-lg ${tierStyle.bg} ${tierStyle.text}`}>
+                  <Image
+                    src={item.image_url}
+                    alt={item.name}
+                    width={48}
+                    height={48}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : null}
               <div className="min-w-0 flex-1">
-                <p className="text-base font-bold text-slate-50">{item.name}</p>
-                <p className="mt-1 text-xs tracking-[0.15em] text-slate-400 uppercase">
+                <p className="text-sm font-bold text-slate-100">{item.name}</p>
+                <p className="mt-0.5 text-xs text-slate-500">
                   {item.brand} • {CATEGORY_META.find((category) => category.key === item.category)?.label}
                 </p>
               </div>
-              <Badge className="rounded-lg border border-rose-300/30 bg-rose-500/20 px-2.5 py-1 text-center text-sm font-bold text-rose-200" variant="secondary">
+              <Badge className={`rounded-md px-2 py-1 text-center text-[10px] font-bold ${tierStyle.bg} ${tierStyle.text}`} variant="secondary">
                 {item.tier}
               </Badge>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-2.5">
-            <div className="rounded-md border border-white/15 bg-white/6 px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/10">
-              <div className="text-lg font-bold text-sky-200">${item.price}</div>
-              <div className="text-xs tracking-[0.12em] text-slate-400 uppercase">Price</div>
+            <div className="rounded-md border border-white/[0.08] bg-white/[0.05] px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/[0.08]">
+              <div className="text-lg font-bold text-emerald-400">${item.price}</div>
+              <div className="text-xs uppercase tracking-[0.1em] text-slate-500">Price</div>
             </div>
-            <div className="rounded-md border border-white/15 bg-white/6 px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/10">
-              <div className="text-sm font-bold text-amber-200">{getPriceBand(item.price).toUpperCase()}</div>
-              <div className="text-xs tracking-[0.12em] text-slate-400 uppercase">Band</div>
+            <div className="rounded-md border border-white/[0.08] bg-white/[0.05] px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/[0.08]">
+              <div className="text-sm font-bold text-slate-100">{getPriceBand(item.price).toUpperCase()}</div>
+              <div className="text-xs uppercase tracking-[0.1em] text-slate-500">Band</div>
             </div>
-            <div className="rounded-md border border-white/15 bg-white/6 px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/10">
-              <div className="text-sm font-bold text-emerald-200">Admin</div>
-              <div className="text-xs tracking-[0.12em] text-slate-400 uppercase">Status</div>
+            <div className="rounded-md border border-white/[0.08] bg-white/[0.05] px-3 py-2.5 text-center transition-colors duration-150 hover:bg-white/[0.08]">
+              <div className="text-sm font-bold text-slate-100">Admin</div>
+              <div className="text-xs uppercase tracking-[0.1em] text-slate-500">Status</div>
             </div>
           </div>
 
-          <div className="rounded-md border border-white/15 bg-white/6 px-3.5 py-2.5">
-            <p className="text-xs font-semibold text-slate-300 uppercase tracking-[0.1em]">Specs</p>
-            <p className="mt-1.5 text-sm text-slate-200">
+          <div className="rounded-md border border-white/[0.08] bg-white/[0.05] px-3.5 py-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">Specs</p>
+            <p className="mt-1.5 text-sm text-slate-100">
               {getSecondaryLine(item) || "No extra specs"}
             </p>
           </div>
 
-          <div className="rounded-md border border-amber-300/25 bg-amber-400/12 px-3.5 py-2.5">
-            <p className="text-xs font-semibold text-amber-200 uppercase tracking-[0.1em]">Tags</p>
+          <div className="rounded-md border border-white/[0.08] bg-white/[0.05] px-3.5 py-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">Tags</p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {item.tags.length > 0 ? (
                 item.tags.map((tag) => (
                   <Badge
                     key={tag}
-                    className="rounded-full border border-amber-300/40 bg-amber-400/15 px-2.5 py-1 text-xs text-amber-100"
+                    className={`rounded-full border px-2.5 py-1 text-xs ${CARD_TAG_STYLES[tag].bg} ${CARD_TAG_STYLES[tag].text} ${CARD_TAG_STYLES[tag].border}`}
                   >
                     {formatLabel(tag)}
                   </Badge>
@@ -315,13 +402,11 @@ function DroppableColumn({
   tier,
   column,
   items,
-  onEdit,
   onDelete,
 }: {
   tier: Tier
-  column: Tag
+  column: string
   items: Peripheral[]
-  onEdit: (item: Peripheral) => void
   onDelete: (id: string) => void
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `${tier}-${column}` })
@@ -329,23 +414,16 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`border-r border-white/10 last:border-r-0 transition-colors ${
+      className={`border-r border-white/[0.08] last:border-r-0 transition-colors ${
         isOver ? "bg-white/5" : ""
       }`}
     >
-      {tier === "T0" && (
-        <div className="border-b border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold tracking-[0.18em] text-amber-300 uppercase">
-          {COLUMNS.find((c) => c.key === column)?.title}
-        </div>
-      )}
-
       <div className="space-y-1.5 p-2 min-h-[60px]">
         {items.length > 0 ? (
           items.map((item) => (
             <DraggablePeripheralCard
               key={item.id}
               item={item}
-              onEdit={onEdit}
               onDelete={onDelete}
             />
           ))
@@ -357,12 +435,13 @@ function DroppableColumn({
   )
 }
 
+
 export default function AdminPeripheralsPage() {
   const [peripherals, setPeripherals] = useState<Peripheral[]>([])
   const [selectedCategory, setSelectedCategory] = useState<Category>("mouse")
+  const [ratingMode, setRatingMode] = useState<RatingMode>("performance")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [editingItem, setEditingItem] = useState<Peripheral | null>(null)
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: "" })
   const [deleting, setDeleting] = useState(false)
   const [tagsDialog, setTagsDialog] = useState<{ open: boolean; item: Peripheral | null }>({
@@ -409,27 +488,53 @@ export default function AdminPeripheralsPage() {
     const draggedItem = peripherals.find((p) => p.id === active.id)
     if (!draggedItem) return
 
-    const [newTier, newTag] = over.id.toString().split("-") as [Tier, Tag]
-    const currentTag = getPrimaryTag(draggedItem)
+    const [newTier, newColumn] = over.id.toString().split("-") as [Tier, string]
+    const specs = draggedItem.specs ?? {}
 
-    if (draggedItem.tier === newTier && currentTag === newTag) {
+    const currentColumn =
+      ratingMode === "performance"
+        ? getPrimaryTag(draggedItem) ?? ""
+        : ratingMode === "value"
+          ? getStoredModeColumn(draggedItem, "adminValueBand", getPriceBand(draggedItem.price))
+          : getStoredModeColumn(
+              draggedItem,
+              "adminRecommendedBand",
+              getRecommendedScore(draggedItem) >= 4.4
+                ? "top"
+                : getRecommendedScore(draggedItem) >= 3.2
+                  ? "strong"
+                  : "niche"
+            )
+
+    if (draggedItem.tier === newTier && currentColumn === newColumn) {
       return
     }
 
+    const nextSpecs = {
+      ...specs,
+      ...(ratingMode === "value" ? { adminValueBand: newColumn } : {}),
+      ...(ratingMode === "recommended" ? { adminRecommendedBand: newColumn } : {}),
+    }
+
     const nextPeripherals = peripherals.map((item) =>
-      item.id === draggedItem.id ? { ...item, tier: newTier, tags: [newTag] } : item
+      item.id === draggedItem.id
+        ? {
+            ...item,
+            tier: newTier,
+            tags: ratingMode === "performance" ? [newColumn as Tag] : item.tags,
+            specs: nextSpecs,
+          }
+        : item
     )
 
     setPeripherals(nextPeripherals)
 
     try {
-      const { error: err } = await supabase
-        .from("peripherals")
-        .update({
-          tier: newTier,
-          tags: [newTag],
-        })
-        .eq("id", draggedItem.id)
+      const { error: err } = await supabase.from("peripherals").update({
+        tier: newTier,
+        tags: ratingMode === "performance" ? [newColumn as Tag] : draggedItem.tags,
+        specs: nextSpecs,
+      }).eq("id", draggedItem.id)
 
       if (err) throw err
     } catch (err) {
@@ -485,19 +590,19 @@ export default function AdminPeripheralsPage() {
 
   const categoryLabel = CATEGORY_META.find((c) => c.key === selectedCategory)?.label ?? "Tierlist"
   const filtered = peripherals.filter((item) => item.category === selectedCategory)
+  const modeConfig = MODE_CONFIGS[ratingMode]
 
   const itemsByTier = useMemo(
     () =>
       TIER_ROWS.map((tier) => ({
         ...tier,
-        itemsByColumn: COLUMNS.map((column) => ({
+        itemsByColumn: modeConfig.columns.map((column) => ({
           ...column,
-          items: filtered.filter(
-            (item) => item.tier === tier.key && getPrimaryTag(item) === column.key
-          ),
+          items: modeConfig.sortItems(filtered.filter((item) => item.tier === tier.key))
+            .filter((item) => modeConfig.getColumnKeys(item).includes(column.key)),
         })),
       })),
-    [filtered]
+    [filtered, modeConfig]
   )
 
   return (
@@ -519,9 +624,9 @@ export default function AdminPeripheralsPage() {
       </div>
 
       {/* Category Selector */}
-      <Card className="border-white/10 bg-[#131a28]/90">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-2">
+      <div className="space-y-3 rounded-xl border border-white/[0.08] bg-[#0d1117] p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
             <span className="text-sm font-semibold text-slate-300">Categoria:</span>
             <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as Category)}>
               <SelectTrigger className="w-48 border-white/10 bg-white/5 h-9">
@@ -536,35 +641,75 @@ export default function AdminPeripheralsPage() {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex rounded-lg border border-white/[0.1] bg-white/[0.02] p-1">
+            {RATING_MODES.map((mode) => (
+              <button
+                key={mode.key}
+                type="button"
+                onClick={() => setRatingMode(mode.key)}
+                className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
+                  ratingMode === mode.key
+                    ? "bg-cyan-500/20 text-cyan-300"
+                    : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
+                }`}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Error Alert */}
       {error && (
-        <Alert className="border-red-500/30 bg-red-500/10">
-          <AlertCircle className="h-4 w-4 text-red-400" />
-          <AlertDescription className="text-red-300">{error}</AlertDescription>
+        <Alert className="border-red-500/30 bg-red-500/10 py-2 [&>svg]:left-3 [&>svg~*]:pl-7">
+          <AlertCircle className="size-3.5 text-red-400" />
+          <AlertDescription className="text-xs leading-5 text-red-300">{error}</AlertDescription>
         </Alert>
       )}
 
       {/* Tierlist Grid */}
       {loading ? (
-        <Card className="border-white/10 bg-[#131a28]/90">
+        <Card className="border-white/[0.08] bg-[#0d1117] shadow-lg">
           <CardContent className="pt-6 text-center text-slate-400">Carregando...</CardContent>
         </Card>
       ) : (
         <>
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <section className="overflow-hidden rounded-xl border border-white/10 bg-[#121724]/90 shadow-[0_12px_44px_rgba(0,0,0,0.32)]">
+            <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0d1117] shadow-lg">
+              <div
+                className="grid border-b border-white/[0.08] bg-[#0a0d14]"
+                style={{
+                  gridTemplateColumns: `70px repeat(${modeConfig.columns.length}, minmax(220px, 1fr))`,
+                }}
+              >
+                <div className="flex h-12 items-center justify-center border-r border-white/[0.08] text-center">
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                    Tier
+                  </span>
+                </div>
+                {modeConfig.columns.map((column) => (
+                  <div
+                    key={column.key}
+                    className="flex h-12 items-center justify-center border-r border-white/[0.08] last:border-r-0 text-center"
+                  >
+                    <span className={`text-xs font-semibold uppercase tracking-wider ${column.color}`}>
+                      {column.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
               {itemsByTier.map((tierRow) => (
                 <div
                   key={tierRow.key}
-                  className="grid grid-cols-[70px_repeat(4,minmax(220px,1fr))] border-b border-white/10 last:border-b-0"
+                  className="grid border-b border-white/[0.08] last:border-b-0"
+                  style={{
+                    gridTemplateColumns: `70px repeat(${modeConfig.columns.length}, minmax(220px, 1fr))`,
+                  }}
                 >
                   {/* Tier Label */}
-                  <div
-                    className={`flex items-center justify-center bg-gradient-to-b ${tierRow.accent} text-2xl font-black text-[#141925]`}
-                  >
+                  <div className={`flex items-center justify-center bg-gradient-to-b ${tierRow.accent} text-2xl font-black ${tierRow.textColor}`}>
                     {tierRow.label}
                   </div>
 
@@ -578,7 +723,6 @@ export default function AdminPeripheralsPage() {
                         tier={tierRow.key}
                         column={column.key}
                         items={column.items}
-                        onEdit={setEditingItem}
                         onDelete={(id) => setDeleteDialog({ open: true, id })}
                       />
                     </div>
@@ -592,8 +736,8 @@ export default function AdminPeripheralsPage() {
           {filtered.filter((p) => p.tags.length === 0).length > 0 && (
             <div className="space-y-3 mt-6">
               <Alert className="border-amber-500/30 bg-amber-500/10">
-                <AlertCircle className="h-4 w-4 text-amber-400" />
-                <AlertDescription className="text-amber-300">
+                <AlertCircle className="size-3.5 text-amber-400" />
+                <AlertDescription className="text-xs leading-5 text-amber-300">
                   ⚠️ {filtered.filter((p) => p.tags.length === 0).length} periférico(s) sem tags. Clique para adicionar uma tag ou arraste para a tierlist.
                 </AlertDescription>
               </Alert>
@@ -603,10 +747,10 @@ export default function AdminPeripheralsPage() {
                   .filter((p) => p.tags.length === 0)
                   .map((item) => (
                     <div key={item.id} className="relative group">
-                      <Card className="border border-amber-500/30 bg-amber-500/5 p-0 hover:border-amber-500/50 hover:bg-amber-500/10 transition-all">
+                      <Card className="border border-white/[0.08] bg-[#0d1117] p-0 shadow-lg hover:border-white/[0.12] hover:bg-[#0d1117] transition-all">
                         <CardContent className="p-3">
                           <div className="flex gap-2 items-start">
-                            <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-sky-400 to-indigo-700 text-xs font-bold text-white overflow-hidden">
+                                    <div className={`grid size-10 shrink-0 place-items-center rounded-lg overflow-hidden text-xs font-bold ${CARD_TIER_STYLES[item.tier].bg} ${CARD_TIER_STYLES[item.tier].text}`}>
                               {item.image_url ? (
                                 <Image
                                   src={item.image_url}
@@ -621,15 +765,15 @@ export default function AdminPeripheralsPage() {
                             </div>
 
                             <div className="flex-1 min-w-0">
-                              <p className="truncate text-xs font-semibold text-slate-100">{item.name}</p>
-                              <p className="text-[10px] text-slate-400">{item.brand}</p>
-                              <p className="text-[10px] text-amber-300 font-semibold mt-1">Sem tags</p>
+                              <p className="truncate text-xs font-bold text-slate-100">{item.name}</p>
+                              <p className="text-[9px] text-slate-500">{item.brand}</p>
+                              <p className="mt-1 text-[10px] font-semibold text-slate-500">Sem tags</p>
                             </div>
 
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 px-2 text-xs border-amber-500/30 hover:border-amber-500/50 hover:bg-amber-500/20"
+                              className="h-7 px-2 text-xs border-white/[0.08] hover:border-white/[0.12] hover:bg-white/[0.05]"
                               onClick={() => {
                                 setTagsDialog({ open: true, item })
                                 setSelectedTag("competitive")
@@ -650,7 +794,7 @@ export default function AdminPeripheralsPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
-        <DialogContent className="border-white/10 bg-[#131a28]/90">
+        <DialogContent className="border border-white/[0.12] bg-[#0a0e17]/95">
           <DialogHeader>
             <DialogTitle>Deletar Periférico?</DialogTitle>
             <DialogDescription>
@@ -676,35 +820,12 @@ export default function AdminPeripheralsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      {editingItem && (
-        <Dialog
-          open={!!editingItem}
-          onOpenChange={(open) => !open && setEditingItem(null)}
-        >
-          <DialogContent className="border-white/10 bg-[#131a28]/90 max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Editar Periférico</DialogTitle>
-            </DialogHeader>
-            <div className="text-sm text-slate-300 text-center py-8">
-              <p>Use o link &quot;Editar Completo&quot; para editar todas as informações</p>
-              <Link href={`/admin/peripherals/${editingItem.id}`} className="mt-4 block">
-                <Button className="gap-2">
-                  <Edit className="size-4" />
-                  Ir para Editor Completo
-                </Button>
-              </Link>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
       {/* Quick Tags Dialog */}
       <Dialog
         open={tagsDialog.open}
         onOpenChange={(open) => !open && setTagsDialog({ open: false, item: null })}
       >
-        <DialogContent className="border-white/10 bg-[#131a28]/90">
+        <DialogContent className="border border-white/[0.12] bg-[#0a0e17]/95">
           <DialogHeader>
             <DialogTitle>Adicionar Tags</DialogTitle>
             <DialogDescription>

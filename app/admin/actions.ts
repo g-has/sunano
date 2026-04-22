@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation"
 
+import { hasAdminPermission } from "@/lib/admin-permissions"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 type AuthState = {
@@ -24,6 +25,25 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
 
   if (error) {
     return { error: "Credenciais invalidas." }
+  }
+
+  const { data: authData } = await supabase.auth.getUser()
+  const { data: profile } = authData.user
+    ? await supabase
+        .from("admin_profiles")
+        .select("id, role, permissions")
+        .eq("id", authData.user.id)
+        .maybeSingle()
+    : { data: null }
+
+  if (!profile) {
+    await supabase.auth.signOut()
+    return { error: "Conta sem acesso ao admin." }
+  }
+
+  if (!hasAdminPermission(profile, "dashboard_read")) {
+    await supabase.auth.signOut()
+    return { error: "Conta sem acesso ao admin." }
   }
 
   redirect("/admin")

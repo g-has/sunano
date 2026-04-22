@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Package, TrendingUp, Plus, NotebookPen, ArrowRight, BarChart3, Users, Eye } from "lucide-react"
+import { ArrowRight, BarChart3, CheckCircle2, NotebookPen, Package, Plus, Sparkles, Users } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -7,22 +7,22 @@ import { cn } from "@/lib/utils"
 const QUICK_ACTIONS = [
   {
     href: "/admin/peripherals/new",
-    label: "Novo Periferico",
-    description: "Adicione um item a tierlist",
+    label: "Adicionar periférico",
+    description: "Crie um novo item para o site",
     icon: Plus,
     color: "cyan",
   },
   {
     href: "/admin/peripherals",
-    label: "Perifericos",
-    description: "Gerenciar colecao completa",
+    label: "Ver periféricos",
+    description: "Organize a lista já cadastrada",
     icon: Package,
     color: "emerald",
   },
   {
     href: "/admin/blog",
-    label: "Blog & Reviews",
-    description: "Publicar artigos relacionados",
+    label: "Escrever post",
+    description: "Publique novidades e análises",
     icon: NotebookPen,
     color: "amber",
   },
@@ -58,161 +58,126 @@ const COLOR_STYLES = {
 export default function AdminPage() {
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-1">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-slate-50 md:text-4xl">
-          Dashboard
-        </h1>
-        <p className="text-sm text-slate-400">
-          Bem-vindo ao painel administrativo da Sunano Tierlist
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {QUICK_ACTIONS.map((action) => {
-          const Icon = action.icon
-          const styles = COLOR_STYLES[action.color as keyof typeof COLOR_STYLES]
-
-          return (
-            <Link key={action.href} href={action.href} className="group">
-              <Card className={cn(
-                "h-full border bg-gradient-to-br transition-all cursor-pointer",
-                styles.border,
-                styles.bg,
-                styles.hoverBorder,
-                styles.hoverBg
-              )}>
-                <CardHeader className="space-y-3">
-                  <div className={cn(
-                    "inline-flex size-10 items-center justify-center rounded-lg transition-colors",
-                    styles.iconBg
-                  )}>
-                    <Icon className={cn("size-5", styles.iconText)} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-slate-50">{action.label}</CardTitle>
-                    <CardDescription className="text-slate-400">{action.description}</CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
-          )
-        })}
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card className="border-white/[0.08] bg-[#0d1117]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-400">Total de Perifericos</CardTitle>
-              <Package className="size-4 text-slate-500" />
+      <section className="overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1117] shadow-[0_24px_80px_rgba(0,0,0,0.22)]">
+        <div className="relative p-6 md:p-8">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.08),transparent_28%)]" />
+          <div className="relative max-w-3xl space-y-4">
+            <p className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+              <Sparkles className="size-3.5" />
+              Área de organização
+            </p>
+            <div className="space-y-2">
+              <h1 className="font-display text-3xl font-bold tracking-tight text-slate-50 md:text-4xl">
+                O que você quer fazer hoje?
+              </h1>
+              <p className="max-w-2xl text-sm leading-6 text-slate-300 md:text-base">
+                Escolha uma ação rápida abaixo para atualizar o site, publicar conteúdo ou revisar o que já está no ar.
+              </p>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-50">20</div>
-            <p className="mt-1 text-xs text-slate-500">Ao todo na tierlist</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Atalhos rápidos
+        </h2>
+        <div className="space-y-3">
+          {QUICK_ACTIONS.map((action) => {
+            const Icon = action.icon
+            const styles = COLOR_STYLES[action.color as keyof typeof COLOR_STYLES]
+
+            return (
+              <Link key={action.href} href={action.href} className="group block">
+                <Card
+                  className={cn(
+                    "border bg-gradient-to-br transition-all cursor-pointer",
+                    styles.border,
+                    styles.bg,
+                    styles.hoverBorder,
+                    styles.hoverBg
+                  )}
+                >
+                  <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-5 md:p-6">
+                    <div
+                      className={cn(
+                        "inline-flex size-12 shrink-0 items-center justify-center rounded-xl transition-colors",
+                        styles.iconBg
+                      )}
+                    >
+                      <Icon className={cn("size-5", styles.iconText)} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base text-slate-50 md:text-lg">{action.label}</CardTitle>
+                      <CardDescription className="mt-1 text-sm text-slate-400">
+                        {action.description}
+                      </CardDescription>
+                    </div>
+                    <ArrowRight className="size-5 text-slate-500 transition-transform group-hover:translate-x-1 group-hover:text-slate-200" />
+                  </CardHeader>
+                </Card>
+              </Link>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Resumo rápido
+        </h2>
 
         <Card className="border-white/[0.08] bg-[#0d1117]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-400">Artigos Publicados</CardTitle>
-              <NotebookPen className="size-4 text-slate-500" />
+          <CardContent className="space-y-4 p-5 md:p-6">
+            <div className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+              <Package className="mt-0.5 size-5 text-cyan-300" />
+              <div>
+                <p className="text-sm font-medium text-slate-100">Itens cadastrados</p>
+                <p className="mt-1 text-sm text-slate-400">20 periféricos prontos para revisão e ajustes.</p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-50">0</div>
-            <p className="mt-1 text-xs text-slate-500">Reviews e analises</p>
-          </CardContent>
-        </Card>
 
-        <Card className="border-white/[0.08] bg-[#0d1117]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-400">Visualizacoes</CardTitle>
-              <Eye className="size-4 text-slate-500" />
+            <div className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+              <NotebookPen className="mt-0.5 size-5 text-amber-300" />
+              <div>
+                <p className="text-sm font-medium text-slate-100">Conteúdo</p>
+                <p className="mt-1 text-sm text-slate-400">Você pode criar novos posts ou atualizar os existentes.</p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-50">-</div>
-            <p className="mt-1 text-xs text-slate-500">Em breve</p>
-          </CardContent>
-        </Card>
 
-        <Card className="border-white/[0.08] bg-[#0d1117]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-slate-400">Seguidores</CardTitle>
-              <Users className="size-4 text-slate-500" />
+            <div className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+              <Users className="mt-0.5 size-5 text-emerald-300" />
+              <div>
+                <p className="text-sm font-medium text-slate-100">Experiência do visitante</p>
+                <p className="mt-1 text-sm text-slate-400">Quando terminar, volte ao site para conferir como ficou para o público.</p>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-50">-</div>
-            <p className="mt-1 text-xs text-slate-500">Em breve</p>
           </CardContent>
         </Card>
-      </div>
+      </section>
 
-      {/* Activity & Tips */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Card className="border-white/[0.08] bg-[#0d1117]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-50">
-              <TrendingUp className="size-5 text-cyan-400" />
-              Proximas Acoes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <Link 
-              href="/admin/peripherals/new" 
-              className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-white/[0.04] group"
-            >
-              <span className="text-sm text-slate-300">Adicionar novo periferico</span>
-              <ArrowRight className="size-4 text-slate-500 transition-colors group-hover:text-slate-300" />
-            </Link>
-            <Link 
-              href="/admin/blog/new" 
-              className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-white/[0.04] group"
-            >
-              <span className="text-sm text-slate-300">Escrever primeiro artigo</span>
-              <ArrowRight className="size-4 text-slate-500 transition-colors group-hover:text-slate-300" />
-            </Link>
-            <Link 
-              href="/admin/peripherals" 
-              className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-white/[0.04] group"
-            >
-              <span className="text-sm text-slate-300">Revisar perifericos</span>
-              <ArrowRight className="size-4 text-slate-500 transition-colors group-hover:text-slate-300" />
-            </Link>
-          </CardContent>
-        </Card>
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Dicas úteis
+        </h2>
 
         <Card className="border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-50">
-              <BarChart3 className="size-5 text-cyan-400" />
-              Dicas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <p className="text-slate-300">
-              <span className="mr-2 text-cyan-400">1.</span>
-              <span className="text-slate-400">Mantenha as informacoes dos perifericos atualizadas</span>
+          <CardContent className="space-y-3 p-5 md:p-6">
+            <p className="flex items-start gap-3 text-sm text-slate-300">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-300" />
+              <span>Mantenha os nomes e descrições simples para facilitar a leitura.</span>
             </p>
-            <p className="text-slate-300">
-              <span className="mr-2 text-cyan-400">2.</span>
-              <span className="text-slate-400">Crie reviews interessantes para engajar a comunidade</span>
+            <p className="flex items-start gap-3 text-sm text-slate-300">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-300" />
+              <span>Use imagens e textos curtos para deixar a página mais agradável.</span>
             </p>
-            <p className="text-slate-300">
-              <span className="mr-2 text-cyan-400">3.</span>
-              <span className="text-slate-400">Use screenshots e videos nos artigos para maior visualizacao</span>
+            <p className="flex items-start gap-3 text-sm text-slate-300">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-cyan-300" />
+              <span>Revise antes de publicar para evitar retrabalho.</span>
             </p>
           </CardContent>
         </Card>
-      </div>
+      </section>
     </div>
   )
 }
