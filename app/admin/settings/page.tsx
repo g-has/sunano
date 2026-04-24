@@ -45,10 +45,86 @@ export default function SettingsPage() {
   const [role, setRole] = useState<"admin" | "webmaster">("admin")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [videoStatusLoading, setVideoStatusLoading] = useState(false)
+  const [videoRefreshing, setVideoRefreshing] = useState(false)
+  const [videoStatus, setVideoStatus] = useState<{
+    hasSnapshot: boolean
+    fetchedAt: string | null
+    stale: boolean
+    lastError: string | null
+  } | null>(null)
 
   useEffect(() => {
     loadProfile()
+    loadVideoSnapshotStatus()
   }, [])
+
+  async function loadVideoSnapshotStatus() {
+    try {
+      setVideoStatusLoading(true)
+
+      const response = await fetch("/api/admin/videos/refresh", { method: "GET" })
+      const data = (await response.json().catch(() => null)) as
+        | {
+            error?: string
+            status?: {
+              hasSnapshot: boolean
+              fetchedAt: string | null
+              stale: boolean
+              lastError: string | null
+            }
+          }
+        | null
+
+      if (!response.ok || !data?.status) {
+        throw new Error(data?.error ?? (isEnglish ? "Failed to load video sync status" : "Erro ao carregar status de vídeos"))
+      }
+
+      setVideoStatus(data.status)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load video sync status" : "Erro ao carregar status de vídeos"))
+    } finally {
+      setVideoStatusLoading(false)
+    }
+  }
+
+  async function refreshVideoSnapshot() {
+    try {
+      setVideoRefreshing(true)
+      setError(null)
+      setSuccess(null)
+
+      const response = await fetch("/api/admin/videos/refresh", { method: "POST" })
+      const data = (await response.json().catch(() => null)) as
+        | {
+            ok?: boolean
+            error?: string
+            warning?: string | null
+            status?: {
+              hasSnapshot: boolean
+              fetchedAt: string | null
+              stale: boolean
+              lastError: string | null
+            }
+          }
+        | null
+
+      if (!response.ok || !data?.status) {
+        throw new Error(data?.error ?? (isEnglish ? "Failed to refresh YouTube snapshot" : "Erro ao atualizar snapshot do YouTube"))
+      }
+
+      setVideoStatus(data.status)
+      setSuccess(
+        data.warning
+          ? data.warning
+          : (isEnglish ? "YouTube snapshot refreshed successfully." : "Snapshot do YouTube atualizado com sucesso.")
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to refresh YouTube snapshot" : "Erro ao atualizar snapshot do YouTube"))
+    } finally {
+      setVideoRefreshing(false)
+    }
+  }
 
   async function loadProfile() {
     try {
@@ -302,6 +378,58 @@ export default function SettingsPage() {
           <div className="flex justify-end">
             <Button onClick={saveProfile} disabled={saving || uploading}>
               {saving ? (isEnglish ? "Saving..." : "Salvando...") : (isEnglish ? "Save profile" : "Salvar perfil")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-white/10 bg-[#131a28]/90">
+        <CardHeader className="border-b border-white/10">
+          <CardTitle>{isEnglish ? "YouTube sync cache" : "Cache de sincronização do YouTube"}</CardTitle>
+          <CardDescription>
+            {isEnglish
+              ? "Stores one daily snapshot used on the public videos page and allows manual refresh."
+              : "Armazena um snapshot diário usado na página pública de vídeos e permite atualização manual."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-6">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <p className="text-xs uppercase tracking-wide text-slate-500">{isEnglish ? "Snapshot" : "Snapshot"}</p>
+              <p className="mt-1 text-sm font-medium text-slate-100">
+                {videoStatusLoading
+                  ? (isEnglish ? "Loading..." : "Carregando...")
+                  : videoStatus?.hasSnapshot
+                    ? (isEnglish ? "Available" : "Disponível")
+                    : (isEnglish ? "Not available" : "Indisponível")}
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <p className="text-xs uppercase tracking-wide text-slate-500">{isEnglish ? "Last sync" : "Última sincronização"}</p>
+              <p className="mt-1 text-sm font-medium text-slate-100">
+                {videoStatus?.fetchedAt
+                  ? new Date(videoStatus.fetchedAt).toLocaleString("pt-BR")
+                  : "-"}
+              </p>
+            </div>
+          </div>
+
+          {videoStatus?.lastError ? (
+            <div className="rounded border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+              {isEnglish ? "Last sync warning" : "Último aviso de sincronização"}: {videoStatus.lastError}
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" onClick={loadVideoSnapshotStatus} disabled={videoStatusLoading || videoRefreshing}>
+              {videoStatusLoading
+                ? (isEnglish ? "Refreshing status..." : "Atualizando status...")
+                : (isEnglish ? "Reload status" : "Recarregar status")}
+            </Button>
+            <Button onClick={refreshVideoSnapshot} disabled={videoRefreshing || videoStatusLoading}>
+              {videoRefreshing
+                ? (isEnglish ? "Refreshing snapshot..." : "Atualizando snapshot...")
+                : (isEnglish ? "Force refresh now" : "Forçar atualização agora")}
             </Button>
           </div>
         </CardContent>

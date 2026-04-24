@@ -4,6 +4,7 @@
 alter table if exists public.peripherals enable row level security;
 alter table if exists public.blog_posts enable row level security;
 alter table if exists public.admin_profiles enable row level security;
+alter table if exists public.youtube_cache_snapshots enable row level security;
 
 create or replace function public.is_webmaster(user_id uuid default auth.uid())
 returns boolean
@@ -122,6 +123,35 @@ on public.admin_profiles
 for delete
 to authenticated
 using (auth.uid() = id or public.is_webmaster());
+
+drop policy if exists "YouTube cache is publicly readable" on public.youtube_cache_snapshots;
+drop policy if exists "YouTube cache can be inserted by settings admins" on public.youtube_cache_snapshots;
+drop policy if exists "YouTube cache can be updated by settings admins" on public.youtube_cache_snapshots;
+drop policy if exists "YouTube cache can be deleted by settings admins" on public.youtube_cache_snapshots;
+
+create policy "YouTube cache is publicly readable"
+on public.youtube_cache_snapshots
+for select
+using (true);
+
+create policy "YouTube cache can be inserted by settings admins"
+on public.youtube_cache_snapshots
+for insert
+to authenticated
+with check (public.admin_has_permission('settings_write'));
+
+create policy "YouTube cache can be updated by settings admins"
+on public.youtube_cache_snapshots
+for update
+to authenticated
+using (public.admin_has_permission('settings_write'))
+with check (public.admin_has_permission('settings_write'));
+
+create policy "YouTube cache can be deleted by settings admins"
+on public.youtube_cache_snapshots
+for delete
+to authenticated
+using (public.admin_has_permission('settings_write'));
 
 -- Keep the bucket public for reads, but never allow unauthenticated uploads.
 alter table if exists storage.objects enable row level security;

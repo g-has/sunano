@@ -8,6 +8,7 @@ import {
   Clock3,
   Instagram,
   LayoutGrid,
+  PlaySquare,
   Menu,
   MessageCircle,
   Music,
@@ -48,6 +49,7 @@ export function PublicSidebar({
     { href: "/", label: isEnglish ? "Tier List" : "Tier List", icon: LayoutGrid },
     { href: "/blog", label: isEnglish ? "Reviews" : "Reviews", icon: Newspaper },
     { href: "/offers", label: isEnglish ? "Offers" : "Ofertas", icon: BadgePercent },
+    { href: "/videos", label: isEnglish ? "Videos" : "Videos", icon: PlaySquare },
   ]
 
   return (

@@ -59,6 +59,19 @@ export type Database = {
         Insert: Omit<Database["public"]["Tables"]["admin_profiles"]["Row"], "created_at" | "updated_at">
         Update: Partial<Database["public"]["Tables"]["admin_profiles"]["Insert"]>
       }
+      youtube_cache_snapshots: {
+        Row: {
+          cache_key: string
+          payload: Record<string, unknown>
+          fetched_at: string
+          source: string
+          last_error: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database["public"]["Tables"]["youtube_cache_snapshots"]["Row"], "created_at" | "updated_at">
+        Update: Partial<Database["public"]["Tables"]["youtube_cache_snapshots"]["Insert"]>
+      }
     }
   }
 }
