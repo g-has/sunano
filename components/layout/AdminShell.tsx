@@ -20,11 +20,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/admin", label: isEnglish ? "Dashboard" : "Dashboard", icon: Home, permission: "dashboard_read" },
-    { href: "/admin/peripherals", label: isEnglish ? "Peripherals" : "Perifericos", icon: Package, permission: "peripherals_read" },
+    { href: "/admin/peripherals", label: isEnglish ? "Peripherals" : "Periféricos", icon: Package, permission: "peripherals_read" },
     { href: "/admin/blog", label: isEnglish ? "Blog & Reviews" : "Blog & Reviews", icon: NotebookPen, permission: "blog_read" },
     { href: "/admin/offers", label: isEnglish ? "Offers" : "Ofertas", icon: Gift, permission: "offers_read" },
-    { href: "/admin/users", label: isEnglish ? "Users" : "Usuarios", icon: Users, requiresWebMaster: true },
-    { href: "/admin/settings", label: isEnglish ? "Settings" : "Configuracoes", icon: Settings, permission: "settings_read" },
+    { href: "/admin/users", label: isEnglish ? "Users" : "Usuários", icon: Users, requiresWebMaster: true },
+    { href: "/admin/settings", label: isEnglish ? "Settings" : "Configurações", icon: Settings, permission: "settings_read" },
   ]
 
   useEffect(() => {

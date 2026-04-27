@@ -186,7 +186,7 @@ function BlogPageContent() {
               <p className="mt-1 text-sm text-slate-400">
                 {isEnglish
                   ? "Articles, full reviews, and detailed analysis of tierlist peripherals."
-                  : "Artigos, reviews completos e analises detalhadas dos perifericos da tierlist."}
+                  : "Artigos, reviews completos e analises detalhadas dos periféricos da tierlist."}
               </p>
             </div>
           </div>

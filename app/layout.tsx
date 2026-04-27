@@ -17,9 +17,9 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: "Sunano | Tierlist de Perifericos",
-  description: "A tierlist definitiva de perifericos gamers. Compare mouses, teclados, headsets e mais com filtros avancados e reviews detalhadas.",
-  keywords: ["tierlist", "perifericos", "mouse", "teclado", "headset", "gaming", "review"],
+  title: "Sunano | Tierlist de Periféricos",
+  description: "A tierlist definitiva de periféricos gamers. Compare mouses, teclados, headsets e mais com filtros avancados e reviews detalhadas.",
+  keywords: ["tierlist", "periféricos", "mouse", "teclado", "headset", "gaming", "review"],
 }
 
 export const viewport: Viewport = {

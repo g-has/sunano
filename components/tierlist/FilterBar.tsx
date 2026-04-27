@@ -105,7 +105,7 @@ export function FilterBar({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
           <Input
-            aria-label={isEnglish ? "Search peripherals" : "Buscar perifericos"}
+            aria-label={isEnglish ? "Search peripherals" : "Buscar periféricos"}
             className="h-10 border-white/[0.1] bg-white/[0.02] pl-10 text-sm placeholder:text-slate-500 focus-visible:border-cyan-500/50 focus-visible:ring-cyan-500/20"
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder={isEnglish ? "Search products, brands, sensors..." : "Buscar produtos, marcas, sensores..."}

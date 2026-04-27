@@ -4,8 +4,33 @@ import { Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useLocale } from "@/lib/locale-context"
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 import { CARD_TAG_STYLES, CARD_TIER_STYLES } from "@/lib/tierlist-theme"
+
+// simple cached fetch for USD -> BRL rate to avoid repeated network calls
+let usdToBrlCache: number | null = null
+let usdToBrlPromise: Promise<number | null> | null = null
+
+async function getUsdToBrlRate(): Promise<number | null> {
+  if (usdToBrlCache) return usdToBrlCache
+  if (usdToBrlPromise) return usdToBrlPromise
+
+  usdToBrlPromise = fetch("https://api.exchangerate.host/latest?base=USD&symbols=BRL")
+    .then((res) => res.json())
+    .then((json) => {
+      const rate = json?.rates?.BRL ? Number(json.rates.BRL) : null
+      usdToBrlCache = rate
+      usdToBrlPromise = null
+      return rate
+    })
+    .catch(() => {
+      usdToBrlPromise = null
+      return null
+    })
+
+  return usdToBrlPromise
+}
 
 type Tag = "competitive" | "versatile" | "value" | "comfort"
 type Tier = "T0" | "T0.5" | "T1" | "T2"
@@ -101,6 +126,51 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
     value: Math.floor(Math.random() * 2) + 3,
   }
 
+  const [displayPrice, setDisplayPrice] = useState<string>(() => {
+    // initial formatting (no conversion until effect runs)
+    const currency = isEnglish ? "USD" : "BRL"
+    try {
+      return new Intl.NumberFormat(locale, { style: "currency", currency }).format(item.price)
+    } catch (e) {
+      return `${isEnglish ? "$" : "R$"}${item.price}`
+    }
+  })
+
+  useEffect(() => {
+    let mounted = true
+
+    async function resolvePrice() {
+      const currency = isEnglish ? "USD" : "BRL"
+      let value = item.price
+
+      if (!isEnglish) {
+        // convert USD -> BRL using cached fetch
+        try {
+          const rate = await getUsdToBrlRate()
+          if (rate) value = Number((item.price * rate).toFixed(2))
+        } catch (e) {
+          // fallback: keep USD value
+        }
+      }
+
+      if (!mounted) return
+
+      try {
+        const formatted = new Intl.NumberFormat(locale, { style: "currency", currency }).format(value)
+        setDisplayPrice(formatted)
+      } catch (e) {
+        setDisplayPrice(`${isEnglish ? "$" : "R$"}${value}`)
+      }
+    }
+
+    resolvePrice()
+
+    return () => {
+      mounted = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, item.price])
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -126,7 +196,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
               
               {/* Price Tag - Top Right */}
               <Badge className="absolute top-0 right-0 rounded-sm h-5 px-1.5 py-0.5 m-1 text-[10px]" variant="secondary">
-                ${item.price}
+                {displayPrice}
               </Badge>
             </div>
           </div>
@@ -171,7 +241,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
             <h4 className="text-sm font-bold text-slate-50">{item.name}</h4>
             <p className="text-xs text-slate-500 mt-0.5">{item.brand}</p>
           </div>
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
             <span className={cn(
               "rounded-md px-2 py-1 text-[10px] font-bold",
               tierStyle.bg,
@@ -179,7 +249,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
             )}>
               {item.tier}
             </span>
-            <span className="text-sm font-bold text-emerald-400">${item.price}</span>
+            <span className="text-sm font-bold text-emerald-400">{displayPrice}</span>
           </div>
         </div>
 

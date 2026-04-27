@@ -66,6 +66,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
     "comfort",
   ])
   const [error, setError] = useState<string | null>(null)
+  const [usdToBrl, setUsdToBrl] = useState<number | null>(null)
+  const [originalUsdPrice, setOriginalUsdPrice] = useState<number | null>(null)
 
   const form = useForm<PeripheralFormData>({
     resolver: zodResolver(peripheralSchema),
@@ -85,6 +87,35 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [peripheralId])
 
+  useEffect(() => {
+    // fetch exchange rate only when locale is pt-BR
+    if (locale === "pt-BR") {
+      fetchUsdToBrl()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale])
+
+  useEffect(() => {
+    // if we loaded a peripheral and later got the rate, update displayed price
+    if (usdToBrl && originalUsdPrice !== null && locale === "pt-BR") {
+      form.setValue("price", Number((originalUsdPrice * usdToBrl).toFixed(2)))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usdToBrl, originalUsdPrice])
+
+  async function fetchUsdToBrl() {
+    try {
+      const res = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=BRL")
+      const json = await res.json()
+      if (json && json.rates && json.rates.BRL) {
+        setUsdToBrl(Number(json.rates.BRL))
+      }
+    } catch (err) {
+      // ignore failures; fallback will be no conversion
+      // console.error(err)
+    }
+  }
+
   async function loadPeripheral() {
     try {
       const { data, error: err } = await supabase
@@ -95,12 +126,15 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
       if (err) throw err
       if (data) {
+        // store original USD price and set displayed value according to locale
+        setOriginalUsdPrice(data.price)
+        const displayedPrice = locale === "pt-BR" && usdToBrl ? Number((data.price * usdToBrl).toFixed(2)) : data.price
         form.reset({
           name: data.name,
           brand: data.brand,
           category: data.category,
           tier: data.tier,
-          price: data.price,
+          price: displayedPrice,
           ...data.specs,
         })
         setSelectedTags(data.tags || [])
@@ -148,12 +182,32 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         profile: data.profile,
       }
 
+      // Convert price to USD before saving (store prices in USD)
+      let priceToSave = data.price
+      if (locale === "pt-BR") {
+        // convert BRL -> USD: USD = BRL / (USD->BRL)
+        let rate = usdToBrl
+        if (!rate) {
+          // try fetching a fresh rate
+          try {
+            const res = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=BRL")
+            const json = await res.json()
+            rate = json?.rates?.BRL ? Number(json.rates.BRL) : null
+          } catch (e) {
+            rate = null
+          }
+        }
+        if (rate && rate > 0) {
+          priceToSave = Number((data.price / rate).toFixed(2))
+        }
+      }
+
       const peripheralData = {
         name: data.name,
         brand: data.brand,
         category: data.category,
         tier: data.tier,
-        price: data.price,
+        price: priceToSave,
         image_url: imageUrl,
         tags: selectedTags,
         specs,
@@ -197,7 +251,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Link href="/admin/peripherals">
         <Button className="gap-2" variant="ghost">
           <ChevronLeft className="size-4" />
@@ -205,7 +259,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         </Button>
       </Link>
 
-      <Card className="border-white/10 bg-[#131a28]/90">
+      <Card className="mt-4 border-white/10 bg-[#131a28]/90">
         <CardHeader className="border-b border-white/10">
           <CardTitle>{peripheralId ? (isEnglish ? "Edit Peripheral" : "Editar Periférico") : (isEnglish ? "New Peripheral" : "Novo Periférico")}</CardTitle>
           <CardDescription>
@@ -268,10 +322,10 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Price ($)" : "Preço ($)"}</label>
+                  <label className="text-sm font-semibold text-slate-100">{isEnglish ? "Price ($)" : "Preço (R$)"}</label>
                 <Input
-                  className="border-white/10 bg-white/5"
-                  placeholder="159"
+                    className="border-white/10 bg-white/5"
+                    placeholder={isEnglish ? "159" : "159"}
                   type="number"
                   step="0.01"
                   {...form.register("price", { valueAsNumber: true })}

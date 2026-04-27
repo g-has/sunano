@@ -23,7 +23,7 @@ export default function AdminMaintenancePage() {
         <p className="max-w-2xl text-sm text-slate-400">
           {isEnglish
             ? "When this mode is active, public routes are blocked and only authenticated admin users can keep navigating."
-            : "Quando este modo estiver ativo, qualquer rota publica fica bloqueada e apenas usuarios autenticados no admin continuam navegando."}
+            : "Quando este modo estiver ativo, qualquer rota publica fica bloqueada e apenas usuários autenticados no admin continuam navegando."}
         </p>
       </div>
 

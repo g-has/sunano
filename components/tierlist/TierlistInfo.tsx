@@ -29,7 +29,7 @@ export function TierlistInfo() {
             <p>
               {isEnglish
                 ? "Peripherals are personal. This tierlist prioritizes practical performance, value, and consistency in real usage."
-                : "Perifericos sao pessoais. Esta tierlist prioriza performance pratica, valor e consistencia no uso real."}
+                : "Periféricos sao pessoais. Esta tierlist prioriza performance pratica, valor e consistencia no uso real."}
             </p>
             <p>
               {isEnglish
