@@ -29,12 +29,12 @@ export function TierlistInfo() {
             <p>
               {isEnglish
                 ? "Peripherals are personal. This tierlist prioritizes practical performance, value, and consistency in real usage."
-                : "Periféricos sao pessoais. Esta tierlist prioriza performance pratica, valor e consistencia no uso real."}
+                : "Periféricos são pessoais. Esta tierlist prioriza performance prática, valor e consistência no uso real."}
             </p>
             <p>
               {isEnglish
                 ? "Items are grouped by tier and then organized by mode: Performance, Value, and Recommended."
-                : "Os itens sao agrupados por tier e organizados por modo: Performance, Custo-Beneficio e Recomendado."}
+                : "Os itens são agrupados por tier e organizados por modo: Performance, Custo-benefício e Recomendado."}
             </p>
           </div>
         ),
@@ -47,9 +47,9 @@ export function TierlistInfo() {
           <div className="space-y-3 text-sm text-slate-300">
             <p>{isEnglish ? "Primary tags:" : "Tags principais:"}</p>
             <ul className="space-y-1.5 text-slate-400">
-              <li>{isEnglish ? "Competitive: maximum performance focus" : "Competitivo: foco em performance maxima"}</li>
-              <li>{isEnglish ? "Versatile: balanced all-around usage" : "Versatil: equilibrio para uso geral"}</li>
-              <li>{isEnglish ? "Value: best cost-benefit picks" : "Valor: melhores opcoes de custo-beneficio"}</li>
+              <li>{isEnglish ? "Competitive: maximum performance focus" : "Competitivo: foco em performance máxima"}</li>
+              <li>{isEnglish ? "Versatile: balanced all-around usage" : "Versátil: equilíbrio para uso geral"}</li>
+              <li>{isEnglish ? "Value: best cost-benefit picks" : "Valor: melhores opções de custo-benefício"}</li>
               <li>{isEnglish ? "Comfort: ergonomics and long sessions" : "Conforto: ergonomia e uso prolongado"}</li>
             </ul>
           </div>
@@ -61,9 +61,9 @@ export function TierlistInfo() {
         icon: Star,
         content: (
           <div className="space-y-2 text-sm text-slate-300">
-            <p>{isEnglish ? "T0 / T0.5: premium and top-level picks." : "T0 / T0.5: opcoes premium e de topo."}</p>
-            <p>{isEnglish ? "T1: strong choices with excellent consistency." : "T1: escolhas fortes com excelente consistencia."}</p>
-            <p>{isEnglish ? "T2: solid options that can require adaptation." : "T2: opcoes solidas que podem exigir adaptacao."}</p>
+            <p>{isEnglish ? "T0 / T0.5: premium and top-level picks." : "T0 / T0.5: opções premium e de topo."}</p>
+            <p>{isEnglish ? "T1: strong choices with excellent consistency." : "T1: escolhas fortes com excelente consistência."}</p>
+            <p>{isEnglish ? "T2: solid options that can require adaptation." : "T2: opções sólidas que podem exigir adaptação."}</p>
           </div>
         ),
       },
@@ -73,11 +73,11 @@ export function TierlistInfo() {
         icon: ListChecks,
         content: (
           <div className="space-y-2 text-sm text-slate-300">
-            <p>{isEnglish ? "Evaluation considers:" : "A avaliacao considera:"}</p>
+            <p>{isEnglish ? "Evaluation considers:" : "A avaliação considera:"}</p>
             <ul className="space-y-1.5 text-slate-400">
               <li>{isEnglish ? "Real-game usage and daily use" : "Uso real em jogos e no dia a dia"}</li>
-              <li>{isEnglish ? "Build quality and materials" : "Qualidade de construcao e materiais"}</li>
-              <li>{isEnglish ? "Latency and consistency" : "Latencia e consistencia"}</li>
+              <li>{isEnglish ? "Build quality and materials" : "Qualidade de construção e materiais"}</li>
+              <li>{isEnglish ? "Latency and consistency" : "Latência e consistência"}</li>
               <li>{isEnglish ? "Software, firmware, and support" : "Software, firmware e suporte"}</li>
             </ul>
           </div>
@@ -89,13 +89,13 @@ export function TierlistInfo() {
         icon: Clock,
         content: (
           <div className="space-y-2 text-sm text-slate-300">
-            <p className="text-cyan-300">{isEnglish ? "April 2026" : "Abril 2026"}</p>
-            <p>
-              {isEnglish
-                ? "Lists are updated continuously based on new releases, firmware revisions, and market price changes."
-                : "As listas sao atualizadas continuamente com novos lancamentos, revisoes de firmware e mudancas de preco."}
-            </p>
-          </div>
+              <p className="text-cyan-300">{isEnglish ? "April 2026" : "Abril 2026"}</p>
+              <p>
+                {isEnglish
+                  ? "Lists are updated continuously based on new releases, firmware revisions, and market price changes."
+                  : "As listas são atualizadas continuamente com novos lançamentos, revisões de firmware e mudanças de preço."}
+              </p>
+            </div>
         ),
       },
     ]
@@ -106,9 +106,9 @@ export function TierlistInfo() {
   return (
     <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0d1117]">
       <div className="border-b border-white/[0.08] bg-[#0a0d14] px-4 py-3">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
           <span className="size-2 rounded-sm bg-cyan-400" />
-          {isEnglish ? "Tierlist Information" : "Informacoes da Tierlist"}
+          {isEnglish ? "Tierlist Information" : "Informações da Tierlist"}
         </h2>
       </div>
 

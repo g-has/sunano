@@ -141,7 +141,7 @@ export function FilterBar({
               <div>
                 <h3 className="text-sm font-semibold text-slate-100">{isEnglish ? "Filter Tierlist" : "Filtrar Tierlist"}</h3>
                 <p className="mt-0.5 text-xs text-slate-400">
-                  {isEnglish ? "Price, brand, and category-specific options." : "Preco, marca e opcoes especificas por categoria."}
+                  {isEnglish ? "Price, brand, and category-specific options." : "Preço, marca e opções específicas por categoria."}
                 </p>
               </div>
 
@@ -170,18 +170,18 @@ export function FilterBar({
                 {/* Price Filter */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                    {isEnglish ? "Price Range" : "Faixa de Preco"}
+                    {isEnglish ? "Price Range" : "Faixa de Preço"}
                   </label>
                   <Select
                     onValueChange={(value) => onPriceBandChange(value as PriceBand)}
                     value={selectedPriceBand}
                   >
                     <SelectTrigger className="border-white/[0.1] bg-white/[0.02]">
-                      <SelectValue placeholder={isEnglish ? "Price" : "Preco"} />
+                      <SelectValue placeholder={isEnglish ? "Price" : "Preço"} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{isEnglish ? "All" : "Todos"}</SelectItem>
-                      <SelectItem value="budget">{isEnglish ? "Budget (up to $80)" : "Budget (ate $80)"}</SelectItem>
+                      <SelectItem value="budget">{isEnglish ? "Budget (up to $80)" : "Budget (até $80)"}</SelectItem>
                       <SelectItem value="mid">Mid ($81 - $160)</SelectItem>
                       <SelectItem value="premium">Premium ($160+)</SelectItem>
                     </SelectContent>
