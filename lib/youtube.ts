@@ -311,29 +311,28 @@ async function readSnapshot() {
     throw new Error(`Erro ao ler cache no Supabase: ${error.message}`)
   }
 
-  const parsed = parseFeedPayload(data?.payload)
+  const snapshotRow = data as { payload?: unknown; fetched_at?: string | null; last_error?: string | null } | null
+  const parsed = parseFeedPayload(snapshotRow?.payload)
 
   return {
-    fetchedAt: data?.fetched_at ?? null,
-    lastError: data?.last_error ?? null,
+    fetchedAt: snapshotRow?.fetched_at ?? null,
+    lastError: snapshotRow?.last_error ?? null,
     parsedData: parsed,
   }
 }
 
 async function writeSnapshot(payload: ChannelFeedData, lastError: string | null) {
   const adminClient = createSupabaseAdminClient()
-  const { error } = await adminClient
-    .from("youtube_cache_snapshots")
-    .upsert(
-      {
-        cache_key: SNAPSHOT_KEY,
-        payload: payload as unknown as Record<string, unknown>,
-        fetched_at: payload.fetchedAt,
-        source: "youtube_api",
-        last_error: lastError,
-      },
-      { onConflict: "cache_key" }
-    )
+  const { error } = await (adminClient.from("youtube_cache_snapshots") as any).upsert(
+    {
+      cache_key: SNAPSHOT_KEY,
+      payload: payload as unknown as Record<string, unknown>,
+      fetched_at: payload.fetchedAt,
+      source: "youtube_api",
+      last_error: lastError,
+    },
+    { onConflict: "cache_key" }
+  )
 
   if (error) {
     throw new Error(`Erro ao salvar cache no Supabase: ${error.message}`)

@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server"
+import type { AdminProfile } from "@/lib/admin-permissions"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { getYouTubeChannelFeed, getYouTubeSnapshotStatus } from "@/lib/youtube"
 
-async function getAuthorizedProfile() {
+type AuthorizedProfileResult = {
+  error: string | null
+  status: 200 | 401 | 403
+  profile: AdminProfile | null
+}
+
+async function getAuthorizedProfile(): Promise<AuthorizedProfileResult> {
   const supabase = await createSupabaseServerClient()
   const { data: authData } = await supabase.auth.getUser()
 
@@ -21,7 +28,7 @@ async function getAuthorizedProfile() {
     return { error: "Perfil administrativo não encontrado.", status: 403 as const, profile: null }
   }
 
-  return { error: null, status: 200 as const, profile }
+  return { error: null, status: 200 as const, profile: profile as AdminProfile }
 }
 
 export async function GET() {

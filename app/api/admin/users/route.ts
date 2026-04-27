@@ -3,17 +3,23 @@ import * as z from "zod"
 
 import {
   createFullPermissions,
+  type AdminProfile,
   isWebMaster,
   normalizePermissions,
 } from "@/lib/admin-permissions"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
+
+type AdminProfileRow = AdminProfile & {
+  created_at: string
+  updated_at: string
+}
 
 const userUpdateSchema = z.object({
   id: z.string().uuid(),
   display_name: z.string().trim().max(80).optional(),
   avatar_url: z.string().trim().url().nullable().optional(),
   role: z.enum(["admin", "webmaster"]).optional(),
-  permissions: z.record(z.boolean()).optional(),
+  permissions: z.record(z.string(), z.boolean()).optional(),
 })
 
 function defaultNameFromEmail(email: string | null | undefined) {
@@ -37,7 +43,9 @@ export async function GET() {
       .eq("id", authData.user.id)
       .maybeSingle()
 
-    if (!currentProfile || !isWebMaster(currentProfile)) {
+    const typedCurrentProfile = currentProfile as AdminProfile | null
+
+    if (!typedCurrentProfile || !isWebMaster(typedCurrentProfile)) {
       return NextResponse.json({ error: "Apenas o WEB Master pode ver usuários." }, { status: 403 })
     }
 
@@ -50,7 +58,7 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    const users = (data ?? []).map((item) => ({
+    const users = ((data ?? []) as AdminProfileRow[]).map((item) => ({
       id: item.id,
       email: item.email,
       display_name: item.display_name?.trim() || defaultNameFromEmail(item.email),
@@ -89,7 +97,9 @@ export async function PATCH(request: Request) {
       .eq("id", authData.user.id)
       .maybeSingle()
 
-    if (!currentProfile || !isWebMaster(currentProfile)) {
+    const typedCurrentProfile = currentProfile as AdminProfile | null
+
+    if (!typedCurrentProfile || !isWebMaster(typedCurrentProfile)) {
       return NextResponse.json({ error: "Apenas o WEB Master pode alterar usuários." }, { status: 403 })
     }
 
@@ -99,12 +109,14 @@ export async function PATCH(request: Request) {
       .eq("id", parsed.data.id)
       .maybeSingle()
 
-    if (!targetProfile) {
+    const typedTargetProfile = targetProfile as AdminProfile | null
+
+    if (!typedTargetProfile) {
       return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 })
     }
 
-    const isTargetWebMaster = targetProfile.role === "webmaster"
-    const isTargetCurrentUser = targetProfile.id === authData.user.id
+    const isTargetWebMaster = typedTargetProfile.role === "webmaster"
+    const isTargetCurrentUser = typedTargetProfile.id === authData.user.id
 
     if ((isTargetCurrentUser || isTargetWebMaster) && (parsed.data.role !== undefined || parsed.data.permissions !== undefined)) {
       return NextResponse.json(
@@ -115,19 +127,19 @@ export async function PATCH(request: Request) {
 
     const payload = {
       id: parsed.data.id,
-      email: targetProfile.email ?? authData.user.email ?? null,
-      display_name: parsed.data.display_name?.trim() || targetProfile.display_name?.trim() || defaultNameFromEmail(targetProfile.email ?? authData.user.email),
-      avatar_url: parsed.data.avatar_url ?? targetProfile.avatar_url ?? null,
-      role: parsed.data.role ?? targetProfile.role,
+      email: typedTargetProfile.email ?? authData.user.email ?? null,
+      display_name: parsed.data.display_name?.trim() || typedTargetProfile.display_name?.trim() || defaultNameFromEmail(typedTargetProfile.email ?? authData.user.email),
+      avatar_url: parsed.data.avatar_url ?? typedTargetProfile.avatar_url ?? null,
+      role: parsed.data.role ?? typedTargetProfile.role,
       permissions:
         parsed.data.role === "webmaster"
           ? createFullPermissions()
           : parsed.data.permissions
             ? normalizePermissions(parsed.data.permissions)
-            : targetProfile.permissions ?? {},
+            : typedTargetProfile.permissions ?? {},
     }
 
-    const { error } = await supabase.from("admin_profiles").upsert(payload, { onConflict: "id" })
+    const { error } = await supabase.from("admin_profiles").upsert(payload as any, { onConflict: "id" })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })

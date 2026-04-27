@@ -16,7 +16,9 @@ export default async function Page() {
     console.error("Error fetching peripherals:", error)
   }
 
-  const items = (peripherals || []).map((p) => ({
+  const peripheralsList = (peripherals ?? []) as any[]
+
+  const items = peripheralsList.map((p) => ({
     id: p.id,
     name: p.name,
     brand: p.brand,
@@ -60,7 +62,7 @@ export default async function Page() {
         <main className="flex-1 min-w-0">
           <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8 space-y-5">
             {/* <TierlistHeader categoryLabel={CATEGORY_LABELS.all} /> */}
-            <TierlistContent initialData={items} categoryLabels={CATEGORY_LABELS} />
+            <TierlistContent initialData={items as any} categoryLabels={CATEGORY_LABELS} />
             <TierlistInfo />
           </div>
         </main>

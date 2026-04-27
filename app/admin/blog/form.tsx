@@ -228,7 +228,7 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save article" : "Erro ao salvar artigo"))
     } finally {
-      setUploadingCover(false)
+      setUploadingCover(null)
       setSaving(false)
     }
   }

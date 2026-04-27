@@ -57,7 +57,7 @@ const BlogPostCard = React.forwardRef<HTMLDivElement, BlogPostCardProps>(
         y: -5,
         transition: {
           duration: 0.2,
-          ease: "easeInOut",
+          ease: "easeInOut" as const,
         },
       },
     }
@@ -103,8 +103,10 @@ const BlogPostCard = React.forwardRef<HTMLDivElement, BlogPostCardProps>(
       </>
     )
 
+    const MotionDiv = motion.div as any
+
     return (
-      <motion.div
+      <MotionDiv
         ref={ref}
         className={cn(cardVariants({ variant, className }))}
         variants={cardHover}
@@ -115,7 +117,7 @@ const BlogPostCard = React.forwardRef<HTMLDivElement, BlogPostCardProps>(
           <span className="sr-only">Read More</span>
         </a>
         <div className="relative z-0 flex h-full w-full flex-col md:flex-row">{content}</div>
-      </motion.div>
+      </MotionDiv>
     )
   }
 )

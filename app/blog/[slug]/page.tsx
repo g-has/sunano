@@ -74,14 +74,17 @@ export default function BlogPostPage() {
       setLoading(true)
 
       // Try with full query including author data (without read_time_minutes since it might not exist)
-      let { data, error } = await supabase
+      let data: any
+      let error: any
+
+      ;({ data, error } = await supabase
         .from("blog_posts")
         .select(
           "id, title, slug, author_id, excerpt, cover_image_url, cover_thumbnail_url, video_url, content, created_at, admin_profiles(display_name, avatar_url, email), peripherals(name, brand)"
         )
         .eq("slug", postSlug)
         .eq("is_published", true)
-        .single()
+        .single())
 
       // If error, try without cover_thumbnail_url
       if (error) {
@@ -95,7 +98,7 @@ export default function BlogPostPage() {
           .single()
 
         if (!retryResponse.error) {
-          data = retryResponse.data
+          data = retryResponse.data as any
           error = retryResponse.error
         }
       }
@@ -122,7 +125,7 @@ export default function BlogPostPage() {
         return
       }
 
-      setPost(({ ...(data as object), cover_thumbnail_url: (data as BlogPost).cover_thumbnail_url ?? null } as BlogPost) ?? null)
+      setPost({ ...(data as object), cover_thumbnail_url: (data as BlogPost).cover_thumbnail_url ?? null } as BlogPost)
       setLoading(false)
     }
 
