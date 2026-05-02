@@ -86,6 +86,8 @@ TO authenticated
 WITH CHECK (bucket_id = 'peripherals');
 ```
 
+
+
 ### 6. Obter Credenciais
 
 1. Vá para **Project Settings > API**
