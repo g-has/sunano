@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Search, SlidersHorizontal, X } from "lucide-react"
+import { ArrowLeftRight, Check, Search, SlidersHorizontal, X } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -87,8 +87,15 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
   const [selectedPriceBand, setSelectedPriceBand] = useState<PriceBand>("all")
   const [selectedConnectivity, setSelectedConnectivity] = useState("all")
   const [sortKey, setSortKey] = useState<SortKey>("recent")
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   const categoryLabels = isEnglish ? CATEGORY_LABELS_EN : CATEGORY_LABELS_PT
+
+  const lockedCategory = useMemo(() => {
+    if (selectedIds.length === 0) return null
+    const selected = initialData.find((item) => item.id === selectedIds[0])
+    return selected?.category ?? null
+  }, [initialData, selectedIds])
 
   const availableBrands = useMemo(() => {
     const baseList = selectedCategory === "all"
@@ -102,6 +109,7 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
     const normalizedQuery = query.trim().toLowerCase()
 
     const results = initialData.filter((item) => {
+      if (lockedCategory && item.category !== lockedCategory) return false
       if (selectedCategory !== "all" && item.category !== selectedCategory) return false
 
       const searchable = [
@@ -143,7 +151,7 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
     }
 
     return sorted
-  }, [initialData, query, selectedCategory, selectedBrand, selectedPriceBand, selectedConnectivity, sortKey])
+  }, [initialData, query, selectedCategory, selectedBrand, selectedPriceBand, selectedConnectivity, sortKey, lockedCategory])
 
   const activeFiltersCount = useMemo(() => {
     return [selectedBrand, selectedPriceBand, selectedConnectivity].filter((value) => value !== "all").length
@@ -158,6 +166,27 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
     setSelectedPriceBand("all")
     setSelectedConnectivity("all")
     setSortKey("recent")
+  }
+
+  const toggleSelection = (id: string, category: Category) => {
+    setSelectedIds((prev) => {
+      if (prev.includes(id)) {
+        const next = prev.filter((item) => item !== id)
+        if (next.length === 0) {
+          setSelectedCategory("all")
+        }
+        return next
+      }
+      if (prev.length === 0) {
+        setSelectedCategory(category)
+      }
+      return [...prev, id]
+    })
+  }
+
+  const clearSelection = () => {
+    setSelectedIds([])
+    setSelectedCategory("all")
   }
 
   const formatCurrency = (value: number) => {
@@ -195,6 +224,42 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-foreground">
+              <span className="flex size-5 items-center justify-center rounded-full bg-primary/20 text-primary">
+                {selectedIds.length}
+              </span>
+              <span>{isEnglish ? "Selected for compare" : "Selecionados para comparar"}</span>
+              {lockedCategory && (
+                <span className="rounded-full bg-muted/50 px-2 py-0.5 text-[10px] text-muted-foreground">
+                  {categoryLabels[lockedCategory]}
+                </span>
+              )}
+            </div>
+            {selectedIds.length > 1 && (
+              <Button
+                asChild
+                size="sm"
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <Link href={`/perifericos/comparar?ids=${selectedIds.join(",")}`}>
+                  <ArrowLeftRight className="size-4" />
+                  {isEnglish ? "Compare" : "Comparar"}
+                </Link>
+              </Button>
+            )}
+            {selectedIds.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={clearSelection}
+                className="border-border text-foreground hover:bg-muted/40"
+              >
+                {isEnglish ? "Clear" : "Limpar"}
+              </Button>
+            )}
+          </div>
+
           <div className="grid gap-3 lg:grid-cols-[1.6fr_repeat(4,minmax(0,1fr))]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -207,7 +272,11 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
               />
             </div>
 
-            <Select value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as Category)}>
+            <Select
+              value={selectedCategory}
+              onValueChange={(value) => setSelectedCategory(value as Category)}
+              disabled={selectedIds.length > 0}
+            >
               <SelectTrigger className="h-10 w-full border-border bg-muted/30">
                 <SelectValue placeholder={isEnglish ? "Category" : "Categoria"} />
               </SelectTrigger>
@@ -310,7 +379,7 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
               <Card className="h-full border-border bg-card">
                 <CardHeader>
                   <div className="flex items-start gap-3">
-                    <div className="size-14 overflow-hidden rounded-xl border border-border bg-muted/40">
+                    <div className="relative size-14 overflow-hidden rounded-xl border border-border bg-muted/40">
                       {item.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img alt={item.name} className="h-full w-full object-cover" src={item.image_url} />
@@ -356,7 +425,25 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
                 </CardContent>
                 <CardFooter className="justify-between text-xs text-muted-foreground">
                   <span>{isEnglish ? "View details" : "Ver detalhes"}</span>
-                  <span className="text-primary">→</span>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      toggleSelection(item.id, item.category)
+                    }}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
+                      selectedIds.includes(item.id)
+                        ? "border-primary/60 bg-primary text-primary-foreground"
+                        : "border-border bg-muted/40 text-foreground hover:bg-muted/60"
+                    )}
+                  >
+                    {selectedIds.includes(item.id) ? <Check className="size-3" /> : <span className="text-sm">+</span>}
+                    {selectedIds.includes(item.id)
+                      ? (isEnglish ? "Selected" : "Selecionado")
+                      : (isEnglish ? "Compare" : "Comparar")}
+                  </button>
                 </CardFooter>
               </Card>
             </Link>

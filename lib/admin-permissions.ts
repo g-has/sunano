@@ -88,7 +88,10 @@ export function hasAdminPermission(
 ) {
   if (!profile) return false
   if (isWebMaster(profile)) return true
-  return Boolean(profile.permissions?.[permission])
+  const basePermissions = profile.permissions && Object.keys(profile.permissions).length > 0
+    ? profile.permissions
+    : createDefaultPermissions()
+  return Boolean(basePermissions[permission])
 }
 
 export function hasAnyPermission(

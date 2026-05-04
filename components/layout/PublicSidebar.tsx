@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation"
 import {
   BadgePercent,
   Clock3,
+  ChevronLeft,
+  ChevronRight,
   Home,
   Instagram,
   Mouse,
@@ -43,6 +45,7 @@ export function PublicSidebar({
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const pathname = usePathname()
 
   const isHomePage = pathname === "/"
@@ -69,10 +72,23 @@ export function PublicSidebar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-screen w-64 shrink-0 flex-col border-r border-border bg-card transition-transform duration-300 md:relative md:inset-auto md:h-full md:translate-x-0",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-40 flex h-screen shrink-0 flex-col border-r border-border bg-card transition-all duration-300 md:relative md:inset-auto md:h-full md:translate-x-0",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full",
+          isCollapsed ? "md:w-16" : "md:w-60"
         )}
       >
+        <div className={cn("flex items-center justify-end px-3 pt-4", isCollapsed && "justify-center")}
+          >
+          <button
+            type="button"
+            onClick={() => setIsCollapsed((prev) => !prev)}
+            className="hidden md:flex size-8 items-center justify-center rounded-full border border-border bg-muted/40 text-foreground transition hover:bg-muted/60"
+            aria-label={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
+            title={isCollapsed ? "Expandir" : "Recolher"}
+          >
+            {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+          </button>
+        </div>
         {/* Navigation */}
         <nav className="flex-1 overflow-hidden px-3 pt-6 pb-4">
           {/* Main Nav */}
@@ -91,13 +107,14 @@ export function PublicSidebar({
                     }}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      isCollapsed && "justify-center",
                       isActive
                         ? "bg-primary/15 text-primary"
                         : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     )}
                   >
                     <Icon className="size-[18px]" />
-                    <span>{item.label}</span>
+                    <span className={cn(isCollapsed && "hidden")}>{item.label}</span>
                   </Link>
                 </div>
               )
@@ -109,13 +126,14 @@ export function PublicSidebar({
 
           {/* Coming Soon Section */}
           <div className="space-y-1">
-            <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <p className={cn("mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", isCollapsed && "hidden")}>
               {isEnglish ? "Coming Soon" : "Em Breve"}
             </p>
-            <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground">
+            <div className={cn("flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground", isCollapsed && "justify-center")}
+              >
               <div className="size-[18px] rounded bg-muted/40" />
-              <span>{isEnglish ? "Store" : "Loja"}</span>
-              <span className="ml-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300">
+              <span className={cn(isCollapsed && "hidden")}>{isEnglish ? "Store" : "Loja"}</span>
+              <span className={cn("ml-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300", isCollapsed && "hidden")}>
                 Soon
               </span>
             </div>
@@ -129,13 +147,14 @@ export function PublicSidebar({
             onClick={() => setIsMobileOpen(false)}
             className={cn(
               "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+              isCollapsed && "justify-center",
               pathname?.startsWith("/changelog")
                 ? "bg-primary/15 text-primary"
                 : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
             )}
           >
             <Clock3 className="size-[16px]" />
-            <span>Changelog</span>
+            <span className={cn(isCollapsed && "hidden")}>Changelog</span>
           </Link>
         </div>
       </aside>
