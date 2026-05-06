@@ -17,10 +17,16 @@ function copyCookies(source: NextResponse, destination: NextResponse) {
 
 function getRequiredPermission(pathname: string): AdminPermissionKey | null {
   if (pathname === "/admin") return "dashboard_read"
-  if (pathname.startsWith("/admin/peripherals/new") || /^\/admin\/peripherals\/[^/]+$/.test(pathname)) {
+  if (
+    pathname.startsWith("/admin/tierlist/new") ||
+    /^\/admin\/tierlist\/[^/]+$/.test(pathname) ||
+    pathname.startsWith("/admin/perifericos/new") ||
+    /^\/admin\/perifericos\/[^/]+$/.test(pathname)
+  ) {
     return "peripherals_write"
   }
-  if (pathname.startsWith("/admin/peripherals")) return "peripherals_read"
+  if (pathname.startsWith("/admin/tierlist")) return "peripherals_read"
+  if (pathname.startsWith("/admin/perifericos")) return "peripherals_read"
   if (pathname.startsWith("/admin/blog/new") || /^\/admin\/blog\/[^/]+$/.test(pathname)) {
     return "blog_write"
   }
@@ -36,8 +42,10 @@ function getRequiredPermission(pathname: string): AdminPermissionKey | null {
 
 function requiresWritePermission(pathname: string) {
   return (
-    pathname.startsWith("/admin/peripherals/new") ||
-    /^\/admin\/peripherals\/[^/]+$/.test(pathname) ||
+    pathname.startsWith("/admin/tierlist/new") ||
+    /^\/admin\/tierlist\/[^/]+$/.test(pathname) ||
+    pathname.startsWith("/admin/perifericos/new") ||
+    /^\/admin\/perifericos\/[^/]+$/.test(pathname) ||
     pathname.startsWith("/admin/blog/new") ||
     /^\/admin\/blog\/[^/]+$/.test(pathname) ||
     pathname.startsWith("/admin/offers/new")

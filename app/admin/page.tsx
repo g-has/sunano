@@ -39,14 +39,14 @@ export default function AdminPage() {
   const isEnglish = locale === "en-US"
   const quickActions = [
     {
-      href: "/admin/peripherals/new",
+      href: "/admin/tierlist/new",
       label: isEnglish ? "Add Tier List item" : "Adicionar item da Tier List",
       description: isEnglish ? "Create a new tier list item" : "Crie um novo item da tier list",
       icon: Plus,
       color: "cyan",
     },
     {
-      href: "/admin/peripherals",
+      href: "/admin/tierlist",
       label: isEnglish ? "View Tier List" : "Ver Tier List",
       description: isEnglish ? "Organize the current ranking" : "Organize o ranking atual",
       icon: Package,

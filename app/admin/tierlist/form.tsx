@@ -386,7 +386,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         if (err) throw err
       }
 
-      router.push("/admin/peripherals")
+      router.push("/admin/tierlist")
     } catch (err) {
       setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save" : "Erro ao salvar"))
     } finally {
@@ -414,7 +414,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
   return (
     <div className="space-y-8">
-      <Link href="/admin/peripherals">
+      <Link href="/admin/tierlist">
         <Button className="gap-2" variant="ghost">
           <ChevronLeft className="size-4" />
           {isEnglish ? "Back" : "Voltar"}
@@ -949,7 +949,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
             {/* Botões */}
             <div className="flex gap-3 justify-end border-t border-border pt-6">
-              <Link href="/admin/peripherals">
+              <Link href="/admin/tierlist">
                 <Button variant="outline">{isEnglish ? "Cancel" : "Cancelar"}</Button>
               </Link>
               <Button disabled={uploading || form.formState.isSubmitting} type="submit">

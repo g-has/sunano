@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Eye, Gift, Home, LogOut, Menu, NotebookPen, Package, Settings, Users, X } from "lucide-react"
+import { BarChart3, ChevronLeft, ChevronRight, Eye, Gift, Home, LogOut, Menu, NotebookPen, Package, Settings, Users, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { logoutAction } from "@/app/admin/actions"
@@ -16,11 +16,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const isEnglish = locale === "en-US"
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [profile, setProfile] = useState<AdminProfile | null>(null)
 
   const navItems = [
     { href: "/admin", label: isEnglish ? "Dashboard" : "Dashboard", icon: Home, permission: "dashboard_read" },
-    { href: "/admin/peripherals", label: isEnglish ? "Tier List" : "Tier List", icon: Package, permission: "peripherals_read" },
+    { href: "/admin/tierlist", label: isEnglish ? "Tierlist" : "Tierlist", icon: Package, permission: "peripherals_read" },
+    { href: "/admin/perifericos", label: isEnglish ? "Peripherals" : "Perifericos", icon: Package, permission: "peripherals_read" },
     { href: "/admin/blog", label: isEnglish ? "Blog & Reviews" : "Blog & Reviews", icon: NotebookPen, permission: "blog_read" },
     { href: "/admin/offers", label: isEnglish ? "Offers" : "Ofertas", icon: Gift, permission: "offers_read" },
     { href: "/admin/users", label: isEnglish ? "Users" : "Usuários", icon: Users, requiresWebMaster: true },
@@ -68,7 +70,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="flex min-h-screen pt-16 md:pl-64">
+      <div className={cn("flex min-h-screen pt-16", isCollapsed ? "md:pl-16" : "md:pl-64")}>
         {isMobileMenuOpen && (
           <div
             className="fixed inset-0 top-16 z-30 bg-black/60 backdrop-blur-sm md:hidden"
@@ -78,11 +80,24 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         <aside
           className={cn(
-            "fixed left-0 top-16 z-40 flex h-[calc(100vh-4rem)] w-64 shrink-0 flex-col border-r border-border bg-card transition-transform duration-300 md:translate-x-0",
-            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            "fixed left-0 top-16 z-40 flex h-[calc(100vh-4rem)] shrink-0 flex-col border-r border-border bg-card transition-all duration-300 md:translate-x-0",
+            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+            isCollapsed ? "md:w-16" : "md:w-64"
           )}
         >
-          <nav className="flex-1 overflow-hidden px-3 pt-6 pb-4">
+          <div className={cn("flex items-center justify-end px-3 pt-4", isCollapsed && "justify-center")}>
+            <button
+              type="button"
+              onClick={() => setIsCollapsed((prev) => !prev)}
+              className="hidden md:flex size-8 items-center justify-center rounded-full border border-border bg-muted/40 text-foreground transition hover:bg-muted/60"
+              aria-label={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
+              title={isCollapsed ? "Expandir" : "Recolher"}
+            >
+              {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+            </button>
+          </div>
+
+          <nav className="flex-1 overflow-hidden px-3 pt-4 pb-4">
             <div className="space-y-1">
               {visibleNavItems.map((item) => {
                 const Icon = item.icon
@@ -95,13 +110,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      isCollapsed && "justify-center",
                       active
                         ? "bg-primary/15 text-primary"
                         : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                     )}
                   >
                     <Icon className="size-[18px]" />
-                    <span>{item.label}</span>
+                    <span className={cn(isCollapsed && "hidden")}>{item.label}</span>
                   </Link>
                 )
               })}
@@ -110,32 +126,38 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="my-4 h-px bg-border" />
 
             <div className="space-y-1">
-              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className={cn("mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", isCollapsed && "hidden")}>
                 {isEnglish ? "Actions" : "Acoes"}
               </p>
               <Link
                 href="/"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary"
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary",
+                  isCollapsed && "justify-center"
+                )}
               >
                 <Eye className="size-[18px]" />
-                <span>{isEnglish ? "View Site" : "Ver Site"}</span>
+                <span className={cn(isCollapsed && "hidden")}>{isEnglish ? "View Site" : "Ver Site"}</span>
               </Link>
               <form action={logoutAction}>
                 <Button
-                  className="w-full justify-start gap-3 text-muted-foreground hover:bg-red-500/10 hover:text-red-300"
+                  className={cn(
+                    "w-full justify-start gap-3 text-muted-foreground hover:bg-red-500/10 hover:text-red-300",
+                    isCollapsed && "justify-center"
+                  )}
                   type="submit"
                   variant="ghost"
                 >
                   <LogOut className="size-[18px]" />
-                  <span>{isEnglish ? "Sign out" : "Sair"}</span>
+                  <span className={cn(isCollapsed && "hidden")}>{isEnglish ? "Sign out" : "Sair"}</span>
                 </Button>
               </form>
             </div>
           </nav>
 
           <div className="border-t border-border px-4 py-3">
-            <p className="text-[10px] text-muted-foreground">Sunano Admin v1.0</p>
+            <p className={cn("text-[10px] text-muted-foreground", isCollapsed && "hidden")}>Sunano Admin v1.0</p>
           </div>
         </aside>
 

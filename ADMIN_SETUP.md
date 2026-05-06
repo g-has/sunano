@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS peripherals (
   name TEXT NOT NULL,
   brand TEXT NOT NULL,
   category TEXT NOT NULL CHECK (category IN ('keyboard', 'mouse', 'mousepad', 'glasspad', 'iem', 'headset')),
-  tier TEXT NOT NULL CHECK (tier IN ('T0', 'T0.5', 'T1', 'T2')),
+  tier TEXT NOT NULL CHECK (tier IN ('GOAT', 'SS', 'S', 'A', 'B', 'C', 'L')),
   price DECIMAL NOT NULL,
   image_url TEXT,
   tags TEXT[] DEFAULT '{}',
@@ -126,7 +126,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=seu-chave-anonima
    - **Marca**: Ex: "Logitech"
    - **Preço**: Valor em dólares
    - **Categoria**: Teclado, Mouse, Mousepad, etc
-   - **Tier**: T0, T0.5, T1, T2
+  - **Tier**: GOAT, SS, S, A, B, C, L
    - **Tags**: Competitive, Versatile, Value, Comfort
    - **Imagem**: Upload de arquivo
    - **Specs**: Campos específicos por categoria

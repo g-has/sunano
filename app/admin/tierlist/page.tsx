@@ -304,7 +304,7 @@ function DraggablePeripheralCard({
                 </div>
 
                 <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <Link href={`/admin/peripherals/${item.id}`}>
+                  <Link href={`/admin/tierlist/${item.id}`}>
                     <Button
                       className="h-7 w-7 text-slate-300 hover:text-slate-100"
                       size="icon"
@@ -629,7 +629,7 @@ export default function AdminPeripheralsPage() {
           </h1>
           <p className="text-sm text-slate-400 mt-1">{isEnglish ? "Drag and drop to reorder. Click to edit." : "Arraste e solte para reorganizar. Clique para editar."}</p>
         </div>
-        <Link href="/admin/peripherals/new">
+        <Link href="/admin/tierlist/new">
           <Button className="gap-2">
             <Plus className="size-4" />
             {isEnglish ? "New Peripheral" : "Novo Periférico"}
@@ -638,7 +638,7 @@ export default function AdminPeripheralsPage() {
       </div>
 
       {/* Category Selector */}
-      <div className="space-y-3 rounded-xl border border-white/[0.08] bg-[#0d1117] p-4">
+      <div className="space-y-3 rounded-xl border border-white/[0.08] bg-card p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <span className="text-sm font-semibold text-slate-300">{isEnglish ? "Category:" : "Categoria:"}</span>
@@ -685,35 +685,13 @@ export default function AdminPeripheralsPage() {
 
       {/* Tierlist Grid */}
       {loading ? (
-        <Card className="border-white/[0.08] bg-[#0d1117] shadow-lg">
+        <Card className="border-white/[0.08] bg-card shadow-lg">
           <CardContent className="pt-6 text-center text-slate-400">{isEnglish ? "Loading..." : "Carregando..."}</CardContent>
         </Card>
       ) : (
         <>
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0d1117] shadow-lg">
-              <div
-                className="grid border-b border-white/[0.08] bg-[#0a0d14]"
-                style={{
-                  gridTemplateColumns: `70px repeat(${modeConfig.columns.length}, minmax(220px, 1fr))`,
-                }}
-              >
-                <div className="flex h-12 items-center justify-center border-r border-white/[0.08] text-center">
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                    Tier
-                  </span>
-                </div>
-                {modeConfig.columns.map((column) => (
-                  <div
-                    key={column.key}
-                    className="flex h-12 items-center justify-center border-r border-white/[0.08] last:border-r-0 text-center"
-                  >
-                    <span className={`text-xs font-semibold uppercase tracking-wider ${column.color}`}>
-                      {column.title}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-card shadow-lg">
 
               {itemsByTier.map((tierRow) => (
                 <div
@@ -762,7 +740,7 @@ export default function AdminPeripheralsPage() {
                   .filter((p) => p.tags.length === 0)
                   .map((item) => (
                     <div key={item.id} className="relative group">
-                      <Card className="border border-white/[0.08] bg-[#0d1117] p-0 shadow-lg hover:border-white/[0.12] hover:bg-[#0d1117] transition-all">
+                      <Card className="border border-white/[0.08] bg-card p-0 shadow-lg hover:border-white/[0.12] hover:bg-card transition-all">
                         <CardContent className="p-3">
                           <div className="flex gap-2 items-start">
                                     <div className={`grid size-10 shrink-0 place-items-center rounded-lg overflow-hidden text-xs font-bold ${CARD_TIER_STYLES[item.tier].bg} ${CARD_TIER_STYLES[item.tier].text}`}>

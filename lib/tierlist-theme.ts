@@ -1,19 +1,31 @@
 export const TIER_THEMES = {
-  T0: {
+  GOAT: {
     accent: "from-[#f06161] to-[#de4f54]",
     textColor: "text-[#141925]",
   },
-  "T0.5": {
+  SS: {
     accent: "from-[#f08d61] to-[#e06d4f]",
     textColor: "text-[#141925]",
   },
-  T1: {
+  S: {
     accent: "from-[#f1bb61] to-[#e0a84f]",
     textColor: "text-[#141925]",
   },
-  T2: {
-    accent: "from-[#7c8ca8] to-[#56647d]",
+  A: {
+    accent: "from-[#8adf7a] to-[#5bc56a]",
     textColor: "text-[#141925]",
+  },
+  B: {
+    accent: "from-[#5ccbb2] to-[#3aa98f]",
+    textColor: "text-[#141925]",
+  },
+  C: {
+    accent: "from-[#6fb0ff] to-[#4d86e6]",
+    textColor: "text-[#141925]",
+  },
+  L: {
+    accent: "from-[#7c8ca8] to-[#56647d]",
+    textColor: "text-[#f8fafc]",
   },
 } as const
 
@@ -44,8 +56,11 @@ export const CARD_TAG_STYLES = {
 } as const
 
 export const CARD_TIER_STYLES = {
-  T0: { bg: "bg-gradient-to-br from-red-500 to-red-600", text: "text-white" },
-  "T0.5": { bg: "bg-gradient-to-br from-orange-500 to-orange-600", text: "text-white" },
-  T1: { bg: "bg-gradient-to-br from-yellow-500 to-yellow-600", text: "text-slate-900" },
-  T2: { bg: "bg-gradient-to-br from-blue-500 to-blue-600", text: "text-white" },
+  GOAT: { bg: "bg-gradient-to-br from-red-500 to-red-600", text: "text-white" },
+  SS: { bg: "bg-gradient-to-br from-orange-500 to-orange-600", text: "text-white" },
+  S: { bg: "bg-gradient-to-br from-yellow-500 to-yellow-600", text: "text-slate-900" },
+  A: { bg: "bg-gradient-to-br from-emerald-500 to-emerald-600", text: "text-slate-900" },
+  B: { bg: "bg-gradient-to-br from-teal-500 to-teal-600", text: "text-slate-900" },
+  C: { bg: "bg-gradient-to-br from-blue-500 to-blue-600", text: "text-white" },
+  L: { bg: "bg-gradient-to-br from-slate-500 to-slate-600", text: "text-white" },
 } as const

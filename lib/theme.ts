@@ -36,29 +36,47 @@ export const THEME = {
 
   // Tier Colors (matching Prydwen style)
   tier: {
-    t0: {
+    goat: {
       bg: "bg-gradient-to-r from-red-500 to-red-600",
       text: "text-red-400",
       border: "border-red-500/40",
       badge: "bg-red-500/20 text-red-300 border-red-500/30",
     },
-    t05: {
+    ss: {
       bg: "bg-gradient-to-r from-orange-500 to-orange-600",
       text: "text-orange-400",
       border: "border-orange-500/40",
       badge: "bg-orange-500/20 text-orange-300 border-orange-500/30",
     },
-    t1: {
+    s: {
       bg: "bg-gradient-to-r from-yellow-500 to-yellow-600",
       text: "text-yellow-400",
       border: "border-yellow-500/40",
       badge: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
     },
-    t2: {
+    a: {
+      bg: "bg-gradient-to-r from-emerald-500 to-emerald-600",
+      text: "text-emerald-400",
+      border: "border-emerald-500/40",
+      badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    },
+    b: {
+      bg: "bg-gradient-to-r from-teal-500 to-teal-600",
+      text: "text-teal-400",
+      border: "border-teal-500/40",
+      badge: "bg-teal-500/20 text-teal-300 border-teal-500/30",
+    },
+    c: {
       bg: "bg-gradient-to-r from-blue-500 to-blue-600",
       text: "text-blue-400",
       border: "border-blue-500/40",
       badge: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    },
+    l: {
+      bg: "bg-gradient-to-r from-slate-500 to-slate-600",
+      text: "text-slate-300",
+      border: "border-slate-500/40",
+      badge: "bg-slate-500/20 text-slate-200 border-slate-500/30",
     },
   },
 
@@ -191,15 +209,21 @@ export const buttonStyles = {
 // Tier helper function
 export function getTierStyle(tier: string) {
   switch (tier) {
-    case "T0":
-      return THEME.tier.t0
-    case "T0.5":
-      return THEME.tier.t05
-    case "T1":
-      return THEME.tier.t1
-    case "T2":
-      return THEME.tier.t2
+    case "GOAT":
+      return THEME.tier.goat
+    case "SS":
+      return THEME.tier.ss
+    case "S":
+      return THEME.tier.s
+    case "A":
+      return THEME.tier.a
+    case "B":
+      return THEME.tier.b
+    case "C":
+      return THEME.tier.c
+    case "L":
+      return THEME.tier.l
     default:
-      return THEME.tier.t2
+      return THEME.tier.c
   }
 }

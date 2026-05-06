@@ -73,8 +73,8 @@ export default function AdminBlogPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-50">Blog</h1>
-          <p className="text-sm text-slate-400 mt-1">{isEnglish ? "Manage reviews and peripheral-related articles" : "Gerencie reviews e artigos relacionados aos periféricos"}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Blog</h1>
+          <p className="text-sm text-muted-foreground mt-1">{isEnglish ? "Manage reviews and peripheral-related articles" : "Gerencie reviews e artigos relacionados aos periféricos"}</p>
         </div>
         <Link href="/admin/blog/new">
           <Button className="gap-2">
@@ -88,20 +88,20 @@ export default function AdminBlogPage() {
         <div className="rounded border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</div>
       ) : null}
 
-      <Card className="border-white/10 bg-[#131a28]/90">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle>{isEnglish ? "Registered articles" : "Artigos cadastrados"}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-slate-400">{isEnglish ? "Loading..." : "Carregando..."}</p>
+            <p className="text-sm text-muted-foreground">{isEnglish ? "Loading..." : "Carregando..."}</p>
           ) : posts.length === 0 ? (
-            <p className="text-sm text-slate-400">{isEnglish ? "No articles registered." : "Nenhum artigo cadastrado."}</p>
+            <p className="text-sm text-muted-foreground">{isEnglish ? "No articles registered." : "Nenhum artigo cadastrado."}</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10">
+                  <TableRow className="border-border">
                     <TableHead>{isEnglish ? "Title" : "Título"}</TableHead>
                     <TableHead>{isEnglish ? "Peripheral" : "Periférico"}</TableHead>
                     <TableHead>{isEnglish ? "Status" : "Status"}</TableHead>
@@ -116,9 +116,9 @@ export default function AdminBlogPage() {
                       : null
 
                     return (
-                      <TableRow key={post.id} className="border-white/10">
-                        <TableCell className="font-medium text-slate-100">{post.title}</TableCell>
-                        <TableCell className="text-slate-300">
+                      <TableRow key={post.id} className="border-border">
+                        <TableCell className="font-medium text-foreground">{post.title}</TableCell>
+                        <TableCell className="text-muted-foreground">
                           {relatedPeripheral ? `${relatedPeripheral.brand} - ${relatedPeripheral.name}` : "-"}
                         </TableCell>
                         <TableCell>
@@ -126,7 +126,7 @@ export default function AdminBlogPage() {
                             {post.is_published ? (isEnglish ? "Published" : "Publicado") : (isEnglish ? "Draft" : "Rascunho")}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-slate-300">/{post.slug}</TableCell>
+                        <TableCell className="text-muted-foreground">/{post.slug}</TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-2">
                             <Link href={`/blog/${post.slug}`} target="_blank">

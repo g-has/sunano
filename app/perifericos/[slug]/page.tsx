@@ -2,7 +2,6 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Star } from "lucide-react"
 
-import { PublicSidebar } from "@/components/layout/PublicSidebar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
@@ -170,9 +169,9 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   ]
 
   const gripInfo = [
-    { label: "Mao pequena", value: details.gripSmall },
-    { label: "Mao media", value: details.gripMedium },
-    { label: "Mao grande", value: details.gripLarge },
+    { label: "Mao pequena", value: details.gripSmall || "Claw/Palm" },
+    { label: "Mao media", value: details.gripMedium || "Claw/Palm" },
+    { label: "Mao grande", value: details.gripLarge || "Claw/Finger" },
   ]
 
   const { data: relatedPosts } = await supabase
@@ -183,19 +182,12 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
     .order("created_at", { ascending: false })
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-16">
-      <div className="flex">
-        <div className="hidden md:flex md:sticky md:top-16 md:h-[calc(100vh-64px)] md:shrink-0">
-          <PublicSidebar />
-        </div>
-
-        <main className="flex-1 min-w-0">
-          <div className="mx-auto max-w-6xl px-4 py-4 md:px-6 lg:px-8">
-            <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+    <div className="mx-auto max-w-6xl px-4 py-4 md:px-6 lg:px-8">
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
               <div className="space-y-3">
                 <Card className="border-border bg-card">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-xs">Rank</CardTitle>
+              <CardTitle className="text-sm">Rank</CardTitle>
                   </CardHeader>
                   <CardContent className="flex items-center justify-center">
                     <div className="size-16 rounded-full border border-border bg-muted/40 flex items-center justify-center text-xl font-bold text-foreground">
@@ -228,10 +220,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
                 <Card className="border-border bg-card">
                   <CardHeader className="space-y-1">
-                    <CardTitle className="text-xs">Notas gerais</CardTitle>
-                    <CardDescription className="text-[10px]">Escala de 0 a 6 (GOAT = 6).</CardDescription>
+                    <CardTitle className="text-sm">Notas gerais</CardTitle>
+                    <CardDescription className="text-xs">Escala de 0 a 6 (GOAT = 6).</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-xs text-muted-foreground">
+                  <CardContent className="space-y-2 text-sm text-muted-foreground">
                     <div className="flex items-center justify-between">
                       <span>Geral</span>
                       <RatingStars rating={ratings.overall} />
@@ -265,10 +257,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
                 <Card className="border-border bg-card">
                   <CardHeader>
-                    <CardTitle className="text-xs">Notas</CardTitle>
-                    <CardDescription className="text-[10px]">Contexto e observacoes principais.</CardDescription>
+                    <CardTitle className="text-sm">Notas</CardTitle>
+                    <CardDescription className="text-xs">Contexto e observacoes principais.</CardDescription>
                   </CardHeader>
-                  <CardContent className="max-h-48 overflow-auto text-xs text-muted-foreground whitespace-pre-wrap">
+                  <CardContent className="max-h-56 overflow-auto text-sm text-muted-foreground whitespace-pre-wrap">
                     {notesLong || "Sem notas cadastradas."}
                   </CardContent>
                 </Card>
@@ -297,9 +289,9 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
                     {data.name}
                   </h1>
-                  <p className="text-xs text-muted-foreground">{data.brand}</p>
+                  <p className="text-sm text-muted-foreground">{data.brand}</p>
                   {details.summary && (
-                    <p className="mt-2 text-xs text-muted-foreground">
+                    <p className="mt-2 text-sm text-muted-foreground">
                       {details.summary}
                     </p>
                   )}
@@ -308,10 +300,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 <div className="grid gap-4 md:grid-cols-2">
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-xs">Especs</CardTitle>
-                      <CardDescription className="text-[10px]">Principais dados do produto.</CardDescription>
+                      <CardTitle className="text-sm">Especs</CardTitle>
+                      <CardDescription className="text-xs">Principais dados do produto.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-1 text-xs text-muted-foreground">
+                    <CardContent className="space-y-2 text-sm text-muted-foreground">
                       {specsTable.map((row) => (
                         <div key={row.label} className="flex items-center justify-between">
                           <span>{row.label}</span>
@@ -323,13 +315,16 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-xs">Pegada</CardTitle>
-                      <CardDescription className="text-[10px]">Recomendacao por tamanho de mao.</CardDescription>
+                      <CardTitle className="text-sm">Pegada</CardTitle>
+                      <CardDescription className="text-xs">Recomendacao por tamanho de mao.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-1 text-xs text-muted-foreground">
-                      {gripInfo.map((row) => (
-                        <div key={row.label} className="flex items-center justify-between">
-                          <span>{row.label}</span>
+                    <CardContent className="overflow-hidden rounded-lg border border-border bg-muted/20 text-sm text-muted-foreground">
+                      {gripInfo.map((row, index) => (
+                        <div
+                          key={row.label}
+                          className={`grid grid-cols-[1fr_auto] items-center gap-4 px-3 py-2 ${index === 0 ? "" : "border-t border-border"}`}
+                        >
+                          <span className="text-foreground/80">{row.label}</span>
                           <span className="font-semibold text-foreground">{formatSpecValue(row.value)}</span>
                         </div>
                       ))}
@@ -340,10 +335,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 <div className="grid gap-4 md:grid-cols-2">
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-xs">Review completa no YouTube</CardTitle>
-                      <CardDescription className="text-[10px]">Conteudo principal do canal.</CardDescription>
+                      <CardTitle className="text-sm">Review completa no YouTube</CardTitle>
+                      <CardDescription className="text-xs">Conteudo principal do canal.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-2 text-xs text-muted-foreground">
+                    <CardContent className="space-y-2 text-sm text-muted-foreground">
                       {reviewUrl ? (
                         <a
                           href={reviewUrl}
@@ -357,16 +352,16 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                       ) : (
                         <p>Nenhum review linkado.</p>
                       )}
-                      {reviewNote && <p className="text-[10px] text-muted-foreground">{reviewNote}</p>}
+                      {reviewNote && <p className="text-xs text-muted-foreground">{reviewNote}</p>}
                     </CardContent>
                   </Card>
 
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-xs">Guia</CardTitle>
-                      <CardDescription className="text-[10px]">Links e materiais extras.</CardDescription>
+                      <CardTitle className="text-sm">Guia</CardTitle>
+                      <CardDescription className="text-xs">Links e materiais extras.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-2 text-xs text-muted-foreground">
+                    <CardContent className="space-y-2 text-sm text-muted-foreground">
                       {guideUrl ? (
                         <a
                           href={guideUrl}
@@ -386,19 +381,19 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
                 <Card className="border-border bg-card">
                   <CardHeader>
-                    <CardTitle className="text-xs">Comentarios e recomendacoes</CardTitle>
-                    <CardDescription className="text-[10px]">Resumo geral do periférico.</CardDescription>
+                    <CardTitle className="text-sm">Comentarios e recomendacoes</CardTitle>
+                    <CardDescription className="text-xs">Resumo geral do periférico.</CardDescription>
                   </CardHeader>
-                  <CardContent className="max-h-56 overflow-auto space-y-3 text-xs text-muted-foreground">
+                  <CardContent className="max-h-64 overflow-auto space-y-3 text-sm text-muted-foreground">
                     {priceRange && (
-                      <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs">
+                      <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
                         <span>Faixa de preco</span>
                         <span className="font-semibold text-foreground">{priceRange}</span>
                       </div>
                     )}
                     <div className="grid gap-3 md:grid-cols-2">
                       <div>
-                        <p className="text-[10px] font-semibold text-emerald-400">Pontos positivos</p>
+                        <p className="text-xs font-semibold text-emerald-400">Pontos positivos</p>
                         {pros.length > 0 ? (
                           <ul className="list-disc space-y-1 pl-4">
                             {pros.map((item: string) => (
@@ -410,7 +405,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                         )}
                       </div>
                       <div>
-                        <p className="text-[10px] font-semibold text-rose-400">Pontos negativos</p>
+                        <p className="text-xs font-semibold text-rose-400">Pontos negativos</p>
                         {cons.length > 0 ? (
                           <ul className="list-disc space-y-1 pl-4">
                             {cons.map((item: string) => (
@@ -428,20 +423,20 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 <div className="grid gap-4 md:grid-cols-2">
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-xs">Software</CardTitle>
-                      <CardDescription className="text-[10px]">Plataformas, softwares e requisitos.</CardDescription>
+                      <CardTitle className="text-sm">Software</CardTitle>
+                      <CardDescription className="text-xs">Plataformas, softwares e requisitos.</CardDescription>
                     </CardHeader>
-                    <CardContent className="text-xs text-muted-foreground">
+                    <CardContent className="text-sm text-muted-foreground">
                       {details.compatibility ? details.compatibility : "Informacao de compatibilidade nao cadastrada."}
                     </CardContent>
                   </Card>
 
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-xs">Comentarios</CardTitle>
-                      <CardDescription className="text-[10px]">Detalhes extras da equipe.</CardDescription>
+                      <CardTitle className="text-sm">Comentarios</CardTitle>
+                      <CardDescription className="text-xs">Detalhes extras da equipe.</CardDescription>
                     </CardHeader>
-                    <CardContent className="text-xs text-muted-foreground">
+                    <CardContent className="text-sm text-muted-foreground">
                       {details.notes ? details.notes : "Sem observacoes adicionais."}
                     </CardContent>
                   </Card>
@@ -450,10 +445,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 {highlights.length > 0 && (
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-xs">Destaques</CardTitle>
-                      <CardDescription className="text-[10px]">Resumo rapido do que importa.</CardDescription>
+                      <CardTitle className="text-sm">Destaques</CardTitle>
+                      <CardDescription className="text-xs">Resumo rapido do que importa.</CardDescription>
                     </CardHeader>
-                    <CardContent className="max-h-40 overflow-auto space-y-2 text-xs text-muted-foreground">
+                    <CardContent className="max-h-48 overflow-auto space-y-2 text-sm text-muted-foreground">
                       <ul className="list-disc space-y-2 pl-4">
                         {highlights.map((item: string) => (
                           <li key={item}>{item}</li>
@@ -466,8 +461,8 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 {buyLinks.length > 0 && (
                   <Card className="border-border bg-card">
                     <CardHeader className="space-y-1">
-                      <CardTitle className="text-xs">Onde comprar</CardTitle>
-                      <CardDescription className="text-[10px]">Links oficiais e lojas recomendadas.</CardDescription>
+                      <CardTitle className="text-sm">Onde comprar</CardTitle>
+                      <CardDescription className="text-xs">Links oficiais e lojas recomendadas.</CardDescription>
                     </CardHeader>
                     <CardContent className="max-h-40 overflow-auto space-y-2">
                       {buyLinks.map((link: { label: string; url: string }) => (
@@ -489,10 +484,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 {comparisons.length > 0 && (
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-xs">Comparacoes</CardTitle>
-                      <CardDescription className="text-[10px]">Alternativas diretas para avaliar.</CardDescription>
+                      <CardTitle className="text-sm">Comparacoes</CardTitle>
+                      <CardDescription className="text-xs">Alternativas diretas para avaliar.</CardDescription>
                     </CardHeader>
-                    <CardContent className="max-h-40 overflow-auto space-y-2 text-xs text-muted-foreground">
+                    <CardContent className="max-h-48 overflow-auto space-y-2 text-sm text-muted-foreground">
                       <ul className="list-disc space-y-2 pl-4">
                         {comparisons.map((item: string) => (
                           <li key={item}>{item}</li>
@@ -504,10 +499,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
                 <Card className="border-border bg-card">
                   <CardHeader>
-                    <CardTitle className="text-xs">Reviews e analises</CardTitle>
-                    <CardDescription className="text-[10px]">Artigos e conteudos relacionados.</CardDescription>
+                    <CardTitle className="text-sm">Reviews e analises</CardTitle>
+                    <CardDescription className="text-xs">Artigos e conteudos relacionados.</CardDescription>
                   </CardHeader>
-                  <CardContent className="max-h-48 overflow-auto space-y-3">
+                  <CardContent className="max-h-56 overflow-auto space-y-3">
                     {relatedPosts && relatedPosts.length > 0 ? (
                       relatedPosts.map((post) => (
                         <Link
@@ -544,13 +539,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </CardContent>
                 </Card>
               </div>
-            </div>
-          </div>
-        </main>
-      </div>
-
-      <div className="md:hidden">
-        <PublicSidebar />
       </div>
     </div>
   )

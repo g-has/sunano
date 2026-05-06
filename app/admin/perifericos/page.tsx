@@ -1,7 +1,11 @@
-import { createSupabaseServerClient } from "@/lib/supabase-server"
-import { PerifericosContent } from "./perifericos-content"
+import Link from "next/link"
+import { Plus } from "lucide-react"
 
-export default async function PerifericosPage() {
+import { Button } from "@/components/ui/button"
+import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { PerifericosContent } from "@/app/perifericos/perifericos-content"
+
+export default async function AdminPerifericosPage() {
   const supabase = await createSupabaseServerClient()
 
   const { data: peripherals, error } = await supabase
@@ -38,5 +42,21 @@ export default async function PerifericosPage() {
     description: p.description ?? null,
   }))
 
-  return <PerifericosContent initialData={items} />
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-50">Admin Perifericos</h1>
+          <p className="text-sm text-slate-400 mt-1">Gerencie os perifericos fora da tierlist.</p>
+        </div>
+        <Link href="/admin/perifericos/new">
+          <Button className="gap-2">
+            <Plus className="size-4" />
+            Novo Periferico
+          </Button>
+        </Link>
+      </div>
+      <PerifericosContent initialData={items} />
+    </div>
+  )
 }

@@ -27,7 +27,7 @@ export default function AdminMaintenancePage() {
         </p>
       </div>
 
-      <Card className="border-white/[0.08] bg-[#0d1117]">
+      <Card className="border-white/[0.08] bg-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-slate-50">
             <ShieldCheck className="size-5 text-cyan-400" />
