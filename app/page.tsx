@@ -3,6 +3,7 @@ import { PublicSidebar } from "@/components/layout/PublicSidebar"
 import { TierlistHeader } from "@/components/tierlist/TierlistHeader"
 import { TierlistInfo } from "@/components/tierlist/TierlistInfo"
 import { TierlistContent } from "@/components/tierlist/TierlistContent"
+import { mapTier } from "@/lib/tier-utils"
 
 export default async function Page() {
   const supabase = await createSupabaseServerClient()
@@ -24,7 +25,7 @@ export default async function Page() {
     brand: p.brand,
     image_url: p.image_url,
     category: p.category as "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset",
-    tier: p.tier as "T0" | "T0.5" | "T1" | "T2",
+    tier: mapTier(p.tier),
     price: p.price,
     tags: (p.tags || []) as ("competitive" | "versatile" | "value" | "comfort")[],
     specs: (p.specs || {}) as {

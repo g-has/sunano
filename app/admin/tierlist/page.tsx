@@ -49,7 +49,7 @@ import {
 type RatingMode = "performance" | "value" | "recommended"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
-type Tier = "T0" | "T0.5" | "T1" | "T2"
+type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type Tag = "competitive" | "versatile" | "value" | "comfort"
 
 interface Peripheral {
@@ -75,10 +75,13 @@ const CATEGORY_META = [
 ]
 
 const TIER_ROWS: { key: Tier; label: string; accent: string; textColor: string }[] = [
-  { key: "T0", label: "T0", accent: TIER_THEMES.T0.accent, textColor: TIER_THEMES.T0.textColor },
-  { key: "T0.5", label: "T0.5", accent: TIER_THEMES["T0.5"].accent, textColor: TIER_THEMES["T0.5"].textColor },
-  { key: "T1", label: "T1", accent: TIER_THEMES.T1.accent, textColor: TIER_THEMES.T1.textColor },
-  { key: "T2", label: "T2", accent: TIER_THEMES.T2.accent, textColor: TIER_THEMES.T2.textColor },
+  { key: "GOAT", label: "GOAT", accent: TIER_THEMES.GOAT.accent, textColor: TIER_THEMES.GOAT.textColor },
+  { key: "SS", label: "SS", accent: TIER_THEMES.SS.accent, textColor: TIER_THEMES.SS.textColor },
+  { key: "S", label: "S", accent: TIER_THEMES.S.accent, textColor: TIER_THEMES.S.textColor },
+  { key: "A", label: "A", accent: TIER_THEMES.A.accent, textColor: TIER_THEMES.A.textColor },
+  { key: "B", label: "B", accent: TIER_THEMES.B.accent, textColor: TIER_THEMES.B.textColor },
+  { key: "C", label: "C", accent: TIER_THEMES.C.accent, textColor: TIER_THEMES.C.textColor },
+  { key: "L", label: "L", accent: TIER_THEMES.L.accent, textColor: TIER_THEMES.L.textColor },
 ]
 
 const COLUMNS: { key: Tag; title: string }[] = [
@@ -152,9 +155,12 @@ function getPriceBand(price: number): PriceBand {
 }
 
 function getTierScore(tier: Tier) {
-  if (tier === "T0") return 4
-  if (tier === "T0.5") return 3
-  if (tier === "T1") return 2
+  if (tier === "GOAT") return 7
+  if (tier === "SS") return 6
+  if (tier === "S") return 5
+  if (tier === "A") return 4
+  if (tier === "B") return 3
+  if (tier === "C") return 2
   return 1
 }
 
@@ -240,7 +246,7 @@ function DraggablePeripheralCard({
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.id,
   })
-  const tierStyle = CARD_TIER_STYLES[item.tier]
+  const tierStyle = CARD_TIER_STYLES[item.tier] ?? CARD_TIER_STYLES.L
   const tagStyle = item.tags[0] ? CARD_TAG_STYLES[item.tags[0]] : CARD_TAG_STYLES.versatile
 
   const style = {
@@ -743,7 +749,7 @@ export default function AdminPeripheralsPage() {
                       <Card className="border border-white/[0.08] bg-card p-0 shadow-lg hover:border-white/[0.12] hover:bg-card transition-all">
                         <CardContent className="p-3">
                           <div className="flex gap-2 items-start">
-                                    <div className={`grid size-10 shrink-0 place-items-center rounded-lg overflow-hidden text-xs font-bold ${CARD_TIER_STYLES[item.tier].bg} ${CARD_TIER_STYLES[item.tier].text}`}>
+                                    <div className={`grid size-10 shrink-0 place-items-center rounded-lg overflow-hidden text-xs font-bold ${(CARD_TIER_STYLES[item.tier] ?? CARD_TIER_STYLES.L).bg} ${(CARD_TIER_STYLES[item.tier] ?? CARD_TIER_STYLES.L).text}`}>
                               {item.image_url ? (
                                 <Image
                                   src={item.image_url}

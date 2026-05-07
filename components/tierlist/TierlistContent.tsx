@@ -5,7 +5,7 @@ import { FilterBar } from "./FilterBar"
 import { TierlistGrid } from "./TierlistGrid"
 
 type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
-type Tier = "T0" | "T0.5" | "T1" | "T2"
+type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type MouseShape = "symmetrical" | "ergonomic"
 type KeyboardLayout = "60%" | "75%" | "tkl" | "full-size"
 type PriceBand = "all" | "budget" | "mid" | "premium"

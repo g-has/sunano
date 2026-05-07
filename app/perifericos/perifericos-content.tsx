@@ -25,7 +25,7 @@ type Peripheral = {
   brand: string
   image_url: string | null
   category: Exclude<Category, "all">
-  tier: "T0" | "T0.5" | "T1" | "T2"
+  tier: "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
   price: number
   tags: Array<"competitive" | "versatile" | "value" | "comfort">
   specs: {

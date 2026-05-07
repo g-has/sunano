@@ -12,7 +12,7 @@ import {
   VALUE_COLUMN_COLORS,
 } from "@/lib/tierlist-theme"
 
-type Tier = "T0" | "T0.5" | "T1" | "T2"
+type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type Tag = "competitive" | "versatile" | "value" | "comfort"
 type RatingMode = "performance" | "value" | "recommended"
 type PriceBand = "budget" | "mid" | "premium"
@@ -62,32 +62,53 @@ interface ModeConfig {
 
 const TIER_ROWS: TierRow[] = [
   {
-    key: "T0",
-    label: "T0",
-    description: "Apex - Referencia absoluta",
-    gradient: TIER_THEMES.T0.accent,
-    textColor: TIER_THEMES.T0.textColor,
+    key: "GOAT",
+    label: "GOAT",
+    description: "Elite - Referencia absoluta",
+    gradient: TIER_THEMES.GOAT.accent,
+    textColor: TIER_THEMES.GOAT.textColor,
   },
   {
-    key: "T0.5",
-    label: "T0.5",
-    description: "Excelente - Quase perfeito",
-    gradient: TIER_THEMES["T0.5"].accent,
-    textColor: TIER_THEMES["T0.5"].textColor,
+    key: "SS",
+    label: "SS",
+    description: "Extremo - Quase perfeito",
+    gradient: TIER_THEMES.SS.accent,
+    textColor: TIER_THEMES.SS.textColor,
   },
   {
-    key: "T1",
-    label: "T1",
-    description: "Meta - Otima escolha",
-    gradient: TIER_THEMES.T1.accent,
-    textColor: TIER_THEMES.T1.textColor,
+    key: "S",
+    label: "S",
+    description: "Top - Excelente escolha",
+    gradient: TIER_THEMES.S.accent,
+    textColor: TIER_THEMES.S.textColor,
   },
   {
-    key: "T2",
-    label: "T2",
-    description: "Solido - Bom custo-beneficio",
-    gradient: TIER_THEMES.T2.accent,
-    textColor: TIER_THEMES.T2.textColor,
+    key: "A",
+    label: "A",
+    description: "Muito bom - Consistente e forte",
+    gradient: TIER_THEMES.A.accent,
+    textColor: TIER_THEMES.A.textColor,
+  },
+  {
+    key: "B",
+    label: "B",
+    description: "Bom - Opção sólida",
+    gradient: TIER_THEMES.B.accent,
+    textColor: TIER_THEMES.B.textColor,
+  },
+  {
+    key: "C",
+    label: "C",
+    description: "Ok - Funciona bem com limites",
+    gradient: TIER_THEMES.C.accent,
+    textColor: TIER_THEMES.C.textColor,
+  },
+  {
+    key: "L",
+    label: "L",
+    description: "Inferior - Apenas para casos específicos",
+    gradient: TIER_THEMES.L.accent,
+    textColor: TIER_THEMES.L.textColor,
   },
 ]
 
@@ -126,9 +147,12 @@ function getPriceBand(price: number): PriceBand {
 }
 
 function getTierScore(tier: Tier) {
-  if (tier === "T0") return 4
-  if (tier === "T0.5") return 3
-  if (tier === "T1") return 2
+  if (tier === "GOAT") return 7
+  if (tier === "SS") return 6
+  if (tier === "S") return 5
+  if (tier === "A") return 4
+  if (tier === "B") return 3
+  if (tier === "C") return 2
   return 1
 }
 
@@ -196,32 +220,53 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
 
   const tierRows: TierRow[] = [
     {
-      key: "T0",
-      label: "T0",
-      description: isEnglish ? "Apex - Absolute reference" : "Apex - Referencia absoluta",
-      gradient: TIER_THEMES.T0.accent,
-      textColor: TIER_THEMES.T0.textColor,
+      key: "GOAT",
+      label: "GOAT",
+      description: isEnglish ? "Elite - Absolute reference" : "Elite - Referencia absoluta",
+      gradient: TIER_THEMES.GOAT.accent,
+      textColor: TIER_THEMES.GOAT.textColor,
     },
     {
-      key: "T0.5",
-      label: "T0.5",
-      description: isEnglish ? "Excellent - Almost perfect" : "Excelente - Quase perfeito",
-      gradient: TIER_THEMES["T0.5"].accent,
-      textColor: TIER_THEMES["T0.5"].textColor,
+      key: "SS",
+      label: "SS",
+      description: isEnglish ? "Extreme - Almost perfect" : "Extremo - Quase perfeito",
+      gradient: TIER_THEMES.SS.accent,
+      textColor: TIER_THEMES.SS.textColor,
     },
     {
-      key: "T1",
-      label: "T1",
-      description: isEnglish ? "Meta - Great choice" : "Meta - Otima escolha",
-      gradient: TIER_THEMES.T1.accent,
-      textColor: TIER_THEMES.T1.textColor,
+      key: "S",
+      label: "S",
+      description: isEnglish ? "Top - Great choice" : "Top - Otima escolha",
+      gradient: TIER_THEMES.S.accent,
+      textColor: TIER_THEMES.S.textColor,
     },
     {
-      key: "T2",
-      label: "T2",
-      description: isEnglish ? "Solid - Great value" : "Solido - Bom custo-beneficio",
-      gradient: TIER_THEMES.T2.accent,
-      textColor: TIER_THEMES.T2.textColor,
+      key: "A",
+      label: "A",
+      description: isEnglish ? "Very good - Strong and consistent" : "Muito bom - Consistente e forte",
+      gradient: TIER_THEMES.A.accent,
+      textColor: TIER_THEMES.A.textColor,
+    },
+    {
+      key: "B",
+      label: "B",
+      description: isEnglish ? "Good - Solid option" : "Bom - Opção sólida",
+      gradient: TIER_THEMES.B.accent,
+      textColor: TIER_THEMES.B.textColor,
+    },
+    {
+      key: "C",
+      label: "C",
+      description: isEnglish ? "Okay - Works well with tradeoffs" : "Ok - Funciona bem com limites",
+      gradient: TIER_THEMES.C.accent,
+      textColor: TIER_THEMES.C.textColor,
+    },
+    {
+      key: "L",
+      label: "L",
+      description: isEnglish ? "Lower - Only for niche cases" : "Inferior - Apenas para casos específicos",
+      gradient: TIER_THEMES.L.accent,
+      textColor: TIER_THEMES.L.textColor,
     },
   ]
 

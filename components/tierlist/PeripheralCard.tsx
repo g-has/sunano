@@ -33,7 +33,7 @@ async function getUsdToBrlRate(): Promise<number | null> {
 }
 
 type Tag = "competitive" | "versatile" | "value" | "comfort"
-type Tier = "T0" | "T0.5" | "T1" | "T2"
+type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 
 interface PeripheralCardProps {
   id: string
@@ -115,7 +115,7 @@ function getAllSpecs(item: PeripheralCardProps, isEnglish: boolean): Array<{ lab
 export function PeripheralCard({ ...item }: PeripheralCardProps) {
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
-  const tierStyle = CARD_TIER_STYLES[item.tier]
+  const tierStyle = CARD_TIER_STYLES[item.tier] ?? CARD_TIER_STYLES.L
   const primaryTag = item.tags[0]
   const tagStyle = primaryTag ? CARD_TAG_STYLES[primaryTag] : CARD_TAG_STYLES.versatile
   

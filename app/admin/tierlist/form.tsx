@@ -22,9 +22,10 @@ import {
 } from "@/components/ui/select"
 import { useLocale } from "@/lib/locale-context"
 import { supabase } from "@/lib/supabase"
+import { mapTier } from "@/lib/tier-utils"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
-type Tier = "T0" | "T0.5" | "T1" | "T2"
+type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type Tag = "competitive" | "versatile" | "value" | "comfort"
 
 const optionalNumber = z.preprocess((value) => {
@@ -37,7 +38,7 @@ const peripheralSchema = z.object({
   name: z.string().min(1, "Name is required"),
   brand: z.string().min(1, "Brand is required"),
   category: z.enum(["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset"]),
-  tier: z.enum(["T0", "T0.5", "T1", "T2"]),
+  tier: z.enum(["GOAT", "SS", "S", "A", "B", "C", "L"]),
   price: z.number().positive("Price must be greater than 0"),
   rankLabel: z.string().optional(),
   priceRange: z.string().optional(),
@@ -81,7 +82,7 @@ const peripheralSchema = z.object({
 type PeripheralFormData = z.infer<typeof peripheralSchema>
 
 const CATEGORIES = ["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset"] as const
-const TIERS = ["T0", "T0.5", "T1", "T2"] as const
+const TIERS = ["GOAT", "SS", "S", "A", "B", "C", "L"] as const
 const TAGS_OPTIONS = ["competitive", "versatile", "value", "comfort"] as const
 
 interface PeripheralEditProps {
@@ -112,7 +113,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       name: "",
       brand: "",
       category: "mouse",
-      tier: "T1",
+      tier: "S",
       price: 0,
       rankLabel: "",
       priceRange: "",
@@ -200,7 +201,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           name: data.name,
           brand: data.brand,
           category: data.category,
-          tier: data.tier,
+          tier: mapTier(data.tier),
           price: displayedPrice,
           rankLabel: data.specs?.details?.rankLabel ?? "",
           priceRange: data.specs?.details?.priceRange ?? "",

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { buildPeripheralSlug, coercePeripheralId, slugToSearchPattern } from "@/lib/peripheral-slug"
+import { mapTier } from "@/lib/tier-utils"
 
 interface PerifericoPageProps {
   params: Promise<{ slug: string }>
@@ -151,7 +152,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
     value: normalizeRating(details?.ratings?.value ?? details.ratingValue),
   }
 
-  const rankLabel = details.rankLabel || data.tier
+  const rankLabel = details.rankLabel || mapTier(data.tier)
   const priceRange = details.priceRange
   const reviewUrl = details.reviewUrl
   const reviewNote = details.reviewNote

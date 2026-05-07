@@ -61,9 +61,9 @@ export function TierlistInfo() {
         icon: Star,
         content: (
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>{isEnglish ? "T0 / T0.5: premium and top-level picks." : "T0 / T0.5: opções premium e de topo."}</p>
-            <p>{isEnglish ? "T1: strong choices with excellent consistency." : "T1: escolhas fortes com excelente consistência."}</p>
-            <p>{isEnglish ? "T2: solid options that can require adaptation." : "T2: opções sólidas que podem exigir adaptação."}</p>
+            <p>{isEnglish ? "GOAT / SS: absolute top-tier and elite picks." : "GOAT / SS: opções de elite e topo absoluto."}</p>
+            <p>{isEnglish ? "S / A: premium choices with very strong consistency." : "S / A: escolhas premium com consistência muito forte."}</p>
+            <p>{isEnglish ? "B / C / L: solid-to-niche picks with more tradeoffs." : "B / C / L: opções sólidas até de nicho, com mais concessões."}</p>
           </div>
         ),
       },
