@@ -56,11 +56,11 @@ export const CARD_TAG_STYLES = {
 } as const
 
 export const CARD_TIER_STYLES = {
-  GOAT: { bg: "bg-gradient-to-br from-red-500 to-red-600", text: "text-white" },
-  SS: { bg: "bg-gradient-to-br from-orange-500 to-orange-600", text: "text-white" },
-  S: { bg: "bg-gradient-to-br from-yellow-500 to-yellow-600", text: "text-slate-900" },
-  A: { bg: "bg-gradient-to-br from-emerald-500 to-emerald-600", text: "text-slate-900" },
-  B: { bg: "bg-gradient-to-br from-teal-500 to-teal-600", text: "text-slate-900" },
-  C: { bg: "bg-gradient-to-br from-blue-500 to-blue-600", text: "text-white" },
-  L: { bg: "bg-gradient-to-br from-slate-500 to-slate-600", text: "text-white" },
+  GOAT: { bg: "bg-black", text: "text-white" },
+  SS: { bg: "bg-black", text: "text-white" },
+  S: { bg: "bg-black", text: "text-white" },
+  A: { bg: "bg-black", text: "text-white" },
+  B: { bg: "bg-black", text: "text-white" },
+  C: { bg: "bg-black", text: "text-white" },
+  L: { bg: "bg-black", text: "text-white" },
 } as const
