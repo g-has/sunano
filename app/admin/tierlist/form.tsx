@@ -29,12 +29,6 @@ type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierField = Tier | "__none__"
 type Tag = "competitive" | "versatile" | "value" | "comfort"
 
-const optionalNumber = z.preprocess((value) => {
-  if (value === "" || value === null || typeof value === "undefined") return undefined
-  const num = Number(value)
-  return Number.isFinite(num) ? num : undefined
-}, z.number().min(0).max(6).optional())
-
 const peripheralSchema = z.object({
   name: z.string().min(1, "Name is required"),
   brand: z.string().min(1, "Brand is required"),
@@ -64,13 +58,13 @@ const peripheralSchema = z.object({
   gripSmall: z.string().optional(),
   gripMedium: z.string().optional(),
   gripLarge: z.string().optional(),
-  ratingOverall: optionalNumber,
-  ratingBuild: optionalNumber,
-  ratingSoftware: optionalNumber,
-  ratingBattery: optionalNumber,
-  ratingPerformance: optionalNumber,
-  ratingQc: optionalNumber,
-  ratingValue: optionalNumber,
+  ratingOverall: z.number().min(0).max(6).optional(),
+  ratingBuild: z.number().min(0).max(6).optional(),
+  ratingSoftware: z.number().min(0).max(6).optional(),
+  ratingBattery: z.number().min(0).max(6).optional(),
+  ratingPerformance: z.number().min(0).max(6).optional(),
+  ratingQc: z.number().min(0).max(6).optional(),
+  ratingValue: z.number().min(0).max(6).optional(),
   mouseShape: z.string().optional(),
   keyboardLayout: z.string().optional(),
   connectivity: z.string().optional(),

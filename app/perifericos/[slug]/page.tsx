@@ -180,7 +180,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
     .select("id, title, slug, cover_thumbnail_url, cover_image_url, created_at")
     .eq("peripheral_id", data.id)
     .eq("is_published", true)
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: false }) as any
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-4 md:px-6 lg:px-8">
@@ -505,7 +505,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </CardHeader>
                   <CardContent className="max-h-56 overflow-auto space-y-3">
                     {relatedPosts && relatedPosts.length > 0 ? (
-                      relatedPosts.map((post) => (
+                      relatedPosts.map((post: any) => (
                         <Link
                           key={post.id}
                           href={`/blog/${post.slug}`}
