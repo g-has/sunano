@@ -6,7 +6,7 @@ import { format } from "date-fns"
 import { enUS, ptBR } from "date-fns/locale"
 import { MessageCircle, Plus } from "lucide-react"
 
-import { PublicSidebar } from "@/components/layout/PublicSidebar"
+import BoxLoader from "@/components/ui/box-loader"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -216,8 +216,10 @@ export default function ForumPage() {
       ) : null}
 
       {loading ? (
-        <div className="text-sm text-slate-400">{isEnglish ? "Loading forum..." : "Carregando forum..."}</div>
-      ) : postItems.length === 0 ? (
+        <div className="flex items-center justify-center py-14">
+          <BoxLoader />
+        </div>
+      ) :postItems.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-10 text-center">
           <p className="text-slate-300">{isEnglish ? "No topics yet." : "Nenhum topico ainda."}</p>
         </div>

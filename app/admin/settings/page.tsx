@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import type { ChangeEvent } from "react"
 import { Upload } from "lucide-react"
 
+import BoxLoader from "@/components/ui/box-loader"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -268,7 +269,11 @@ export default function SettingsPage() {
   }, [displayName, email])
 
   if (loading) {
-    return <div className="text-sm text-slate-400">{isEnglish ? "Loading settings..." : "Carregando configurações..."}</div>
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <BoxLoader />
+      </div>
+    )
   }
 
   return (
@@ -278,7 +283,7 @@ export default function SettingsPage() {
         <p className="mt-1 text-sm text-slate-400">{isEnglish ? "Set your name and profile photo used as blog review authorship." : "Defina seu nome e foto usados como autoria dos reviews no blog."}</p>
       </div>
 
-      <Card className="border-white/10 bg-[#131a28]/90">
+      <Card className="border-white/10">
         <CardHeader className="border-b border-white/10">
           <CardTitle>{isEnglish ? "Admin profile" : "Perfil do Admin"}</CardTitle>
           <CardDescription>
@@ -383,7 +388,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-[#131a28]/90">
+      <Card className="border-white/10">
         <CardHeader className="border-b border-white/10">
           <CardTitle>{isEnglish ? "YouTube sync cache" : "Cache de sincronização do YouTube"}</CardTitle>
           <CardDescription>

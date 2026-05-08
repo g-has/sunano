@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { AlertCircle, ExternalLink, Loader2, MessageCircle } from "lucide-react"
 
+import BoxLoader from "@/components/ui/box-loader"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -86,12 +87,9 @@ export default function AdminOffersPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-14">
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <Loader2 className="size-5 animate-spin" />
-            <span>{isEnglish ? "Loading Telegram offers..." : "Carregando ofertas do Telegram..."}</span>
-          </div>
+          <BoxLoader />
         </div>
-      ) : offers.length === 0 ? (
+      ) :offers.length === 0 ? (
         <Card className="border-border bg-card">
           <CardContent className="py-8 text-sm text-muted-foreground">
             {isEnglish ? "No Telegram messages found for offers." : "Nenhuma mensagem de oferta encontrada no Telegram."}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 
+import BoxLoader from "@/components/ui/box-loader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -94,8 +95,10 @@ export default function AdminBlogPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">{isEnglish ? "Loading..." : "Carregando..."}</p>
-          ) : posts.length === 0 ? (
+            <div className="flex items-center justify-center py-10">
+              <BoxLoader />
+            </div>
+          ) :posts.length === 0 ? (
             <p className="text-sm text-muted-foreground">{isEnglish ? "No articles registered." : "Nenhum artigo cadastrado."}</p>
           ) : (
             <div className="overflow-x-auto">

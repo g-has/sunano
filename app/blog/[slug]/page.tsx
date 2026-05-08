@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 
+import BoxLoader from "@/components/ui/box-loader"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { supabase } from "@/lib/supabase"
-import { PublicSidebar } from "@/components/layout/PublicSidebar"
 import { getBlogImageWithFallback } from "@/lib/blog-images"
 import { useLocale } from "@/lib/locale-context"
 
@@ -139,7 +139,9 @@ export default function BlogPostPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-8 text-muted-foreground">{isEnglish ? "Loading article..." : "Carregando artigo..."}</div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <BoxLoader />
+      </div>
     )
   }
 

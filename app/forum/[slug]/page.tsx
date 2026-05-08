@@ -7,7 +7,7 @@ import { format } from "date-fns"
 import { enUS, ptBR } from "date-fns/locale"
 import { ChevronLeft, MessageCircle } from "lucide-react"
 
-import { PublicSidebar } from "@/components/layout/PublicSidebar"
+import BoxLoader from "@/components/ui/box-loader"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -149,8 +149,10 @@ export default function ForumPostPage() {
       ) : null}
 
       {loading ? (
-        <div className="text-sm text-slate-400">{isEnglish ? "Loading post..." : "Carregando post..."}</div>
-      ) : post ? (
+        <div className="flex items-center justify-center py-14">
+          <BoxLoader />
+        </div>
+      ) :post ? (
         <>
           <Card className="border-border bg-card">
             <CardHeader className="space-y-2">

@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Edit, Plus, Trash2, AlertCircle } from "lucide-react"
+import BoxLoader from "@/components/ui/box-loader"
 import {
   DndContext,
   DragEndEvent,
@@ -781,10 +782,10 @@ export default function AdminPeripheralsPage() {
 
       {/* Tierlist Grid */}
       {loading ? (
-        <Card className="border-white/[0.08] bg-card shadow-lg">
-          <CardContent className="pt-6 text-center text-slate-400">{isEnglish ? "Loading..." : "Carregando..."}</CardContent>
-        </Card>
-      ) : (
+        <div className="flex items-center justify-center py-14">
+          <BoxLoader />
+        </div>
+      ) :(
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-card shadow-lg">
             {itemsByTier.map((tierRow) => (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { ShieldCheck, Users as UsersIcon } from "lucide-react"
 
+import BoxLoader from "@/components/ui/box-loader"
 import { ADMIN_FEATURES, createDefaultPermissions, normalizePermissions, type AdminProfile } from "@/lib/admin-permissions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -208,7 +209,9 @@ export default function AdminUsersPage() {
       ) : null}
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">{isEnglish ? "Loading users..." : "Carregando usuários..."}</div>
+        <div className="flex items-center justify-center py-14">
+          <BoxLoader />
+        </div>
       ) : null}
 
       <Card className="border-border bg-card/90">

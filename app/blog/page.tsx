@@ -4,10 +4,10 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
+import BoxLoader from "@/components/ui/box-loader"
 import { SearchComponent, type SearchItem } from "@/components/ui/search-bar"
 import { GlassBlogCard } from "@/components/ui/glass-blog-card-shadcnui"
 import { supabase } from "@/lib/supabase"
-import { PublicSidebar } from "@/components/layout/PublicSidebar"
 import { getBlogImageWithFallback } from "@/lib/blog-images"
 import { useLocale } from "@/lib/locale-context"
 
@@ -192,13 +192,10 @@ function BlogPageContent() {
 
       {/* Posts Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <div className="size-5 animate-spin rounded-full border-2 border-border border-t-primary" />
-            <span>{isEnglish ? "Loading articles..." : "Carregando artigos..."}</span>
-          </div>
+        <div className="flex items-center justify-center py-14">
+          <BoxLoader />
         </div>
-      ) : currentPosts.length === 0 ? (
+      ) :currentPosts.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-10 text-center">
           <p className="text-muted-foreground">{isEnglish ? "No articles found." : "Nenhum artigo encontrado."}</p>
           <p className="mt-2 text-sm text-muted-foreground">

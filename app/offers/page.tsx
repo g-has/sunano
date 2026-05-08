@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { format } from "date-fns"
 import { enUS, ptBR } from "date-fns/locale"
-import { AlertCircle, CheckCircle2, ExternalLink, Loader2, MessageCircle } from "lucide-react"
+import { AlertCircle, CheckCircle2, ExternalLink, MessageCircle } from "lucide-react"
 
-import { PublicSidebar } from "@/components/layout/PublicSidebar"
+import BoxLoader from "@/components/ui/box-loader"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -186,12 +186,9 @@ export default function OffersPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-14">
-          <div className="flex items-center gap-3 text-slate-400">
-            <Loader2 className="size-5 animate-spin" />
-            <span>{isEnglish ? "Loading Telegram offers..." : "Carregando ofertas do Telegram..."}</span>
-          </div>
+          <BoxLoader />
         </div>
-      ) : filtered.length === 0 ? (
+      ) :filtered.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-10 text-center">
           <p className="text-slate-300">{isEnglish ? "No messages found." : "Nenhuma mensagem encontrada."}</p>
         </div>
