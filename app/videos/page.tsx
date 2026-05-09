@@ -1,7 +1,6 @@
 import Link from "next/link"
-import { ExternalLink, ListVideo, PlayCircle, Users, Video } from "lucide-react"
+import { ExternalLink, PlayCircle } from "lucide-react"
 
-import { PublicSidebar } from "@/components/layout/PublicSidebar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,16 +17,10 @@ function formatDate(value: string) {
   })
 }
 
-function formatCount(value: number | null) {
-  if (value === null) return "-"
-  return new Intl.NumberFormat("pt-BR").format(value)
-}
-
 export default async function VideosPage() {
-  const { data: feed, error } = await getYouTubeChannelFeed()
+  const { data: feed, error } = await getYouTubeChannelFeed({ forceRefresh: true })
 
   const videos = feed?.videos ?? []
-  const playlists = feed?.playlists ?? []
   const channel = feed?.channel ?? null
 
   return (
@@ -129,7 +122,7 @@ export default async function VideosPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <PlayCircle className="size-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Últimos 6 vídeos</h2>
+            <h2 className="text-xl font-semibold text-foreground">Últimos 12 vídeos</h2>
           </div>
           {channel ? (
             <Button asChild variant="outline" className="border-border bg-muted/40 text-foreground hover:bg-muted/60">
@@ -147,7 +140,7 @@ export default async function VideosPage() {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {videos.slice(0, 6).map((video) => (
+            {videos.slice(0, 12).map((video) => (
               <Link key={video.id} href={video.watchUrl} target="_blank" rel="noreferrer" className="block">
                 <Card className="h-full overflow-hidden border-border bg-card transition-colors hover:border-primary/50">
                   {video.thumbnailUrl ? (
@@ -168,48 +161,7 @@ export default async function VideosPage() {
         )}
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <ListVideo className="size-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Playlists do canal</h2>
-          </div>
-          {channel ? (
-            <Button asChild variant="outline" className="border-border bg-muted/40 text-foreground hover:bg-muted/60">
-              <Link href={channel.playlistsUrl} target="_blank" rel="noreferrer">
-                Ver todas as playlists
-                <ExternalLink className="size-4" />
-              </Link>
-            </Button>
-          ) : null}
-        </div>
-
-        {playlists.length === 0 ? (
-          <Card className="border-border bg-card">
-            <CardContent className="py-7 text-sm text-muted-foreground">Nenhuma playlist encontrada no momento.</CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {playlists.slice(0, 6).map((playlist) => (
-              <Link key={playlist.id} href={playlist.playlistUrl} target="_blank" rel="noreferrer" className="block">
-                <Card className="h-full overflow-hidden border-border bg-card transition-colors hover:border-primary/50">
-                  {playlist.thumbnailUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={playlist.thumbnailUrl} alt={playlist.title} className="h-40 w-full object-cover" />
-                  ) : null}
-                  <CardHeader className="space-y-1.5">
-                    <CardTitle className="line-clamp-2 text-sm text-foreground md:text-base">{playlist.title}</CardTitle>
-                    <p className="text-xs text-muted-foreground">{formatDate(playlist.publishedAt)}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">{playlist.description || "Sem descrição"}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+      
     </div>
   )
 }
