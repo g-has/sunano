@@ -28,14 +28,14 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
         {/* Content area */}
         {isAdmin ? (
-          <div className="flex-1 min-w-0 bg-card m-2 rounded-2xl">
+          <div className="flex-1 min-w-0 bg-card mr-2 mt-2 mb-2 rounded-2xl">
             <TopBar />
             <main className="overflow-auto p-4 md:p-6">
               <div className="mx-auto max-w-7xl">{children}</div>
             </main>
           </div>
         ) : (
-          <div className="flex-1 min-w-0 bg-card m-2 rounded-2xl">
+          <div className="flex-1 min-w-0 bg-card mr-2 mt-2 mb-2 rounded-2xl">
             <TopBar />
             <main>{children}</main>
           </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeftRight, Check, Search, SlidersHorizontal, X } from "lucide-react"
+import { ArrowLeftRight, Check, Plus, Search, SlidersHorizontal, X } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -38,7 +38,6 @@ type Peripheral = {
     driver?: string
     profile?: string
   }
-  description?: string | null
 }
 
 interface PerifericosContentProps {
@@ -200,16 +199,24 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-6 lg:px-8">
-      <div className="space-y-3">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-          {isEnglish ? "Peripherals" : "Perifericos"}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {isEnglish
-            ? "A searchable wiki of peripherals with filters by category, brand, and price."
-            : "Uma wiki pesquisavel de perifericos com filtros por categoria, marca e preco."}
-        </p>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4  md:px-6 lg:px-8">
+      <div className="space-y-3 flex justify-between md:flex-row items-start md:items-center">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            {isEnglish ? "Peripherals" : "Perifericos"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {isEnglish
+              ? "A searchable wiki of peripherals with filters by category, brand, and price."
+              : "Uma wiki pesquisavel de perifericos com filtros por categoria, marca e preco."}
+          </p>
+        </div>
+        <Link href="/admin/perifericos/new">
+          <Button className="gap-2">
+            <Plus className="size-4" />
+            Novo Periferico
+          </Button>
+        </Link>
       </div>
 
       <Card className="border-border bg-card">
@@ -284,7 +291,7 @@ export function PerifericosContent({ initialData }: PerifericosContentProps) {
               <SelectContent>
                 {Object.entries(categoryLabels).map(([key, label]) => (
                   <SelectItem key={key} value={key}>
-                      {label}
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>

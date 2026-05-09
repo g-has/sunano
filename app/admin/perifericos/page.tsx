@@ -11,7 +11,7 @@ export default async function AdminPerifericosPage() {
 
   const { data: peripherals, error } = await supabase
     .from("peripherals")
-    .select("id, name, brand, image_url, category, tier, price, tags, specs, description")
+    .select("id, name, brand, image_url, category, tier, price, tags, specs")
     .order("created_at", { ascending: false })
 
   if (error) {
@@ -40,24 +40,9 @@ export default async function AdminPerifericosPage() {
       adminValueBand?: string
       adminRecommendedBand?: string
     },
-    description: p.description ?? null,
   }))
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-50">Admin Perifericos</h1>
-          <p className="text-sm text-slate-400 mt-1">Gerencie os perifericos fora da tierlist.</p>
-        </div>
-        <Link href="/admin/perifericos/new">
-          <Button className="gap-2">
-            <Plus className="size-4" />
-            Novo Periferico
-          </Button>
-        </Link>
-      </div>
       <PerifericosContent initialData={items} />
-    </div>
   )
 }

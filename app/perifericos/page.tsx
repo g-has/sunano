@@ -7,7 +7,7 @@ export default async function PerifericosPage() {
 
   const { data: peripherals, error } = await supabase
     .from("peripherals")
-    .select("id, name, brand, image_url, category, tier, price, tags, specs, description")
+    .select("id, name, brand, image_url, category, tier, price, tags, specs")
     .order("created_at", { ascending: false })
 
   if (error) {
@@ -24,7 +24,6 @@ export default async function PerifericosPage() {
     price: number
     tags?: string[] | null
     specs?: Record<string, unknown> | null
-    description?: string | null
   }>
 
   const items = peripheralsList.map((p) => ({
@@ -47,7 +46,6 @@ export default async function PerifericosPage() {
       adminValueBand?: string
       adminRecommendedBand?: string
     },
-    description: p.description ?? null,
   }))
 
   return <PerifericosContent initialData={items} />
