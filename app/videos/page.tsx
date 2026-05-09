@@ -61,17 +61,21 @@ export default async function VideosPage() {
                     <p className="truncate text-xs text-muted-foreground">{channel.customUrl || "Canal no YouTube"}</p>
                   </div>
                 </div>
-                <Button asChild className="w-full border border-border bg-background text-foreground hover:bg-muted">
-                  <Link href={channel.channelUrl} target="_blank" rel="noreferrer">
-                    Ver canal no YouTube
-                    <ExternalLink className="size-4" />
-                  </Link>
-                </Button>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   <Button
                     asChild
                     variant="outline"
-                    className="flex-1 min-w-[140px] border-border bg-background text-foreground transition-colors hover:bg-muted"
+                    className="w-full border-border bg-background text-foreground transition-colors hover:bg-muted"
+                  >
+                    <Link href={channel.channelUrl} target="_blank" rel="noreferrer">
+                        YouTube
+                      <ExternalLink className="size-4 ml-2" />
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full border-border bg-background text-foreground transition-colors hover:bg-muted"
                   >
                     <Link href="https://www.tiktok.com/@_sunano" target="_blank" rel="noreferrer">
                       TikTok
@@ -81,7 +85,7 @@ export default async function VideosPage() {
                   <Button
                     asChild
                     variant="outline"
-                    className="flex-1 min-w-[140px] border-border bg-background text-foreground transition-colors hover:bg-muted"
+                    className="w-full border-border bg-background text-foreground transition-colors hover:bg-muted"
                   >
                     <Link href="https://x.com/_sunan0" target="_blank" rel="noreferrer">
                       X
@@ -91,7 +95,7 @@ export default async function VideosPage() {
                   <Button
                     asChild
                     variant="outline"
-                    className="flex-1 min-w-[140px] border-border bg-background text-foreground transition-colors hover:bg-muted"
+                    className="w-full border-border bg-background text-foreground transition-colors hover:bg-muted"
                   >
                     <Link href="https://www.instagram.com/sunano.gg?igsh=NWk0ZnQ1dXg2aWxw" target="_blank" rel="noreferrer">
                       Instagram
