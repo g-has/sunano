@@ -48,5 +48,5 @@ export default async function PerifericosPage() {
     },
   }))
 
-  return <PerifericosContent initialData={items} />
+  return <PerifericosContent initialData={items} showAdminActions={false} />
 }

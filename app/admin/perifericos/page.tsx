@@ -1,7 +1,3 @@
-import Link from "next/link"
-import { Plus } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 import { PerifericosContent } from "@/app/perifericos/perifericos-content"
 import { mapTier } from "@/lib/tier-utils"
@@ -42,7 +38,5 @@ export default async function AdminPerifericosPage() {
     },
   }))
 
-  return (
-      <PerifericosContent initialData={items} />
-  )
+  return <PerifericosContent initialData={items} showAdminActions={true} />
 }
