@@ -155,6 +155,10 @@ function getSpecPairs(item: Peripheral): { label: string; value: string }[] {
   if (typeof specs.keyboardLayout === "string") pairs.push({ label: "Layout", value: specs.keyboardLayout.toUpperCase() })
   if (typeof specs.surface === "string") pairs.push({ label: "Surface", value: formatLabel(specs.surface) })
   if (typeof specs.profile === "string") pairs.push({ label: "Profile", value: String(specs.profile) })
+  if (typeof specs.keyboardType === "string") pairs.push({ label: "Type", value: formatLabel(specs.keyboardType) })
+  if (typeof specs.padType === "string") pairs.push({ label: "Pad", value: formatLabel(specs.padType) })
+  if (typeof specs.refreshRate === "number") pairs.push({ label: "Refresh", value: `${specs.refreshRate}Hz` })
+  if (typeof specs.panelType === "string") pairs.push({ label: "Panel", value: formatLabel(specs.panelType) })
   return pairs
 }
 

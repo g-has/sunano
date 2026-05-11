@@ -278,15 +278,22 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
     selectedConnectivity,
     selectedMouseShape,
     selectedKeyboardLayout,
+    selectedKeyboardType,
     selectedSurface,
     selectedProfile,
+    selectedPadType,
+    selectedRefreshRate,
+    selectedPanelType,
     sortKey,
     lockedCategory,
     showConnectivityFilter,
     showMouseShapeFilter,
     showKeyboardLayoutFilter,
+    showKeyboardTypeFilter,
     showSurfaceFilter,
     showProfileFilter,
+    showPadTypeFilter,
+    showMonitorFilters,
   ])
 
   const activeFiltersCount = useMemo(() =>

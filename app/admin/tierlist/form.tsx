@@ -70,8 +70,15 @@ const peripheralSchema = z.object({
   connectivity: z.string().optional(),
   size: z.string().optional(),
   surface: z.string().optional(),
+  padType: z.string().optional(),
   driver: z.string().optional(),
   profile: z.string().optional(),
+  keyboardType: z.string().optional(),
+  refreshRate: z.preprocess(
+    (value) => (value === "" || value === null || Number.isNaN(value) ? undefined : value),
+    z.number().positive().optional()
+  ),
+  panelType: z.string().optional(),
 })
 
 type PeripheralFormData = z.infer<typeof peripheralSchema>
@@ -229,6 +236,10 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       gripSmall: "", gripMedium: "", gripLarge: "",
       ratingOverall: undefined, ratingBuild: undefined, ratingSoftware: undefined,
       ratingBattery: undefined, ratingPerformance: undefined, ratingQc: undefined, ratingValue: undefined,
+      keyboardType: "",
+      padType: "",
+      refreshRate: undefined,
+      panelType: "",
     },
   })
 
@@ -349,8 +360,10 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       )
 
       const specs = {
-        mouseShape: data.mouseShape, keyboardLayout: data.keyboardLayout, connectivity: data.connectivity,
-        size: data.size, surface: data.surface, driver: data.driver, profile: data.profile,
+        mouseShape: data.mouseShape, keyboardLayout: data.keyboardLayout, keyboardType: data.keyboardType, connectivity: data.connectivity,
+        size: data.size, surface: data.surface, padType: data.padType, driver: data.driver, profile: data.profile,
+        refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
+        panelType: data.panelType || undefined,
         details: {
           rankLabel: data.rankLabel || undefined, priceRange: data.priceRange || undefined,
           reviewUrl: data.reviewUrl || undefined, reviewNote: data.reviewNote || undefined,
@@ -715,6 +728,18 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   <Input className="border-border bg-background" placeholder="Rapid Trigger, Hall Effect" {...form.register("profile")} />
                 </div>
                 <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</label>
+                  <Select value={form.watch("keyboardType") || ""} onValueChange={(v) => form.setValue("keyboardType", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mechanical">Mechanical</SelectItem>
+                      <SelectItem value="magnetic">Magnetic</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Switch</label>
                   <Input className="border-border bg-background" placeholder="Linear, Tactile, Clicky" {...form.register("switchType")} />
                 </div>
@@ -741,8 +766,62 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   <Input className="border-border bg-background" placeholder="Control / Speed" {...form.register("profile")} />
                 </div>
                 <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pad type</label>
+                  <Select value={form.watch("padType") || ""} onValueChange={(v) => form.setValue("padType", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="speed">Speed</SelectItem>
+                      <SelectItem value="control">Control</SelectItem>
+                      <SelectItem value="hybrid">Hybrid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{isEnglish ? "Size" : "Tamanho"}</label>
                   <Input className="border-border bg-background" placeholder="480×400mm, XL" {...form.register("size")} />
+                </div>
+              </>
+            )}
+
+            {watchedCategory === "monitors" && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Refresh rate (Hz)</label>
+                  <Input className="border-border bg-background" placeholder="144" type="number" step="1" {...form.register("refreshRate", { valueAsNumber: true })} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Panel</label>
+                  <Select value={form.watch("panelType") || ""} onValueChange={(v) => form.setValue("panelType", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select panel" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ips">IPS</SelectItem>
+                      <SelectItem value="tn">TN</SelectItem>
+                      <SelectItem value="va">VA</SelectItem>
+                      <SelectItem value="oled">OLED</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            {watchedCategory === "dac_amp" && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Connectivity</label>
+                  <Select value={form.watch("connectivity") || ""} onValueChange={(v) => form.setValue("connectivity", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="wired">{isEnglish ? "Wired" : "Com fio"}</SelectItem>
+                      <SelectItem value="wireless">{isEnglish ? "Wireless" : "Sem fio"}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </>
             )}
