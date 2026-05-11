@@ -131,7 +131,7 @@ export function TierlistContent({ initialData, categoryLabels }: TierlistContent
         showKeyboardLayoutFilter={selectedCategory === "keyboard"}
       />
 
-      <TierlistGrid filtered={filtered} />
+      <TierlistGrid filtered={filtered} category={selectedCategory} />
     </>
   )
 }

@@ -106,6 +106,18 @@ const RATING_MODES: { key: RatingMode; en: string; pt: string }[] = [
   { key: "recommended", en: "Recommended", pt: "Recomendado" },
 ]
 
+// Labels específicos por categoria para MOUSEPAD e GLASSPAD
+function getRatingModeLabel(mode: RatingMode, category: string, isEnglish: boolean): string {
+  if (category === "mousepad" || category === "glasspad") {
+    if (mode === "performance") return "Geral"
+    if (mode === "value") return "Nacional"
+    if (mode === "recommended") return "Recomendado"
+  }
+  
+  const mode_obj = RATING_MODES.find(m => m.key === mode)
+  return isEnglish ? (mode_obj?.en || "") : (mode_obj?.pt || "")
+}
+
 type PriceBand = "budget" | "mid" | "premium"
 
 type ModeColumn = {
@@ -769,7 +781,7 @@ export default function AdminPeripheralsPage() {
                     : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
                 }`}
               >
-                {isEnglish ? mode.en : mode.pt}
+                {getRatingModeLabel(mode.key, selectedCategory, isEnglish)}
               </button>
             ))}
           </div>

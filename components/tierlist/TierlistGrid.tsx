@@ -119,6 +119,22 @@ const RATING_MODES: { key: RatingMode; label: string }[] = [
   { key: "recommended", label: "Recomendado" },
 ]
 
+// Labels específicos por categoria para MOUSEPAD e GLASSPAD
+function getRatingModeLabel(mode: RatingMode, category: string): string {
+  if (category === "mousepad" || category === "glasspad") {
+    if (mode === "performance") return "Geral"
+    if (mode === "value") return "Nacional"
+    if (mode === "recommended") return "Recomendado"
+  }
+  
+  const modeMap: Record<RatingMode, string> = {
+    performance: "Performance",
+    value: "Custo-Beneficio",
+    recommended: "Recomendado",
+  }
+  return modeMap[mode]
+}
+
 const TAG_COLUMNS: { key: Tag; title: string; color: string }[] = [
   { key: "competitive", title: "Competitivo", color: TAG_COLUMN_COLORS.competitive },
   { key: "versatile", title: "Versatil", color: TAG_COLUMN_COLORS.versatile },
@@ -212,9 +228,10 @@ const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
 
 interface TierlistGridProps {
   filtered: Peripheral[]
+  category: string
 }
 
-export function TierlistGrid({ filtered }: TierlistGridProps) {
+export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
   const [ratingMode, setRatingMode] = useState<RatingMode>("performance")
@@ -273,9 +290,9 @@ export function TierlistGrid({ filtered }: TierlistGridProps) {
   ]
 
   const ratingModes: { key: RatingMode; label: string; color: string }[] = [
-    { key: "performance", label: isEnglish ? "Performance" : "Performance", color: "bg-red-400" },
-    { key: "value", label: isEnglish ? "Value" : "Custo-Beneficio", color: "bg-emerald-400" },
-    { key: "recommended", label: isEnglish ? "Recommended" : "Recomendado", color: "bg-purple-400" },
+    { key: "performance", label: getRatingModeLabel("performance", category), color: "bg-red-400" },
+    { key: "value", label: getRatingModeLabel("value", category), color: "bg-emerald-400" },
+    { key: "recommended", label: getRatingModeLabel("recommended", category), color: "bg-purple-400" },
   ]
 
   const localizedModeDescription =
