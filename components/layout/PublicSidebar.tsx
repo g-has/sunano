@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation"
 import {
   BadgePercent,
   Clock3,
-  Home,
   Menu,
   MessageCircle,
   Mouse,
   Newspaper,
+  Package,
   PlaySquare,
   Store,
   X,
@@ -35,7 +35,7 @@ export function PublicSidebar({ onCategoryChange }: PublicSidebarProps) {
 
   const isHomePage = pathname === "/"
   const navItems = [
-    { href: "/", label: isEnglish ? "Home" : "Home", icon: Home },
+    { href: "/", label: isEnglish ? "Tierlist" : "Tierlist", icon: Package },
     { href: "/noticias", label: isEnglish ? "News" : "Noticias", icon: Newspaper },
     { href: "/perifericos", label: isEnglish ? "Peripherals" : "Perifericos", icon: Mouse },
     { href: "/blog", label: isEnglish ? "Reviews" : "Reviews", icon: Newspaper },
