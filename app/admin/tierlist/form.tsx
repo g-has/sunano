@@ -24,7 +24,7 @@ import { useLocale } from "@/lib/locale-context"
 import { supabase } from "@/lib/supabase"
 import { mapTier } from "@/lib/tier-utils"
 
-type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
+type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierField = Tier | "__none__"
 type Tag = "competitive" | "versatile" | "value" | "comfort"
@@ -32,7 +32,7 @@ type Tag = "competitive" | "versatile" | "value" | "comfort"
 const peripheralSchema = z.object({
   name: z.string().min(1, "Name is required"),
   brand: z.string().min(1, "Brand is required"),
-  category: z.enum(["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset"]),
+  category: z.enum(["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset", "feet", "chairs", "monitors", "switches", "dac_amp"]),
   tier: z.union([z.enum(["GOAT", "SS", "S", "A", "B", "C", "L"]), z.literal("__none__")]),
   price: z.number().positive("Price must be greater than 0"),
   rankLabel: z.string().optional(),
@@ -83,6 +83,11 @@ const CATEGORIES: { key: Category; label: string; emoji: string }[] = [
   { key: "glasspad", label: "Glasspad", emoji: "🪟" },
   { key: "iem", label: "IEM", emoji: "🎧" },
   { key: "headset", label: "Headset", emoji: "🎙️" },
+  { key: "feet", label: "Feet", emoji: "🦶" },
+  { key: "chairs", label: "Cadeiras", emoji: "🪑" },
+  { key: "monitors", label: "Monitores", emoji: "🖥️" },
+  { key: "switches", label: "Switches", emoji: "⌨️" },
+  { key: "dac_amp", label: "DAC/AMP", emoji: "🎚️" },
 ]
 
 const TIER_OPTIONS: { key: Tier; color: string; textColor: string; bg: string }[] = [

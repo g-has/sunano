@@ -60,6 +60,26 @@ const PERIPHERAL_KEYWORDS: Record<string, typeof Mouse> = {
   cable: Cable,
   adapter: Cable,
   hub: Cable,
+  
+  // Mouse Feet variants
+  feet: Square,
+  foot: Square,
+  pés: Square,
+  
+  // Chairs variants
+  chairs: Square,
+  cadeira: Square,
+  chair: Square,
+  
+  // Switches variants
+  switches: Keyboard,
+  switch: Keyboard,
+  
+  // DAC/AMP variants
+  dac: Volume2,
+  amp: Volume2,
+  amplifier: Volume2,
+  amplificador: Volume2,
 }
 
 export function getPeripheralIcon(peripheralName: string | null | undefined): typeof Mouse | null {

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import { FilterBar } from "./FilterBar"
 import { TierlistGrid } from "./TierlistGrid"
 
-type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
+type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierValue = Tier | null
 type MouseShape = "symmetrical" | "ergonomic"

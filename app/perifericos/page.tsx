@@ -31,7 +31,7 @@ export default async function PerifericosPage() {
     name: p.name,
     brand: p.brand,
     image_url: p.image_url,
-    category: p.category as "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset",
+    category: p.category as "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp",
     tier: p.tier ? mapTier(p.tier) : null,
     price: p.price,
     tags: (p.tags || []) as ("competitive" | "versatile" | "value" | "comfort")[],

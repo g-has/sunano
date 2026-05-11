@@ -51,7 +51,7 @@ import {
 
 type RatingMode = "performance" | "value" | "recommended"
 
-type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
+type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierValue = Tier | null
 type Tag = "competitive" | "versatile" | "value" | "comfort"
@@ -76,6 +76,11 @@ const CATEGORY_META = [
   { key: "glasspad" as Category, en: "Glasspad", pt: "Glasspad" },
   { key: "iem" as Category, en: "IEM", pt: "Fone IEM" },
   { key: "headset" as Category, en: "Headset", pt: "Headset" },
+  { key: "feet" as Category, en: "Mouse Feet", pt: "Feet" },
+  { key: "chairs" as Category, en: "Chairs", pt: "Cadeiras" },
+  { key: "monitors" as Category, en: "Monitors", pt: "Monitores" },
+  { key: "switches" as Category, en: "Switches", pt: "Switches" },
+  { key: "dac_amp" as Category, en: "DAC/AMP", pt: "DAC/AMP" },
 ]
 
 const TIER_ROWS: { key: Tier; label: string; accent: string; textColor: string }[] = [

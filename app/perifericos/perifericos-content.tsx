@@ -12,7 +12,7 @@ import { useLocale } from "@/lib/locale-context"
 import { buildPeripheralSlug } from "@/lib/peripheral-slug"
 import { cn } from "@/lib/utils"
 
-type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
+type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type PriceBand = "all" | "budget" | "mid" | "premium"
 type SortKey = "recent" | "name-asc" | "name-desc" | "price-asc" | "price-desc"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
@@ -55,14 +55,16 @@ const TIER_CLASS: Record<Tier, string> = {
 const CATEGORY_LABELS_PT: Record<Category, string> = {
   all: "Todas", keyboard: "Teclados", mouse: "Mouses",
   mousepad: "Mousepads", glasspad: "Glasspads", iem: "IEMs", headset: "Headsets",
+  feet: "Feet", chairs: "Cadeiras", monitors: "Monitores", switches: "Switches", dac_amp: "DAC/AMP",
 }
 
 const CATEGORY_LABELS_EN: Record<Category, string> = {
   all: "All", keyboard: "Keyboards", mouse: "Mice",
   mousepad: "Mousepads", glasspad: "Glasspads", iem: "IEMs", headset: "Headsets",
+  feet: "Mouse Feet", chairs: "Chairs", monitors: "Monitors", switches: "Switches", dac_amp: "DAC/AMP",
 }
 
-const CATEGORIES: Category[] = ["all", "keyboard", "mouse", "mousepad", "glasspad", "iem", "headset"]
+const CATEGORIES: Category[] = ["all", "keyboard", "mouse", "mousepad", "glasspad", "iem", "headset", "feet", "chairs", "monitors", "switches", "dac_amp"]
 
 function formatLabel(value: string) {
   return value.split("-").map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ")

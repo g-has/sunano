@@ -21,7 +21,7 @@ import { useSidebar } from "@/lib/sidebar-context"
 import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
 
-type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
+type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 
 interface PublicSidebarProps {
   onCategoryChange?: (category: Category) => void

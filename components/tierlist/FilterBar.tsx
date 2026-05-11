@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 type MouseShape = "symmetrical" | "ergonomic"
 type KeyboardLayout = "60%" | "75%" | "tkl" | "full-size"
 type PriceBand = "all" | "budget" | "mid" | "premium"
-type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset"
+type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 
 const KEYBOARD_LAYOUTS: KeyboardLayout[] = ["60%", "75%", "tkl", "full-size"]
 function formatLabel(value: string) {
@@ -73,6 +73,11 @@ export function FilterBar({
     { key: "glasspad", label: "Glasspads" },
     { key: "iem", label: "IEMs" },
     { key: "headset", label: "Headsets" },
+    { key: "feet", label: isEnglish ? "Mouse Feet" : "Feet" },
+    { key: "chairs", label: isEnglish ? "Chairs" : "Cadeiras" },
+    { key: "monitors", label: isEnglish ? "Monitors" : "Monitores" },
+    { key: "switches", label: "Switches" },
+    { key: "dac_amp", label: "DAC/AMP" },
   ]
 
   return (
