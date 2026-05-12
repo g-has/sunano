@@ -160,7 +160,7 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
     initialData
       .filter((item) => item.category === "keyboard")
       .forEach((item) => {
-        if (item.specs.keyboardLayout) values.add(item.specs.keyboardLayout)
+        if (item.specs.keyboardLayout) values.add(item.specs.keyboardLayout as KeyboardLayout)
       })
     return Array.from(values)
   }, [initialData, showKeyboardLayoutFilter])

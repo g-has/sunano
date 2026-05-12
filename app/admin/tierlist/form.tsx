@@ -222,7 +222,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   const [originalUsdPrice, setOriginalUsdPrice] = useState<number | null>(null)
 
   const form = useForm<PeripheralFormData>({
-    resolver: zodResolver(peripheralSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(peripheralSchema) as any,
     defaultValues: {
       name: "",
       brand: "",
