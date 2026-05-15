@@ -80,6 +80,7 @@ const peripheralSchema = z.object({
   driver: z.string().optional(),
   profile: z.string().optional(),
   keyboardType: z.string().optional(),
+  trimode: z.string().optional(),
   refreshRate: z.preprocess(
     (value) => (value === "" || value === null || Number.isNaN(value) ? undefined : value),
     z.number().positive().optional()
@@ -263,6 +264,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       ratingOverall: undefined, ratingBuild: undefined, ratingSoftware: undefined,
       ratingBattery: undefined, ratingPerformance: undefined, ratingQc: undefined, ratingValue: undefined,
       keyboardType: "",
+      trimode: "",
       padType: "",
       refreshRate: undefined,
       panelType: "",
@@ -340,6 +342,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           ratingPerformance: data.specs?.details?.ratings?.performance,
           ratingQc: data.specs?.details?.ratings?.qc,
           ratingValue: data.specs?.details?.ratings?.value,
+          trimode: data.specs?.trimode ?? "",
           ...data.specs,
         })
         setSelectedTag(data.tags?.[0] ?? null)
@@ -387,6 +390,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
       const specs = {
         mouseShape: data.mouseShape, keyboardLayout: data.keyboardLayout, keyboardType: data.keyboardType, connectivity: data.connectivity,
+        trimode: data.trimode || undefined,
         size: data.size, surface: data.surface, padType: data.padType, driver: data.driver, profile: data.profile,
         refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
         panelType: data.panelType || undefined,
@@ -675,6 +679,18 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   </Select>
                 </div>
                 <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Trimode</label>
+                  <Select value={form.watch("trimode") || ""} onValueChange={(v) => form.setValue("trimode", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">{isEnglish ? "Yes" : "Sim"}</SelectItem>
+                      <SelectItem value="no">{isEnglish ? "No" : "Não"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{isEnglish ? "Size" : "Tamanho"}</label>
                   <Select value={form.watch("size") || ""} onValueChange={(v) => form.setValue("size", v)}>
                     <SelectTrigger className="border-border bg-background">
@@ -813,6 +829,18 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   </Select>
                 </div>
                 <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Trimode</label>
+                  <Select value={form.watch("trimode") || ""} onValueChange={(v) => form.setValue("trimode", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">{isEnglish ? "Yes" : "Sim"}</SelectItem>
+                      <SelectItem value="no">{isEnglish ? "No" : "Não"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Profile</label>
                   <Input className="border-border bg-background" placeholder="Rapid Trigger, Hall Effect" {...form.register("profile")} />
                 </div>
@@ -913,6 +941,18 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Trimode</label>
+                  <Select value={form.watch("trimode") || ""} onValueChange={(v) => form.setValue("trimode", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">{isEnglish ? "Yes" : "Sim"}</SelectItem>
+                      <SelectItem value="no">{isEnglish ? "No" : "Não"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </>
             )}
 
@@ -927,6 +967,18 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                     <SelectContent>
                       <SelectItem value="wired">{isEnglish ? "Wired" : "Com fio"}</SelectItem>
                       <SelectItem value="wireless">{isEnglish ? "Wireless" : "Sem fio"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Trimode</label>
+                  <Select value={form.watch("trimode") || ""} onValueChange={(v) => form.setValue("trimode", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">{isEnglish ? "Yes" : "Sim"}</SelectItem>
+                      <SelectItem value="no">{isEnglish ? "No" : "Não"}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
