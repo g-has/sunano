@@ -49,7 +49,7 @@ import {
 } from "@/lib/tierlist-theme"
 import { TierItemTooltipContent } from "@/components/tierlist/TierItemTooltipContent"
 
-type RatingMode = "performance" | "value" | "recommended"
+type RatingMode = "oled" | "performance" | "value" | "recommended"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
@@ -101,6 +101,7 @@ const COLUMNS: { key: Tag; title: string }[] = [
 ]
 
 const RATING_MODES: { key: RatingMode; en: string; pt: string }[] = [
+  { key: "oled", en: "OLED", pt: "OLED" },
   { key: "performance", en: "Performance", pt: "Performance" },
   { key: "value", en: "Value", pt: "Custo-Beneficio" },
   { key: "recommended", en: "Recommended", pt: "Recomendado" },
@@ -244,6 +245,19 @@ const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
     },
     sortItems: (items) =>
       [...items].sort((left, right) => getRecommendedScore(right) - getRecommendedScore(left) || left.name.localeCompare(right.name)),
+  },
+  oled: {
+    enDescription: "Show only OLED panels",
+    ptDescription: "Apenas painéis OLED",
+    columns: [
+      { key: "oled", title: "OLED", color: "text-cyan-300" },
+    ],
+    getColumnKeys: (item) => {
+      const spec = item.specs?.panelType
+      return typeof spec === "string" && spec.toLowerCase().includes("oled") ? ["oled"] : []
+    },
+    sortItems: (items) =>
+      [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
   },
 }
 
@@ -543,6 +557,11 @@ export default function AdminPeripheralsPage() {
     loadPeripherals()
   }, [loadPeripherals])
 
+  // Ensure OLED mode is only active for monitors
+  useEffect(() => {
+    if (ratingMode === "oled" && selectedCategory !== "monitors") setRatingMode("performance")
+  }, [ratingMode, selectedCategory])
+
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id.toString())
   }
@@ -605,15 +624,19 @@ export default function AdminPeripheralsPage() {
         ? getPrimaryTag(draggedItem) ?? ""
         : ratingMode === "value"
           ? getStoredModeColumn(draggedItem, "adminValueBand", getPriceBand(draggedItem.price))
-          : getStoredModeColumn(
-              draggedItem,
-              "adminRecommendedBand",
-              getRecommendedScore(draggedItem) >= 4.4
-                ? "top"
-                : getRecommendedScore(draggedItem) >= 3.2
-                  ? "strong"
-                  : "niche"
-            )
+          : ratingMode === "recommended"
+            ? getStoredModeColumn(
+                draggedItem,
+                "adminRecommendedBand",
+                getRecommendedScore(draggedItem) >= 4.4
+                  ? "top"
+                  : getRecommendedScore(draggedItem) >= 3.2
+                    ? "strong"
+                    : "niche"
+              )
+            : ratingMode === "oled"
+              ? (typeof draggedItem.specs?.panelType === "string" && draggedItem.specs.panelType.toLowerCase().includes("oled") ? "oled" : "")
+              : ""
 
     if (draggedItem.tier === newTier && currentColumn === newColumn) {
       return
@@ -730,7 +753,7 @@ export default function AdminPeripheralsPage() {
             </Select>
           </div>
           <div className="flex rounded-lg border border-white/[0.1] bg-white/[0.02] p-1">
-            {RATING_MODES.map((mode) => (
+            {RATING_MODES.filter((m) => (m.key !== "oled" ? true : selectedCategory === "monitors")).map((mode) => (
               <button
                 key={mode.key}
                 type="button"

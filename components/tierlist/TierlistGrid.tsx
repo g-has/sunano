@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 
 import { PeripheralCard } from "./PeripheralCard"
 import { useLocale } from "@/lib/locale-context"
@@ -15,7 +15,7 @@ import {
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierValue = Tier | null
 type Tag = "competitive" | "versatile" | "value" | "comfort" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
-type RatingMode = "performance" | "value" | "recommended"
+type RatingMode = "oled" | "performance" | "value" | "recommended"
 type PriceBand = "budget" | "mid" | "premium"
 type RatingKey = "overall" | "performance" | "build" | "value" | "software" | "battery" | "qc"
 type Ratings = Partial<Record<RatingKey, number>>
@@ -117,6 +117,7 @@ const TIER_ROWS: TierRow[] = [
 ]
 
 const RATING_MODES: { key: RatingMode; label: string }[] = [
+  { key: "oled", label: "OLED" },
   { key: "performance", label: "Performance" },
   { key: "value", label: "Custo-Beneficio" },
   { key: "recommended", label: "Recomendado" },
@@ -131,6 +132,7 @@ function getRatingModeLabel(mode: RatingMode, category: string): string {
   }
   
   const modeMap: Record<RatingMode, string> = {
+    oled: "OLED",
     performance: "Performance",
     value: "Custo-Beneficio",
     recommended: "Recomendado",
@@ -227,6 +229,16 @@ const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
     sortItems: (items) =>
       [...items].sort((left, right) => getRecommendedScore(right) - getRecommendedScore(left) || left.name.localeCompare(right.name)),
   },
+  oled: {
+    description: "Apenas painéis OLED",
+    columns: [{ key: "oled", title: "OLED", color: TAG_COLUMNS[2].color }],
+    getColumnKeys: (item) => {
+      const spec = item.specs?.panelType
+      return typeof spec === "string" && spec.toLowerCase().includes("oled") ? ["oled"] : []
+    },
+    sortItems: (items) =>
+      [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
+  },
 }
 
 interface TierlistGridProps {
@@ -293,23 +305,28 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   ]
 
   const ratingModes: { key: RatingMode; label: string; color: string }[] = [
+    ...(category === "monitors" ? [{ key: "oled", label: getRatingModeLabel("oled", category), color: "bg-amber-400" }] : []),
     { key: "performance", label: getRatingModeLabel("performance", category), color: "bg-red-400" },
     { key: "value", label: getRatingModeLabel("value", category), color: "bg-emerald-400" },
     { key: "recommended", label: getRatingModeLabel("recommended", category), color: "bg-purple-400" },
   ]
 
   const localizedModeDescription =
-    ratingMode === "performance"
+    ratingMode === "oled"
       ? isEnglish
-        ? "Sorted by pure performance"
-        : "Ordenado por desempenho puro"
-      : ratingMode === "value"
+        ? "Showing OLED panels"
+        : "Mostrando painéis OLED"
+      : ratingMode === "performance"
         ? isEnglish
-          ? "Grouped by price range within each tier"
-          : "Distribuído por faixa de preco dentro de cada tier"
-        : isEnglish
-          ? "Suggested picks by Sunano, prioritizing overall balance"
-          : "Escolhas sugeridas por Sunano, priorizando equilibrio geral"
+          ? "Sorted by pure performance"
+          : "Ordenado por desempenho puro"
+        : ratingMode === "value"
+          ? isEnglish
+            ? "Grouped by price range within each tier"
+            : "Distribuído por faixa de preco dentro de cada tier"
+          : isEnglish
+            ? "Suggested picks by Sunano, prioritizing overall balance"
+            : "Escolhas sugeridas por Sunano, priorizando equilibrio geral"
 
   const itemsByTier = useMemo(
     () =>
@@ -343,6 +360,11 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   )
 
   const hasItems = filtered.length > 0
+
+  // If category isn't monitors, don't allow OLED mode
+  useEffect(() => {
+    if (ratingMode === "oled" && category !== "monitors") setRatingMode("performance")
+  }, [category, ratingMode])
 
   return (
     <section className="space-y-4">
