@@ -131,6 +131,14 @@ const TAGS_OPTIONS: { key: Tag; en: string; pt: string; color: string }[] = [
   { key: "trimode", en: "Trimode", pt: "Trimode", color: "border-indigo-400/50 bg-indigo-500/10 text-indigo-300 data-[active=true]:bg-indigo-500/30 data-[active=true]:border-indigo-400" },
 ]
 
+const COATING_OPTIONS = [
+  "Emborrachado",
+  "Plastico",
+  "Magnesio",
+  "Fibra de carbono",
+  "Fibra de vidro",
+]
+
 const RATING_FIELDS: { key: keyof PeripheralFormData; label: string; ptLabel: string }[] = [
   { key: "ratingOverall", label: "Overall", ptLabel: "Geral" },
   { key: "ratingBuild", label: "Build", ptLabel: "Construção" },
@@ -706,7 +714,18 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Coating</label>
-                  <Input className="border-border bg-background" placeholder="Matte, Glossy" {...form.register("coating")} />
+                  <Select value={form.watch("coating") || ""} onValueChange={(v) => form.setValue("coating", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COATING_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="md:col-span-2 grid grid-cols-3 gap-3">
                   {[
