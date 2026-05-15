@@ -12,7 +12,7 @@ import { useLocale } from "@/lib/locale-context"
 import { buildPeripheralSlug } from "@/lib/peripheral-slug"
 import { cn } from "@/lib/utils"
 
-type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
+type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type PriceBand = "all" | "budget" | "mid" | "premium"
 type SortKey = "recent" | "name-asc" | "name-desc" | "price-asc" | "price-desc"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
@@ -28,7 +28,7 @@ type Peripheral = {
   name: string
   brand: string
   image_url: string | null
-  category: Exclude<Category, "all">
+  category: Category
   tier: Tier | null
   price: number
   tags: Array<"competitive" | "versatile" | "value" | "comfort" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode">
@@ -63,18 +63,18 @@ const TIER_CLASS: Record<Tier, string> = {
 }
 
 const CATEGORY_LABELS_PT: Record<Category, string> = {
-  all: "Todas", keyboard: "Teclados", mouse: "Mouses",
+  keyboard: "Teclados", mouse: "Mouses",
   mousepad: "Mousepads", glasspad: "Glasspads", iem: "IEMs", headset: "Headsets",
   feet: "Feet", chairs: "Cadeiras", monitors: "Monitores", switches: "Switches", dac_amp: "DAC/AMP",
 }
 
 const CATEGORY_LABELS_EN: Record<Category, string> = {
-  all: "All", keyboard: "Keyboards", mouse: "Mice",
+  keyboard: "Keyboards", mouse: "Mice",
   mousepad: "Mousepads", glasspad: "Glasspads", iem: "IEMs", headset: "Headsets",
   feet: "Mouse Feet", chairs: "Chairs", monitors: "Monitors", switches: "Switches", dac_amp: "DAC/AMP",
 }
 
-const CATEGORIES: Category[] = ["all", "keyboard", "mouse", "mousepad", "glasspad", "iem", "headset", "feet", "chairs", "monitors", "switches", "dac_amp"]
+const CATEGORIES: Category[] = ["mouse", "keyboard", "mousepad", "headset", "monitors", "iem", "dac_amp", "glasspad", "switches", "feet", "chairs"]
 
 function formatLabel(value: string) {
   return value.split("-").map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ")
@@ -104,7 +104,7 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
   const isEnglish = locale === "en-US"
 
   const [query, setQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<Category>("all")
+  const [selectedCategory, setSelectedCategory] = useState<Category>("mouse")
   const [selectedBrand, setSelectedBrand] = useState("all")
   const [selectedPriceBand, setSelectedPriceBand] = useState<PriceBand>("all")
   const [selectedConnectivity, setSelectedConnectivity] = useState("all")
@@ -126,7 +126,7 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
     return initialData.find((i) => i.id === selectedIds[0])?.category ?? null
   }, [initialData, selectedIds])
 
-  const effectiveCategory = lockedCategory ?? (selectedCategory === "all" ? null : selectedCategory)
+  const effectiveCategory = lockedCategory ?? selectedCategory
 
   const showConnectivityFilter = useMemo(() => {
     if (!effectiveCategory) return false
@@ -242,7 +242,7 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
     const q = query.trim().toLowerCase()
     const results = initialData.filter((item) => {
       if (lockedCategory && item.category !== lockedCategory) return false
-      if (selectedCategory !== "all" && item.category !== selectedCategory) return false
+      if (item.category !== selectedCategory) return false
       const searchable = [item.name, item.brand, item.specs.driver ?? "", item.specs.profile ?? "", item.specs.keyboardLayout ?? ""]
         .join(" ").toLowerCase()
       return (
@@ -299,7 +299,6 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
   const activeFiltersCount = useMemo(() =>
     [selectedBrand, selectedPriceBand, selectedConnectivity, selectedMouseShape, selectedKeyboardLayout, selectedKeyboardType, selectedPadType, selectedSurface, selectedProfile, selectedRefreshRate, selectedPanelType]
       .filter((v) => v !== "all").length +
-    (selectedCategory !== "all" ? 1 : 0) +
     (query.trim() ? 1 : 0),
     [
       query,
@@ -320,7 +319,7 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
 
   const resetFilters = () => {
     setQuery("")
-    setSelectedCategory("all")
+    setSelectedCategory("mouse")
     setSelectedBrand("all")
     setSelectedPriceBand("all")
     setSelectedConnectivity("all")
@@ -358,11 +357,11 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
     showMonitorFilters,
   ])
 
-  const toggleSelection = (id: string, category: Exclude<Category, "all">) => {
+  const toggleSelection = (id: string, category: Category) => {
     setSelectedIds((prev) => {
       if (prev.includes(id)) {
         const next = prev.filter((i) => i !== id)
-        if (next.length === 0) setSelectedCategory("all")
+        if (next.length === 0) setSelectedCategory("mouse")
         return next
       }
       if (prev.length === 0) setSelectedCategory(category)
@@ -372,7 +371,7 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
 
   const clearSelection = () => {
     setSelectedIds([])
-    setSelectedCategory("all")
+    setSelectedCategory("mouse")
   }
 
   const formatCurrency = (value: number) => {
@@ -411,7 +410,7 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
       {/* Category chips */}
       <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {CATEGORIES.map((cat) => {
-          const isDisabled = selectedIds.length > 0 && lockedCategory !== null && cat !== "all" && cat !== lockedCategory
+          const isDisabled = selectedIds.length > 0 && lockedCategory !== null && cat !== lockedCategory
           return (
             <button
               key={cat}
