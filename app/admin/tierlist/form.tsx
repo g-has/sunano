@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu"
 import { useLocale } from "@/lib/locale-context"
 import { supabase } from "@/lib/supabase"
 import { mapTier } from "@/lib/tier-utils"
@@ -710,7 +716,50 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   ].map(({ field, label }) => (
                     <div key={field} className="space-y-1.5">
                       <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</label>
-                      <Input className="border-border bg-background" placeholder="Claw / Palm" {...form.register(field as any)} />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" type="button" className="w-full justify-between">
+                            <span className="line-clamp-1">
+                              {(form.watch(field as any) || "") || (isEnglish ? "Select" : "Selecione")}
+                            </span>
+                            <ChevronDown className="size-4 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {(["Não recomendado", "Finger", "Claw", "Palm"]).map((opt) => {
+                            const current = (form.watch(field as any) || "").toString()
+                            const selected = current.split("/").map((s) => s.trim().toLowerCase()).filter(Boolean).includes(opt.toLowerCase())
+                            const specialOptions = ["Não recomendado"]
+                            const isSpecial = specialOptions.some((v) => v.toLowerCase() === opt.toLowerCase())
+                            return (
+                              <DropdownMenuCheckboxItem
+                                key={opt}
+                                checked={selected}
+                                onCheckedChange={(checked) => {
+                                  const isChecked = checked === true
+                                  const currArr = (form.getValues(field as any) || "").toString().split("/").map((s) => s.trim()).filter(Boolean)
+                                  if (isChecked && isSpecial) {
+                                    form.setValue(field as any, opt)
+                                    return
+                                  }
+                                  let next = currArr
+                                  if (isChecked) {
+                                    next = Array.from(new Set([
+                                      ...currArr.filter((c) => !specialOptions.some((v) => v.toLowerCase() === c.toLowerCase())),
+                                      opt,
+                                    ]))
+                                  } else {
+                                    next = currArr.filter((c) => c.toLowerCase() !== opt.toLowerCase())
+                                  }
+                                  form.setValue(field as any, next.join(" / "))
+                                }}
+                              >
+                                {opt}
+                              </DropdownMenuCheckboxItem>
+                            )
+                          })}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   ))}
                 </div>
