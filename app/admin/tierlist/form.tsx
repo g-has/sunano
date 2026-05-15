@@ -242,7 +242,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   const [uploading, setUploading] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [selectedTag, setSelectedTag] = useState<Tag | null>("competitive")
+  const [selectedTag, setSelectedTag] = useState<Tag[]>([])
   const [error, setError] = useState<string | null>(null)
   const [usdToBrl, setUsdToBrl] = useState<number | null>(null)
   const [originalUsdPrice, setOriginalUsdPrice] = useState<number | null>(null)
@@ -345,7 +345,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           trimode: data.specs?.trimode ?? "",
           ...data.specs,
         })
-        setSelectedTag(data.tags?.[0] ?? null)
+        setSelectedTag(data.tags ?? [])
         if (data.image_url) setImagePreview(data.image_url)
       }
     } catch (err) {
@@ -356,7 +356,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   async function onSubmit(data: PeripheralFormData): Promise<void> {
     try {
       setError(null)
-      if (!selectedTag) {
+      if (!selectedTag || selectedTag.length === 0) {
         setError(isEnglish ? "Select a tag" : "Selecione uma tag")
         return
       }
@@ -426,7 +426,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       const peripheralData = {
         name: data.name, brand: data.brand, category: data.category,
         tier: data.tier === "__none__" ? null : data.tier,
-        price: priceToSave, image_url: imageUrl, tags: selectedTag ? [selectedTag] : [], specs,
+        price: priceToSave, image_url: imageUrl, tags: selectedTag || [], specs,
       }
 
       if (peripheralId) {
@@ -456,7 +456,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   }
 
   const toggleTag = (tag: Tag) =>
-    setSelectedTag((prev) => prev === tag ? null : tag)
+    setSelectedTag((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag])
 
   const setRating = (field: keyof PeripheralFormData, value: number | undefined) => {
     form.setValue(field as any, value)
@@ -604,10 +604,10 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         {/* SECTION 4: Tags */}
         <FormSection title="Tag" icon={<Tag className="size-4" />} defaultOpen>
           <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">{isEnglish ? "Select the primary tag for this peripheral (one only)" : "Selecione a tag principal deste periférico (apenas uma)"}</p>
+            <p className="text-xs text-muted-foreground">{isEnglish ? "Select one or more tags for this peripheral" : "Selecione uma ou mais tags para este periférico"}</p>
             <div className="flex flex-wrap gap-2">
               {TAGS_OPTIONS.map((tag) => {
-                const active = selectedTag === tag.key
+                const active = selectedTag.includes(tag.key)
                 return (
                   <button
                     key={tag.key}
@@ -622,7 +622,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                 )
               })}
             </div>
-            {!selectedTag && (
+            {selectedTag.length === 0 && (
               <p className="text-xs text-red-400">{isEnglish ? "Select a tag" : "Selecione uma tag"}</p>
             )}
           </div>
