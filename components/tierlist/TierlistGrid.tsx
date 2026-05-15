@@ -14,7 +14,7 @@ import {
 
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierValue = Tier | null
-type Tag = "competitive" | "versatile" | "value" | "comfort"
+type Tag = "competitive" | "versatile" | "value" | "comfort" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
 type RatingMode = "performance" | "value" | "recommended"
 type PriceBand = "budget" | "mid" | "premium"
 type RatingKey = "overall" | "performance" | "build" | "value" | "software" | "battery" | "qc"

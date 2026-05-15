@@ -34,6 +34,17 @@ export const TAG_COLUMN_COLORS = {
   versatile: "text-cyan-300",
   value: "text-emerald-300",
   comfort: "text-amber-300",
+  cheap: "text-green-300",
+  expensive: "text-rose-300",
+  light: "text-sky-300",
+  heavy: "text-slate-300",
+  unbalanced: "text-pink-300",
+  dpi_deviation: "text-yellow-300",
+  wobble_high: "text-fuchsia-300",
+  wobble_low: "text-violet-300",
+  scroll_hard: "text-stone-300",
+  scroll_soft: "text-lime-300",
+  trimode: "text-indigo-300",
 } as const
 
 export const VALUE_COLUMN_COLORS = {
@@ -53,6 +64,17 @@ export const CARD_TAG_STYLES = {
   versatile:  { bg: "bg-cyan-500/15",  text: "text-cyan-300",    border: "border-cyan-500/30",    dot: "bg-cyan-400" },
   value:      { bg: "bg-emerald-500/15", text: "text-emerald-300", border: "border-emerald-500/30", dot: "bg-emerald-400" },
   comfort:    { bg: "bg-amber-500/15",  text: "text-amber-300",   border: "border-amber-500/30",   dot: "bg-amber-400" },
+  cheap:      { bg: "bg-green-500/15",  text: "text-green-300",   border: "border-green-500/30",   dot: "bg-green-400" },
+  expensive:  { bg: "bg-rose-500/15",   text: "text-rose-300",    border: "border-rose-500/30",    dot: "bg-rose-400" },
+  light:      { bg: "bg-sky-500/15",    text: "text-sky-300",     border: "border-sky-500/30",     dot: "bg-sky-400" },
+  heavy:      { bg: "bg-slate-500/15",  text: "text-slate-300",   border: "border-slate-500/30",   dot: "bg-slate-400" },
+  unbalanced: { bg: "bg-pink-500/15",   text: "text-pink-300",    border: "border-pink-500/30",    dot: "bg-pink-400" },
+  dpi_deviation: { bg: "bg-yellow-500/15", text: "text-yellow-300", border: "border-yellow-500/30", dot: "bg-yellow-400" },
+  wobble_high:{ bg: "bg-fuchsia-500/15", text: "text-fuchsia-300", border: "border-fuchsia-500/30", dot: "bg-fuchsia-400" },
+  wobble_low: { bg: "bg-violet-500/15",  text: "text-violet-300",  border: "border-violet-500/30",  dot: "bg-violet-400" },
+  scroll_hard:{ bg: "bg-stone-500/15",   text: "text-stone-300",   border: "border-stone-500/30",   dot: "bg-stone-400" },
+  scroll_soft:{ bg: "bg-lime-500/15",    text: "text-lime-300",    border: "border-lime-500/30",    dot: "bg-lime-400" },
+  trimode:    { bg: "bg-indigo-500/15",  text: "text-indigo-300",  border: "border-indigo-500/30",  dot: "bg-indigo-400" },
 } as const
 
 export const CARD_TIER_STYLES = {

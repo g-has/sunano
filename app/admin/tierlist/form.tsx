@@ -27,7 +27,7 @@ import { mapTier } from "@/lib/tier-utils"
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierField = Tier | "__none__"
-type Tag = "competitive" | "versatile" | "value" | "comfort"
+type Tag = "competitive" | "versatile" | "value" | "comfort" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
 
 const peripheralSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -107,11 +107,22 @@ const TIER_OPTIONS: { key: Tier; color: string; textColor: string; bg: string }[
   { key: "L", color: "border-border bg-muted/40 text-muted-foreground", textColor: "text-muted-foreground", bg: "bg-muted/40" },
 ]
 
-const TAGS_OPTIONS: { key: Tag; label: string; color: string }[] = [
-  { key: "competitive", label: "Competitive", color: "border-red-400/50 bg-red-500/10 text-red-300 data-[active=true]:bg-red-500/30 data-[active=true]:border-red-400" },
-  { key: "versatile", label: "Versatile", color: "border-violet-400/50 bg-violet-500/10 text-violet-300 data-[active=true]:bg-violet-500/30 data-[active=true]:border-violet-400" },
-  { key: "value", label: "Value", color: "border-emerald-400/50 bg-emerald-500/10 text-emerald-300 data-[active=true]:bg-emerald-500/30 data-[active=true]:border-emerald-400" },
-  { key: "comfort", label: "Comfort", color: "border-blue-400/50 bg-blue-500/10 text-blue-300 data-[active=true]:bg-blue-500/30 data-[active=true]:border-blue-400" },
+const TAGS_OPTIONS: { key: Tag; en: string; pt: string; color: string }[] = [
+  { key: "competitive", en: "Competitive", pt: "Competitivo", color: "border-red-400/50 bg-red-500/10 text-red-300 data-[active=true]:bg-red-500/30 data-[active=true]:border-red-400" },
+  { key: "versatile", en: "Versatile", pt: "Versátil", color: "border-violet-400/50 bg-violet-500/10 text-violet-300 data-[active=true]:bg-violet-500/30 data-[active=true]:border-violet-400" },
+  { key: "value", en: "Value", pt: "Custo-Benefício", color: "border-emerald-400/50 bg-emerald-500/10 text-emerald-300 data-[active=true]:bg-emerald-500/30 data-[active=true]:border-emerald-400" },
+  { key: "comfort", en: "Comfort", pt: "Conforto", color: "border-blue-400/50 bg-blue-500/10 text-blue-300 data-[active=true]:bg-blue-500/30 data-[active=true]:border-blue-400" },
+  { key: "cheap", en: "Cheap", pt: "Barato", color: "border-green-400/50 bg-green-500/10 text-green-300 data-[active=true]:bg-green-500/30 data-[active=true]:border-green-400" },
+  { key: "expensive", en: "Expensive", pt: "Caro", color: "border-rose-400/50 bg-rose-500/10 text-rose-300 data-[active=true]:bg-rose-500/30 data-[active=true]:border-rose-400" },
+  { key: "light", en: "Light mouse", pt: "Mouse Leve", color: "border-sky-400/50 bg-sky-500/10 text-sky-300 data-[active=true]:bg-sky-500/30 data-[active=true]:border-sky-400" },
+  { key: "heavy", en: "Heavy mouse", pt: "Mouse Pesado", color: "border-slate-400/50 bg-slate-500/10 text-slate-300 data-[active=true]:bg-slate-500/30 data-[active=true]:border-slate-400" },
+  { key: "unbalanced", en: "Unbalanced weight", pt: "Peso Desbalanceado", color: "border-pink-400/50 bg-pink-500/10 text-pink-300 data-[active=true]:bg-pink-500/30 data-[active=true]:border-pink-400" },
+  { key: "dpi_deviation", en: "DPI Deviation", pt: "DPI Deviation", color: "border-yellow-400/50 bg-yellow-500/10 text-yellow-300 data-[active=true]:bg-yellow-500/30 data-[active=true]:border-yellow-400" },
+  { key: "wobble_high", en: "High wobble", pt: "Wooble Alto", color: "border-fuchsia-400/50 bg-fuchsia-500/10 text-fuchsia-300 data-[active=true]:bg-fuchsia-500/30 data-[active=true]:border-fuchsia-400" },
+  { key: "wobble_low", en: "Low wobble", pt: "Wooble Baixo", color: "border-violet-400/50 bg-violet-500/10 text-violet-300 data-[active=true]:bg-violet-500/30 data-[active=true]:border-violet-400" },
+  { key: "scroll_hard", en: "Hard scroll", pt: "Scroll Duro", color: "border-stone-400/50 bg-stone-500/10 text-stone-300 data-[active=true]:bg-stone-500/30 data-[active=true]:border-stone-400" },
+  { key: "scroll_soft", en: "Soft scroll", pt: "Scroll Mole", color: "border-lime-400/50 bg-lime-500/10 text-lime-300 data-[active=true]:bg-lime-500/30 data-[active=true]:border-lime-400" },
+  { key: "trimode", en: "Trimode", pt: "Trimode", color: "border-indigo-400/50 bg-indigo-500/10 text-indigo-300 data-[active=true]:bg-indigo-500/30 data-[active=true]:border-indigo-400" },
 ]
 
 const RATING_FIELDS: { key: keyof PeripheralFormData; label: string; ptLabel: string }[] = [
@@ -587,7 +598,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                     onClick={() => toggleTag(tag.key)}
                     className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all ${tag.color} ${active ? "scale-105 shadow-sm" : "opacity-60 hover:opacity-100"}`}
                   >
-                    {tag.label}
+                      {isEnglish ? tag.en : tag.pt}
                     {active && " ✓"}
                   </button>
                 )

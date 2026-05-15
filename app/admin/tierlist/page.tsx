@@ -54,7 +54,7 @@ type RatingMode = "performance" | "value" | "recommended"
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierValue = Tier | null
-type Tag = "competitive" | "versatile" | "value" | "comfort"
+type Tag = "competitive" | "versatile" | "value" | "comfort" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
 
 interface Peripheral {
   id: string
