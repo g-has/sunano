@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, Upload, ChevronDown, ChevronUp, ImageIcon, Tag, Star, Layers, FileText, ShoppingCart, Info } from "lucide-react"
+import { ChevronLeft, Upload, ChevronDown, ChevronUp, ImageIcon, Tag, Layers, FileText, ShoppingCart, Info } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -246,45 +246,58 @@ function RatingInput({
   value: number | undefined
   onChange: (v: number | undefined) => void
 }) {
-  const dots = [1, 2, 3, 4, 5, 6]
-  const current = value ?? 0
+  const levels = [1, 2, 3, 4, 5, 6]
+
+  const RATING_COLORS = [
+    { bg: "bg-red-800 text-white", bar: "bg-red-800" }, // 0 - super vermelho
+    { bg: "bg-red-600 text-white", bar: "bg-red-600" }, // 1 - vermelho forte
+    { bg: "bg-yellow-400 text-black", bar: "bg-yellow-400" }, // 2 - amarelo alerta
+    { bg: "bg-zinc-400 text-black", bar: "bg-zinc-400" }, // 3 - cinza
+    { bg: "bg-green-600 text-white", bar: "bg-green-600" }, // 4 - verde
+    { bg: "bg-sky-500 text-white", bar: "bg-sky-500" }, // 5 - azul
+    { bg: "bg-purple-600 text-white", bar: "bg-purple-600" }, // 6 - roxo
+  ]
+
+  const activeColor = typeof value === "number" ? RATING_COLORS[value].bar : null
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <label className="text-xs font-medium text-muted-foreground">{label}</label>
-        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-foreground">
+        <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${typeof value === "number" ? RATING_COLORS[value].bg : "bg-muted text-foreground"}`}>
           {value !== undefined ? `${value}/6` : "—"}
         </span>
       </div>
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => onChange(undefined)}
-          className={`flex size-6 items-center justify-center rounded text-[10px] font-bold transition-colors ${
-            current === 0 ? "bg-muted/60 text-foreground" : "text-muted-foreground hover:bg-muted/40"
-          }`}
-          title="Limpar"
-        >
-          ×
-        </button>
-        {dots.map((dot) => (
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1 flex-1 h-3 items-center">
+          {levels.map((lvl) => (
+            <button
+              key={lvl}
+              type="button"
+              onClick={() => onChange(lvl)}
+              className={`flex-1 rounded transition-colors h-3 ${typeof value === "number" && lvl <= (value ?? 0) ? activeColor : "bg-muted/40 hover:bg-muted/60"}`}
+              title={`${lvl}/6`}
+            />
+          ))}
+        </div>
+        <div className="flex flex-col gap-1">
           <button
-            key={dot}
             type="button"
-            onClick={() => onChange(dot)}
-            className={`h-6 flex-1 rounded transition-all ${
-              dot <= current
-                ? current >= 5
-                  ? "bg-emerald-500 shadow-sm shadow-emerald-500/30"
-                  : current >= 3
-                    ? "bg-primary/80"
-                    : "bg-muted-foreground/60"
-                : "bg-muted/40 hover:bg-muted/70"
-            }`}
-            title={`${dot}/6`}
-          />
-        ))}
+            onClick={() => onChange(0)}
+            className={`flex size-6 items-center justify-center rounded text-[10px] font-bold ${RATING_COLORS[0].bg}`}
+            title="Set 0"
+          >
+            0
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange(undefined)}
+            className="flex size-6 items-center justify-center rounded text-[10px] font-bold bg-muted/20"
+            title="Limpar"
+          >
+            ×
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -699,7 +712,20 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         </FormSection>
 
         {/* SECTION 5: Ratings */}
-        <FormSection title={isEnglish ? "Ratings (0–6)" : "Notas (0–6)"} icon={<Star className="size-4" />} defaultOpen={false}>
+        <FormSection
+          title={isEnglish ? "Ratings (0–6)" : "Notas (0–6)"}
+          icon={
+            <div className="flex items-center gap-1">
+              <span className="w-4 h-1 rounded bg-red-600" />
+              <span className="w-4 h-1 rounded bg-yellow-400" />
+              <span className="w-4 h-1 rounded bg-zinc-400" />
+              <span className="w-4 h-1 rounded bg-green-600" />
+              <span className="w-4 h-1 rounded bg-sky-500" />
+              <span className="w-4 h-1 rounded bg-purple-600" />
+            </div>
+          }
+          defaultOpen={false}
+        >
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground">
               {isEnglish
