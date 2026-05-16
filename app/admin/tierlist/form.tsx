@@ -1,13 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, Upload, ChevronDown, ChevronUp, ImageIcon, Tag, Layers, FileText, ShoppingCart, Info } from "lucide-react"
+import { Upload, ChevronDown, ChevronUp, ImageIcon, Tag, Layers, FileText, ShoppingCart, Info } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
 import * as z from "zod"
 
+import { BackBreadcrumb } from "@/components/admin/BackBreadcrumb"
+import BoxLoader from "@/components/ui/box-loader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,7 +30,7 @@ import {
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 import { useLocale } from "@/lib/locale-context"
-import { supabase } from "@/lib/supabase"
+import { usePageHeader } from "@/lib/page-header-context"
 import { mapTier } from "@/lib/tier-utils"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
@@ -36,11 +39,22 @@ type TierField = Tier | "__none__"
 type Tag = "competitive" | "versatile" | "value" | "comfort" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
 
 const peripheralSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  brand: z.string().min(1, "Brand is required"),
-  category: z.enum(["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset", "feet", "chairs", "monitors", "switches", "dac_amp"]),
+  name: z
+    .string()
+    .min(1, "Informe o nome do periférico")
+    .max(200, "Nome muito longo (máx. 200 caracteres)"),
+  brand: z
+    .string()
+    .min(1, "Selecione a marca")
+    .max(120, "Marca muito longa (máx. 120 caracteres)"),
+  category: z.enum(
+    ["keyboard", "mouse", "mousepad", "glasspad", "iem", "headset", "feet", "chairs", "monitors", "switches", "dac_amp"],
+    { message: "Selecione uma das categorias disponíveis" }
+  ),
   tier: z.union([z.enum(["GOAT", "SS", "S", "A", "B", "C", "L"]), z.literal("__none__")]),
-  price: z.number().positive("Price must be greater than 0"),
+  price: z
+    .number({ message: "Preço inválido" })
+    .positive("Preço deve ser maior que zero"),
   rankLabel: z.string().optional(),
   priceRange: z.string().optional(),
   reviewUrl: z.string().optional(),
@@ -311,7 +325,13 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
   const router = useRouter()
+  const pathname = usePathname()
+  const backHref = pathname?.startsWith("/admin/perifericos") ? "/admin/perifericos" : "/admin/tierlist"
+  const parentLabel = pathname?.startsWith("/admin/perifericos")
+    ? (isEnglish ? "Peripherals" : "Periféricos")
+    : "Tierlist"
   const [uploading, setUploading] = useState(false)
+  const [loadingPeripheral, setLoadingPeripheral] = useState(Boolean(peripheralId))
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [selectedTag, setSelectedTag] = useState<Tag[]>([])
@@ -346,6 +366,13 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   const watchedTier = form.watch("tier")
   const watchedCategory = form.watch("category")
 
+  usePageHeader(
+    peripheralId ? (isEnglish ? "Edit Peripheral" : "Editar Periférico") : (isEnglish ? "New Peripheral" : "Novo Periférico"),
+    peripheralId
+      ? (isEnglish ? "Update the peripheral information below." : "Atualize as informações do periférico abaixo.")
+      : (isEnglish ? "Fill in the details to add a new peripheral to the tierlist." : "Preencha os dados para adicionar um novo periférico à tierlist.")
+  )
+
   useEffect(() => {
     if (peripheralId) loadPeripheral()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -372,9 +399,12 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   }
 
   async function loadPeripheral() {
+    setLoadingPeripheral(true)
     try {
-      const { data, error: err } = await supabase.from("peripherals").select("id, name, brand, category, tier, price, image_url, tags, specs").eq("id", peripheralId).single()
-      if (err) throw err
+      const res = await fetch(`/api/admin/peripherals/${peripheralId}`, { cache: "no-store" })
+      const json = (await res.json().catch(() => null)) as { peripheral?: any; error?: string } | null
+      if (!res.ok || !json?.peripheral) throw new Error(json?.error ?? (isEnglish ? "Failed to load peripheral" : "Erro ao carregar periférico"))
+      const data = json.peripheral
       if (data) {
         setOriginalUsdPrice(data.price)
         const displayedPrice = locale === "pt-BR" && usdToBrl ? Number((data.price * usdToBrl).toFixed(2)) : data.price
@@ -421,7 +451,13 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         if (data.image_url) setImagePreview(data.image_url)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load peripheral" : "Erro ao carregar periférico"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to load peripheral" : "Erro ao carregar periférico")
+      setError(message)
+      toast.error(isEnglish ? "Failed to load peripheral" : "Erro ao carregar periférico", {
+        description: message,
+      })
+    } finally {
+      setLoadingPeripheral(false)
     }
   }
 
@@ -429,18 +465,26 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
     try {
       setError(null)
       if (!selectedTag || selectedTag.length === 0) {
-        setError(isEnglish ? "Select a tag" : "Selecione uma tag")
+        const msg = isEnglish ? "Select a tag" : "Selecione uma tag"
+        setError(msg)
+        toast.error(msg)
         return
       }
 
       let imageUrl = imagePreview
       if (imageFile) {
         setUploading(true)
-        const fileName = `${Date.now()}-${imageFile.name}`
-        const { error: uploadErr } = await supabase.storage.from("peripherals").upload(fileName, imageFile)
-        if (uploadErr) throw uploadErr
-        const { data: urlData } = supabase.storage.from("peripherals").getPublicUrl(fileName)
-        imageUrl = urlData.publicUrl
+        const uploadForm = new FormData()
+        uploadForm.set("file", imageFile)
+        const uploadRes = await fetch("/api/admin/peripherals/upload-image", {
+          method: "POST",
+          body: uploadForm,
+        })
+        const uploadData = (await uploadRes.json().catch(() => null)) as { publicUrl?: string; error?: string; ok?: boolean } | null
+        if (!uploadRes.ok || !uploadData?.publicUrl) {
+          throw new Error(uploadData?.error ?? (isEnglish ? "Failed to upload image" : "Erro ao enviar imagem"))
+        }
+        imageUrl = uploadData.publicUrl
       }
 
       const splitLines = (value?: string) =>
@@ -494,17 +538,47 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       }
 
       if (peripheralId) {
-        const { error: err } = await supabase.from("peripherals").update(peripheralData).eq("id", peripheralId)
-        if (err) throw err
+        const res = await fetch(`/api/admin/peripherals/${peripheralId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(peripheralData),
+        })
+        const json = (await res.json().catch(() => null)) as { error?: string; field?: string } | null
+        if (!res.ok) {
+          if (json?.field) {
+            form.setError(json.field as any, { type: "server", message: json.error })
+          }
+          throw new Error(json?.error ?? (isEnglish ? "Failed to save" : "Erro ao salvar"))
+        }
+        toast.success(isEnglish ? "Peripheral updated" : "Periférico atualizado", {
+          description: data.name,
+        })
       } else {
-        const { error: err } = await supabase.from("peripherals").insert([peripheralData])
-        if (err) throw err
+        const res = await fetch("/api/admin/peripherals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(peripheralData),
+        })
+        const json = (await res.json().catch(() => null)) as { error?: string; field?: string } | null
+        if (!res.ok) {
+          if (json?.field) {
+            form.setError(json.field as any, { type: "server", message: json.error })
+          }
+          throw new Error(json?.error ?? (isEnglish ? "Failed to save" : "Erro ao salvar"))
+        }
+        toast.success(isEnglish ? "Peripheral created" : "Periférico criado", {
+          description: data.name,
+        })
       }
 
-      router.replace("/admin/tierlist")
+      router.replace(backHref)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save" : "Erro ao salvar"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to save" : "Erro ao salvar")
+      setError(message)
+      toast.error(isEnglish ? "Failed to save peripheral" : "Erro ao salvar periférico", {
+        description: message,
+      })
     } finally {
       setUploading(false)
     }
@@ -527,25 +601,38 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
     form.setValue(field as any, value)
   }
 
+  const watchedName = form.watch("name")
+  const currentLabel = peripheralId
+    ? (loadingPeripheral && !watchedName
+        ? (isEnglish ? "Loading…" : "Carregando…")
+        : watchedName || (isEnglish ? "Edit" : "Editar"))
+    : (isEnglish ? "New" : "Novo")
+
+  if (loadingPeripheral) {
+    return (
+      <div className="space-y-6 pb-10">
+        <BackBreadcrumb href={backHref} parentLabel={parentLabel} currentLabel={currentLabel} />
+
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-card/40 py-20">
+          <BoxLoader />
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">
+              {isEnglish ? "Loading peripheral…" : "Carregando periférico…"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {isEnglish
+                ? "Fetching saved info, image and specs."
+                : "Buscando informações, imagem e especificações salvas."}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 pb-10">
-      <Link href="/admin/tierlist">
-        <Button className="gap-2" variant="ghost">
-          <ChevronLeft className="size-4" />
-          {isEnglish ? "Back" : "Voltar"}
-        </Button>
-      </Link>
-
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          {peripheralId ? (isEnglish ? "Edit Peripheral" : "Editar Periférico") : (isEnglish ? "New Peripheral" : "Novo Periférico")}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {peripheralId
-            ? (isEnglish ? "Update the peripheral information below" : "Atualize as informações do periférico abaixo")
-            : (isEnglish ? "Fill in the details to add a new peripheral to the tierlist" : "Preencha os dados para adicionar um novo periférico à tierlist")}
-        </p>
-      </div>
+      <BackBreadcrumb href={backHref} parentLabel={parentLabel} currentLabel={currentLabel} />
 
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</div>
@@ -582,13 +669,20 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           <div className="space-y-4">
             {/* Category picker */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">{isEnglish ? "Category" : "Categoria"}</label>
+              <label className="text-sm font-medium text-foreground">
+                {isEnglish ? "Category" : "Categoria"} <span className="text-red-400">*</span>
+              </label>
+              <p className="text-xs text-muted-foreground/80">
+                {isEnglish
+                  ? "Required. Pick one of the categories below — values are validated by the database."
+                  : "Obrigatório. Escolha uma das categorias abaixo — os valores são validados pelo banco."}
+              </p>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((cat) => (
                   <button
                     key={cat.key}
                     type="button"
-                    onClick={() => form.setValue("category", cat.key)}
+                    onClick={() => form.setValue("category", cat.key, { shouldValidate: true })}
                     className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
                       watchedCategory === cat.key
                         ? "border-primary bg-primary/10 text-foreground"
@@ -600,18 +694,34 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   </button>
                 ))}
               </div>
+              {form.formState.errors.category && (
+                <p className="text-xs text-red-400">{form.formState.errors.category.message as string}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{isEnglish ? "Name" : "Nome"}</label>
-                <Input className="border-border bg-background" placeholder="G Pro X Superlight 2" {...form.register("name")} />
+                <label className="text-sm font-medium text-foreground">
+                  {isEnglish ? "Name" : "Nome"} <span className="text-red-400">*</span>
+                </label>
+                <Input
+                  className="border-border bg-background"
+                  placeholder="G Pro X Superlight 2"
+                  maxLength={200}
+                  aria-invalid={!!form.formState.errors.name}
+                  {...form.register("name")}
+                />
+                <p className="text-[10px] text-muted-foreground/60">
+                  {isEnglish ? "1–200 characters" : "Entre 1 e 200 caracteres"}
+                </p>
                 {form.formState.errors.name && <p className="text-xs text-red-400">{form.formState.errors.name.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{isEnglish ? "Brand" : "Marca"}</label>
-                <Select value={form.watch("brand")} onValueChange={(value) => form.setValue("brand", value)}>
-                  <SelectTrigger className="border-border bg-background">
+                <label className="text-sm font-medium text-foreground">
+                  {isEnglish ? "Brand" : "Marca"} <span className="text-red-400">*</span>
+                </label>
+                <Select value={form.watch("brand")} onValueChange={(value) => form.setValue("brand", value, { shouldValidate: true })}>
+                  <SelectTrigger className="border-border bg-background" aria-invalid={!!form.formState.errors.brand}>
                     <SelectValue placeholder={isEnglish ? "Select a brand" : "Selecione uma marca"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -622,13 +732,16 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-[10px] text-muted-foreground/60">
+                  {isEnglish ? "Pick from the list above" : "Escolha uma das marcas da lista"}
+                </p>
                 {form.formState.errors.brand && <p className="text-xs text-red-400">{form.formState.errors.brand.message}</p>}
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">
-                {isEnglish ? "Price (USD)" : "Preço (USD)"}
+                {isEnglish ? "Price (USD)" : "Preço (USD)"} <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
@@ -637,9 +750,16 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   placeholder="159.00"
                   type="number"
                   step="0.01"
+                  min={0.01}
+                  aria-invalid={!!form.formState.errors.price}
                   {...form.register("price", { valueAsNumber: true })}
                 />
               </div>
+              <p className="text-[10px] text-muted-foreground/60">
+                {isEnglish
+                  ? "Use a positive value in US dollars (e.g. 159.00). It will be converted automatically."
+                  : "Use um valor positivo em dólares (ex: 159.00). A conversão é feita automaticamente."}
+              </p>
               {form.formState.errors.price && <p className="text-xs text-red-400">{form.formState.errors.price.message}</p>}
             </div>
           </div>
@@ -680,7 +800,11 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         {/* SECTION 4: Tags */}
         <FormSection title="Tag" icon={<Tag className="size-4" />} defaultOpen>
           <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">{isEnglish ? "Select one or more tags for this peripheral" : "Selecione uma ou mais tags para este periférico"}</p>
+            <p className="text-xs text-muted-foreground">
+              {isEnglish
+                ? "Required — select at least one tag describing this peripheral."
+                : "Obrigatório — selecione ao menos uma tag que descreva este periférico."}
+            </p>
             <div className="flex flex-wrap gap-2">
               {TAGS_OPTIONS.map((tag) => {
                 const active = selectedTag.includes(tag.key)
@@ -699,7 +823,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               })}
             </div>
             {selectedTag.length === 0 && (
-              <p className="text-xs text-red-400">{isEnglish ? "Select a tag" : "Selecione uma tag"}</p>
+              <p className="text-xs text-red-400">{isEnglish ? "Select at least one tag." : "Selecione pelo menos uma tag."}</p>
             )}
           </div>
         </FormSection>
@@ -1174,7 +1298,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
         {/* Footer actions */}
         <div className="flex gap-3 justify-end pt-2">
-          <Link href="/admin/tierlist">
+          <Link href={backHref}>
             <Button variant="outline">{isEnglish ? "Cancel" : "Cancelar"}</Button>
           </Link>
           <Button disabled={uploading || form.formState.isSubmitting} type="submit" className="min-w-28">

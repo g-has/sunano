@@ -8,6 +8,7 @@ import {
   isWebMaster,
   normalizePermissions,
 } from "@/lib/admin-permissions"
+import { dbErrorResponse } from "@/lib/db-errors"
 import { createSupabaseAdminClient } from "@/lib/supabase-admin"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
@@ -64,7 +65,8 @@ export async function GET() {
       .order("created_at", { ascending: true })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      const { body, status } = dbErrorResponse(error, "Erro ao listar usuários.")
+      return NextResponse.json(body, { status })
     }
 
     const users = ((data ?? []) as AdminProfileRow[]).map((item) => ({
@@ -151,7 +153,8 @@ export async function PATCH(request: Request) {
     const { error } = await supabase.from("admin_profiles").upsert(payload as any, { onConflict: "id" })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      const { body, status } = dbErrorResponse(error, "Erro ao atualizar usuário.")
+      return NextResponse.json(body, { status })
     }
 
     return NextResponse.json({ ok: true })
@@ -201,7 +204,11 @@ export async function POST(request: Request) {
     )
 
     if (inviteError || !invitedUser?.user) {
-      return NextResponse.json({ error: inviteError?.message ?? "Falha ao convidar usuário." }, { status: 400 })
+      const message = inviteError?.message ?? ""
+      const friendly = /already.*registered|already.*invited|exists/i.test(message)
+        ? "Já existe um usuário com este email."
+        : "Falha ao convidar usuário. Verifique se o email está correto e tente novamente."
+      return NextResponse.json({ error: friendly }, { status: 400 })
     }
 
     const role = parsed.data.role ?? "admin"
@@ -221,7 +228,8 @@ export async function POST(request: Request) {
     const { error } = await adminClient.from("admin_profiles").upsert(payload as any, { onConflict: "id" })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      const { body, status } = dbErrorResponse(error, "Erro ao criar usuário.")
+      return NextResponse.json(body, { status })
     }
 
     return NextResponse.json({ ok: true })

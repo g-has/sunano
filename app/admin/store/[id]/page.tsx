@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { toast } from "sonner"
 import BoxLoader from "@/components/ui/box-loader"
 import { StoreProductForm } from "../form"
+import { BackBreadcrumb } from "@/components/admin/BackBreadcrumb"
+import { usePageHeader } from "@/lib/page-header-context"
 
 interface StoreProduct {
   id: string
@@ -35,7 +38,9 @@ export default function EditProductPage() {
         if (!res.ok || !data.product) throw new Error(data.error ?? "Produto não encontrado")
         setProduct(data.product)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Erro ao carregar")
+        const message = err instanceof Error ? err.message : "Erro ao carregar"
+        setError(message)
+        toast.error("Erro ao carregar produto", { description: message })
       } finally {
         setLoading(false)
       }
@@ -43,29 +48,42 @@ export default function EditProductPage() {
     load()
   }, [id])
 
+  usePageHeader(
+    "Editar produto",
+    product ? product.name : "Atualize as informações do produto."
+  )
+
+  const currentLabel = product?.name ?? (loading ? "Carregando…" : "Editar produto")
+
   if (loading) {
     return (
-      <div className="flex justify-center py-14">
-        <BoxLoader />
+      <div className="mx-auto max-w-2xl space-y-6">
+        <BackBreadcrumb href="/admin/store" parentLabel="Loja & Bazar" currentLabel={currentLabel} />
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-card/40 py-20">
+          <BoxLoader />
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">Carregando produto…</p>
+            <p className="mt-1 text-xs text-muted-foreground">Buscando informações, imagens e estoque.</p>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (error || !product) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 py-14 text-center">
-        <p className="text-sm text-red-400">{error ?? "Produto não encontrado"}</p>
+      <div className="mx-auto max-w-2xl space-y-6">
+        <BackBreadcrumb href="/admin/store" parentLabel="Loja & Bazar" />
+        <div className="flex flex-col items-center justify-center gap-2 py-14 text-center">
+          <p className="text-sm text-red-400">{error ?? "Produto não encontrado"}</p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-50">Editar produto</h1>
-        <p className="mt-1 text-sm text-slate-400">{product.name}</p>
-      </div>
-
+      <BackBreadcrumb href="/admin/store" parentLabel="Loja & Bazar" currentLabel={product.name} />
       <div className="rounded-xl border border-white/[0.08] bg-card p-6">
         <StoreProductForm
           product={product}

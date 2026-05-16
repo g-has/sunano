@@ -17,9 +17,8 @@ export async function GET() {
 
     const result = await getTelegramOffers(30)
     return NextResponse.json({ ok: true, offers: result.offers, warning: result.warning, source: result.source })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Erro ao carregar ofertas do Telegram"
-    return NextResponse.json({ error: message }, { status: 500 })
+  } catch {
+    return NextResponse.json({ error: "Erro ao carregar ofertas do Telegram. Tente novamente em alguns segundos." }, { status: 500 })
   }
 }
 

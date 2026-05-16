@@ -15,6 +15,7 @@ import { getLanguageEntry, I18N, LANGUAGE_OPTIONS, type LocaleCode } from "@/lib
 import { useLocale } from "@/lib/locale-context"
 import { useTheme } from "@/lib/theme-context"
 import { useSidebar } from "@/lib/sidebar-context"
+import { usePageHeaderState } from "@/lib/page-header-context"
 import { cn } from "@/lib/utils"
 
 const SOCIAL_LINKS = [
@@ -35,32 +36,46 @@ const SOCIAL_LINKS = [
   },
 ]
 
-const PAGE_TITLES: Record<string, string> = {
-  "/": "Tier List",
-  "/noticias": "Noticias",
-  "/perifericos": "Perifericos",
-  "/blog": "Reviews",
-  "/offers": "Ofertas",
-  "/forum": "Forum",
-  "/videos": "Videos",
-  "/changelog": "Changelog",
-  "/admin": "Dashboard",
-  "/admin/tierlist": "Tierlist",
-  "/admin/perifericos": "Perifericos",
-  "/admin/blog": "Blog & Reviews",
-  "/admin/offers": "Ofertas",
-  "/admin/users": "Usuários",
-  "/admin/settings": "Configurações",
-  "/admin/login": "Login",
+type PageDefaults = { title: string; description?: string }
+
+const PAGE_DEFAULTS: Record<string, PageDefaults> = {
+  "/":                  { title: "Tier List", description: "A tierlist definitiva de periféricos gamers." },
+  "/noticias":          { title: "Notícias", description: "Últimas novidades do mundo dos periféricos." },
+  "/perifericos":       { title: "Periféricos", description: "Wiki pesquisável com filtros por categoria, marca e preço." },
+  "/blog":              { title: "Reviews", description: "Reviews completos e análises detalhadas." },
+  "/offers":            { title: "Ofertas", description: "Promoções e descontos selecionados do Telegram." },
+  "/forum":             { title: "Fórum", description: "Discussões e perguntas da comunidade." },
+  "/videos":            { title: "Vídeos", description: "Conteúdo em vídeo do canal." },
+  "/changelog":         { title: "Changelog", description: "Histórico de mudanças no site." },
+  "/admin":             { title: "Dashboard", description: "Visão geral do painel administrativo." },
+  "/admin/tierlist":    { title: "Admin Tierlist", description: "Arraste e solte para reorganizar. Clique para editar." },
+  "/admin/perifericos": { title: "Periféricos", description: "Gerencie a wiki de periféricos." },
+  "/admin/blog":        { title: "Blog & Reviews", description: "Gerencie reviews e artigos relacionados aos periféricos." },
+  "/admin/offers":      { title: "Ofertas", description: "Ofertas sincronizadas das mensagens do Telegram." },
+  "/admin/users":       { title: "Usuários e permissões", description: "Controle quem pode ler ou editar cada seção." },
+  "/admin/settings":    { title: "Configurações", description: "Gerencie seu perfil e preferências do sistema." },
+  "/admin/store":       { title: "Loja & Bazar", description: "Gerencie os produtos da loja e os itens do bazar." },
+  "/admin/forum":       { title: "Fórum (moderação)", description: "Modere posts, comentários e regras da comunidade." },
+  "/admin/maintenance": { title: "Modo de manutenção", description: "Ative o modo de manutenção do site." },
+  "/admin/login":       { title: "Login" },
 }
 
-function getPageTitle(pathname: string): string {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
-  if (pathname.startsWith("/blog/")) return "Review"
-  if (pathname.startsWith("/forum/")) return "Forum"
-  if (pathname.startsWith("/perifericos/")) return "Periférico"
-  if (pathname.startsWith("/admin/")) return "Admin"
-  return "Sunano"
+function getPageDefaults(pathname: string): PageDefaults {
+  if (PAGE_DEFAULTS[pathname]) return PAGE_DEFAULTS[pathname]
+  if (pathname.startsWith("/admin/store/new"))   return { title: "Novo produto", description: "Adicione um item à loja ou ao bazar." }
+  if (pathname.startsWith("/admin/store/"))      return { title: "Editar produto", description: "Atualize as informações do produto." }
+  if (pathname.startsWith("/admin/blog/new"))    return { title: "Novo artigo", description: "Crie um review ou artigo relacionado a um periférico." }
+  if (pathname.startsWith("/admin/blog/"))       return { title: "Editar artigo", description: "Atualize o conteúdo do artigo." }
+  if (pathname.startsWith("/admin/perifericos/new")) return { title: "Novo periférico", description: "Adicione um novo periférico à wiki." }
+  if (pathname.startsWith("/admin/perifericos/"))    return { title: "Editar periférico", description: "Atualize as informações do periférico." }
+  if (pathname.startsWith("/admin/tierlist/new"))    return { title: "Novo periférico", description: "Adicione um novo periférico à tierlist." }
+  if (pathname.startsWith("/admin/tierlist/"))       return { title: "Editar periférico", description: "Atualize as informações do periférico." }
+  if (pathname.startsWith("/admin/forum/"))      return { title: "Moderar post", description: "Edite, oculte ou bloqueie um post do fórum." }
+  if (pathname.startsWith("/admin/"))            return { title: "Admin" }
+  if (pathname.startsWith("/blog/"))             return { title: "Review" }
+  if (pathname.startsWith("/forum/"))            return { title: "Fórum" }
+  if (pathname.startsWith("/perifericos/"))      return { title: "Periférico" }
+  return { title: "Sunano" }
 }
 
 export function TopBar() {
@@ -74,29 +89,38 @@ export function TopBar() {
   const isAdmin = pathname?.startsWith("/admin")
   const isCollapsed = isAdmin ? adminCollapsed : publicCollapsed
   const toggleCollapsed = isAdmin ? toggleAdmin : togglePublic
-  const pageTitle = getPageTitle(pathname ?? "/")
+
+  const defaults = getPageDefaults(pathname ?? "/")
+  const override = usePageHeaderState()
+  const pageTitle = override.title ?? defaults.title
+  const pageDescription = override.description ?? defaults.description
 
   return (
     <div
       className={cn(
-        " h-16 z-20 border-b border-border transition-[left] duration-300",
+        "min-h-16 z-20 border-b border-border transition-[left] duration-300",
         "left-16",
         isCollapsed ? "md:left-16" : isAdmin ? "md:left-64" : "md:left-64"
       )}
     >
-      <div className="h-full flex items-center justify-between px-4">
-        {/* Left — Toggle + Page Title */}
-        <div className="flex items-center gap-3">
+      <div className="min-h-16 flex items-center justify-between gap-4 px-4 py-2">
+        {/* Left — Toggle + Page Title + Description */}
+        <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
             onClick={toggleCollapsed}
-            className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
             aria-label={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
           >
             <PanelLeft className="size-[18px]" />
           </button>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-sm font-semibold tracking-tight text-foreground">{pageTitle}</span>
+          <div className="h-8 w-px shrink-0 bg-border" />
+          <div className="min-w-0 flex flex-col justify-center leading-tight">
+            <span className="truncate text-sm font-semibold tracking-tight text-foreground">{pageTitle}</span>
+            {pageDescription && (
+              <span className="truncate text-xs text-muted-foreground">{pageDescription}</span>
+            )}
+          </div>
         </div>
 
         {/* Right — Theme + Language + Social */}

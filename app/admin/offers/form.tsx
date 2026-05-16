@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Loader2, Upload } from "lucide-react"
+import { toast } from "sonner"
 import {
   Select,
   SelectContent,
@@ -14,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useLocale } from "@/lib/locale-context"
-import { supabase } from "@/lib/supabase"
 
 interface Offer {
   id: string
@@ -71,17 +71,16 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
   }, [])
 
   async function loadPeripherals() {
-    const { data, error: loadError } = await supabase
-      .from("peripherals")
-      .select("id, name, brand")
-      .order("name", { ascending: true })
-
-    if (loadError) {
-      setError(loadError.message)
-      return
+    try {
+      const res = await fetch("/api/peripherals?limit=1000", { cache: "no-store" })
+      const data = (await res.json().catch(() => null)) as { peripherals?: PeripheralOption[]; error?: string } | null
+      if (!res.ok || !data?.peripherals) {
+        throw new Error(data?.error ?? (isEnglish ? "Failed to load peripherals" : "Erro ao carregar periféricos"))
+      }
+      setPeripherals(data.peripherals)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load peripherals" : "Erro ao carregar periféricos"))
     }
-
-    setPeripherals(data ?? [])
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -140,9 +139,18 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
         throw new Error(data.error ?? (isEnglish ? "Failed to save offer" : "Erro ao salvar oferta"))
       }
 
+      toast.success(
+        offer
+          ? (isEnglish ? "Offer updated" : "Oferta atualizada")
+          : (isEnglish ? "Offer created" : "Oferta criada"),
+        { description: formData.name }
+      )
+
       onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save offer" : "Erro ao salvar oferta"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to save offer" : "Erro ao salvar oferta")
+      setError(message)
+      toast.error(isEnglish ? "Failed to save offer" : "Erro ao salvar oferta", { description: message })
     } finally {
       setUploading(false)
       setLoading(false)
@@ -191,18 +199,27 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name">{isEnglish ? "Offer Name" : "Nome da Oferta"}</Label>
+          <Label htmlFor="name">
+            {isEnglish ? "Offer Name" : "Nome da Oferta"} <span className="text-red-400">*</span>
+          </Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder='Ex: Monitor Gamer 27"'
             required
+            minLength={2}
+            maxLength={200}
           />
+          <p className="text-[10px] text-muted-foreground/60">
+            {isEnglish ? "Required. 2–200 characters." : "Obrigatório. Entre 2 e 200 caracteres."}
+          </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="link">{isEnglish ? "Offer Link" : "Link da Oferta"}</Label>
+          <Label htmlFor="link">
+            {isEnglish ? "Offer Link" : "Link da Oferta"} <span className="text-red-400">*</span>
+          </Label>
           <Input
             id="link"
             type="url"
@@ -211,21 +228,30 @@ export function OfferForm({ offer, onSuccess, onCancel }: OfferFormProps) {
             placeholder="https://..."
             required
           />
+          <p className="text-[10px] text-muted-foreground/60">
+            {isEnglish ? "Full URL starting with http:// or https://" : "URL completa começando com http:// ou https://"}
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="value">{isEnglish ? "Price" : "Valor"}</Label>
+          <Label htmlFor="value">
+            {isEnglish ? "Price" : "Valor"} <span className="text-red-400">*</span>
+          </Label>
           <Input
             id="value"
             type="number"
             step="0.01"
+            min={0.01}
             value={formData.value}
             onChange={(e) => setFormData({ ...formData, value: e.target.value })}
             placeholder="0.00"
             required
           />
+          <p className="text-[10px] text-muted-foreground/60">
+            {isEnglish ? "Greater than 0." : "Maior que zero."}
+          </p>
         </div>
 
         <div className="space-y-2">

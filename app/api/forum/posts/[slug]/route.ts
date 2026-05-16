@@ -4,6 +4,7 @@ import * as z from "zod"
 import { createSupabaseAdminClient } from "@/lib/supabase-admin"
 import { getAuthorizedProfile } from "@/lib/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
+import { dbErrorResponse } from "@/lib/db-errors"
 
 const patchSchema = z.object({
   title: z.string().trim().min(4).max(120).optional(),
@@ -31,7 +32,10 @@ export async function GET(_: Request, context: any) {
       .eq("is_hidden", false)
       .maybeSingle()
 
-    if (postError) return NextResponse.json({ error: postError.message }, { status: 400 })
+    if (postError) {
+      const { body, status } = dbErrorResponse(postError, "Erro ao buscar post.")
+      return NextResponse.json(body, { status })
+    }
     if (!post) return NextResponse.json({ error: "Post não encontrado." }, { status: 404 })
 
     const { data: comments } = await supabase
@@ -138,7 +142,10 @@ export async function PATCH(request: NextRequest, context: any) {
   const { error } = await (supabase.from("forum_posts") as any)
     .update(updates).eq("id", (existing as any).id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+  if (error) {
+    const { body, status } = dbErrorResponse(error, "Erro ao atualizar post.")
+    return NextResponse.json(body, { status })
+  }
 
   return NextResponse.json({ ok: true })
 }

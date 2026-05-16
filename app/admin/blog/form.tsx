@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, Upload, ImageIcon, FileText, Link2, Eye, EyeOff, Search, CheckCircle2, Circle, Youtube } from "lucide-react"
+import { Upload, ImageIcon, FileText, Link2, Eye, EyeOff, Search, CheckCircle2, Circle, Youtube } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
 import * as z from "zod"
 
+import { BackBreadcrumb } from "@/components/admin/BackBreadcrumb"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { BLOG_IMAGE_STANDARDS } from "@/lib/blog-images"
 import { useLocale } from "@/lib/locale-context"
-import { supabase } from "@/lib/supabase"
+import { usePageHeader } from "@/lib/page-header-context"
 
 type PeripheralOption = {
   id: string
@@ -26,13 +27,13 @@ type PeripheralOption = {
 }
 
 const postSchema = z.object({
-  peripheral_id: z.string().min(1, "Select a peripheral"),
-  title: z.string().min(5, "Title must have at least 5 characters"),
-  excerpt: z.string().optional(),
-  cover_image_url: z.string().url("Invalid image URL").optional().or(z.literal("")),
-  cover_thumbnail_url: z.string().url("Invalid image URL").optional().or(z.literal("")),
-  video_url: z.string().url("Invalid video URL").optional().or(z.literal("")),
-  content: z.string().min(20, "Content must have at least 20 characters"),
+  peripheral_id: z.string().min(1, "Selecione o periférico relacionado"),
+  title: z.string().min(5, "Título deve ter no mínimo 5 caracteres").max(200, "Título muito longo (máx. 200)"),
+  excerpt: z.string().max(500, "Resumo muito longo (máx. 500)").optional(),
+  cover_image_url: z.string().url("URL da imagem inválida (use http:// ou https://)").optional().or(z.literal("")),
+  cover_thumbnail_url: z.string().url("URL da miniatura inválida (use http:// ou https://)").optional().or(z.literal("")),
+  video_url: z.string().url("URL do vídeo inválida (use http:// ou https://)").optional().or(z.literal("")),
+  content: z.string().min(20, "Conteúdo deve ter no mínimo 20 caracteres"),
   status: z.enum(["published", "draft"]),
 })
 
@@ -76,23 +77,46 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
   const watchedContent = form.watch("content")
   const watchedTitle = form.watch("title")
 
+  usePageHeader(
+    postId
+      ? (isEnglish ? "Edit article" : "Editar artigo")
+      : (isEnglish ? "New article" : "Novo artigo"),
+    postId
+      ? (isEnglish ? "Update the article content below." : "Atualize o conteúdo do artigo abaixo.")
+      : (isEnglish ? "Write a review or article linked to a peripheral." : "Escreva um review ou artigo vinculado a um periférico.")
+  )
+
   useEffect(() => { loadPeripherals() }, [])
   useEffect(() => { if (postId) loadPost(postId) }, [postId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadPeripherals() {
     setPeripheralsLoading(true)
-    const { data, error: err } = await supabase
-      .from("peripherals")
-      .select("id, name, brand, category, image_url")
-      .order("brand", { ascending: true })
-    if (err) setError(err.message)
-    setPeripherals(data ?? [])
-    setPeripheralsLoading(false)
+    try {
+      const res = await fetch("/api/peripherals?limit=1000", { cache: "no-store" })
+      const json = (await res.json().catch(() => null)) as { peripherals?: PeripheralOption[]; error?: string } | null
+      if (!res.ok || !json?.peripherals) {
+        throw new Error(json?.error ?? (isEnglish ? "Failed to load peripherals" : "Erro ao carregar periféricos"))
+      }
+      setPeripherals(json.peripherals)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to load peripherals" : "Erro ao carregar periféricos")
+      setError(message)
+      toast.error(isEnglish ? "Failed to load peripherals" : "Erro ao carregar periféricos", { description: message })
+    } finally {
+      setPeripheralsLoading(false)
+    }
   }
 
   async function loadPost(id: string) {
-    const { data, error: err } = await supabase.from("blog_posts").select("id, title, slug, peripheral_id, excerpt, cover_image_url, cover_thumbnail_url, video_url, content, is_published").eq("id", id).single()
-    if (err) { setError(err.message); return }
+    const res = await fetch(`/api/admin/blog/posts/${id}`, { cache: "no-store" })
+    const json = (await res.json().catch(() => null)) as { post?: any; error?: string } | null
+    if (!res.ok || !json?.post) {
+      const message = json?.error ?? (isEnglish ? "Failed to load article" : "Erro ao carregar artigo")
+      setError(message)
+      toast.error(isEnglish ? "Failed to load article" : "Erro ao carregar artigo", { description: message })
+      return
+    }
+    const data = json.post
     form.reset({
       peripheral_id: data.peripheral_id,
       title: data.title,
@@ -169,9 +193,19 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
 
       const data = await res.json().catch(() => null) as { error?: string; ok?: boolean } | null
       if (!res.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to save article" : "Erro ao salvar artigo"))
+
+      toast.success(
+        postId
+          ? (isEnglish ? "Article updated" : "Artigo atualizado")
+          : (isEnglish ? "Article created" : "Artigo criado"),
+        { description: values.title }
+      )
+
       router.push("/admin/blog")
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save article" : "Erro ao salvar artigo"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to save article" : "Erro ao salvar artigo")
+      setError(message)
+      toast.error(isEnglish ? "Failed to save article" : "Erro ao salvar artigo", { description: message })
     } finally {
       setUploadingCover(null)
       setSaving(false)
@@ -194,13 +228,16 @@ export function BlogPostForm({ postId }: BlogPostFormProps) {
   return (
     <div className="space-y-0 pb-10">
       {/* Sticky top bar */}
-      <div className="sticky top-0 z-10 -mx-6 mb-6 flex items-center justify-between px-6 py-3">
-        <Link href="/admin/blog">
-          <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
-            <ChevronLeft className="size-4" />
-            {isEnglish ? "Articles" : "Artigos"}
-          </Button>
-        </Link>
+      <div className="sticky top-0 z-10 -mx-6 mb-6 flex items-center justify-between gap-4 px-6 py-3">
+        <BackBreadcrumb
+          href="/admin/blog"
+          parentLabel={isEnglish ? "Articles" : "Artigos"}
+          currentLabel={
+            postId
+              ? (watchedTitle?.trim() || (isEnglish ? "Edit" : "Editar"))
+              : (isEnglish ? "New" : "Novo")
+          }
+        />
         <div className="flex items-center gap-3">
           {/* Status toggle */}
           <button

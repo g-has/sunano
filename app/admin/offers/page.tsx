@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { AlertCircle, ExternalLink, Loader2, MessageCircle } from "lucide-react"
+import { toast } from "sonner"
+
+import { usePageHeader } from "@/lib/page-header-context"
 
 import BoxLoader from "@/components/ui/box-loader"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -54,23 +57,23 @@ export default function AdminOffersPage() {
       setOffers(data.offers)
       setWarning(data.warning ?? null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load Telegram offers" : "Erro ao carregar ofertas do Telegram"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to load Telegram offers" : "Erro ao carregar ofertas do Telegram")
+      setError(message)
+      toast.error(isEnglish ? "Failed to load offers" : "Erro ao carregar ofertas", { description: message })
     } finally {
       setLoading(false)
     }
   }
 
+  usePageHeader(
+    isEnglish ? "Offers" : "Ofertas",
+    isEnglish
+      ? "Offers are now synced directly from Telegram group messages. Manual create/edit has been disabled."
+      : "As ofertas agora são sincronizadas diretamente das mensagens do grupo no Telegram. Cadastro/edição manual foi desativado."
+  )
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">{isEnglish ? "Offers" : "Ofertas"}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {isEnglish
-            ? "Offers are now synced directly from Telegram group messages. Manual create/edit has been disabled."
-            : "As ofertas agora são sincronizadas diretamente das mensagens do grupo no Telegram. Cadastro/edição manual foi desativado."}
-        </p>
-      </div>
-
       {error ? (
         <Alert className="border-red-500/30 bg-red-500/10">
           <AlertCircle className="size-4 text-red-300" />

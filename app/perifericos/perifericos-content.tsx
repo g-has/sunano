@@ -1,14 +1,24 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeftRight, Check, Plus, Search, X } from "lucide-react"
+import { ArrowLeftRight, Check, Edit, Plus, Search, Trash2, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useLocale } from "@/lib/locale-context"
+import { usePageHeader } from "@/lib/page-header-context"
 import { buildPeripheralSlug } from "@/lib/peripheral-slug"
 import { cn } from "@/lib/utils"
 
@@ -99,9 +109,18 @@ function TierBadge({ tier }: { tier: Tier }) {
   )
 }
 
-export function PerifericosContent({ initialData, showAdminActions }: PerifericosContentProps) {
+export function PerifericosContent({ initialData: initialDataProp, showAdminActions }: PerifericosContentProps) {
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
+
+  const [initialData, setInitialData] = useState<Peripheral[]>(initialDataProp)
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: "", name: "" })
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setInitialData(initialDataProp)
+  }, [initialDataProp])
 
   const [query, setQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<Category>("mouse")
@@ -374,6 +393,32 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
     setSelectedCategory("mouse")
   }
 
+  async function handleConfirmDelete() {
+    if (!deleteDialog.id) return
+    const name = deleteDialog.name
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch(`/api/admin/peripherals/${deleteDialog.id}`, { method: "DELETE" })
+      const data = (await res.json().catch(() => null)) as { error?: string } | null
+      if (!res.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to delete" : "Erro ao deletar"))
+      setInitialData((prev) => prev.filter((p) => p.id !== deleteDialog.id))
+      setSelectedIds((prev) => prev.filter((sid) => sid !== deleteDialog.id))
+      setDeleteDialog({ open: false, id: "", name: "" })
+      toast.success(isEnglish ? "Peripheral deleted" : "Periférico deletado", {
+        description: name,
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to delete" : "Erro ao deletar")
+      setDeleteError(message)
+      toast.error(isEnglish ? "Failed to delete peripheral" : "Erro ao deletar periférico", {
+        description: message,
+      })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const formatCurrency = (value: number) => {
     const currency = isEnglish ? "USD" : "BRL"
     try {
@@ -383,29 +428,26 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
     }
   }
 
+  usePageHeader(
+    isEnglish ? "Peripherals" : "Periféricos",
+    isEnglish
+      ? "A searchable wiki with filters by category, brand and price."
+      : "Wiki pesquisável com filtros por categoria, marca e preço."
+  )
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-6 lg:px-8">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            {isEnglish ? "Peripherals" : "Periféricos"}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {isEnglish
-              ? "A searchable wiki with filters by category, brand and price."
-              : "Wiki pesquisável com filtros por categoria, marca e preço."}
-          </p>
-        </div>
-        {showAdminActions && (
+      {/* Admin actions */}
+      {showAdminActions && (
+        <div className="flex justify-end">
           <Link href="/admin/perifericos/new" className="shrink-0">
             <Button size="sm" className="gap-2">
               <Plus className="size-4" />
               {isEnglish ? "New" : "Novo"}
             </Button>
           </Link>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Category chips */}
       <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -664,10 +706,14 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
               item.specs.panelType ? String(item.specs.panelType).toUpperCase() : null,
             ].filter(Boolean) as string[]
 
+            const cardHref = showAdminActions
+              ? `/admin/perifericos/${item.id}`
+              : `/perifericos/${buildPeripheralSlug(item.name, item.id)}`
+
             return (
               <Link
                 key={item.id}
-                href={`/perifericos/${buildPeripheralSlug(item.name, item.id)}`}
+                href={cardHref}
                 className={cn(
                   "group relative flex flex-col rounded-xl border bg-card transition-all duration-200",
                   "hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30",
@@ -737,27 +783,51 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
                     </Badge>
                   </div>
 
-                  {/* Compare button */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      toggleSelection(item.id, item.category)
-                    }}
-                    className={cn(
-                      "flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all",
-                      isSelected
-                        ? "border border-primary/30 bg-primary/12 text-primary"
-                        : "border border-border bg-muted/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                    )}
-                  >
-                    {isSelected ? (
-                      <><Check className="size-3" />{isEnglish ? "Selected" : "Selecionado"}</>
-                    ) : (
-                      <><ArrowLeftRight className="size-3" />{isEnglish ? "Compare" : "Comparar"}</>
-                    )}
-                  </button>
+                  {showAdminActions ? (
+                    /* Admin actions: Edit + Delete */
+                    <div className="grid grid-cols-2 gap-2">
+                      <span
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/20 py-2 text-xs font-semibold text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                      >
+                        <Edit className="size-3" />
+                        {isEnglish ? "Edit" : "Editar"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setDeleteDialog({ open: true, id: item.id, name: item.name })
+                        }}
+                        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/20 py-2 text-xs font-semibold text-muted-foreground transition-all hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
+                      >
+                        <Trash2 className="size-3" />
+                        {isEnglish ? "Delete" : "Deletar"}
+                      </button>
+                    </div>
+                  ) : (
+                    /* Compare button */
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        toggleSelection(item.id, item.category)
+                      }}
+                      className={cn(
+                        "flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition-all",
+                        isSelected
+                          ? "border border-primary/30 bg-primary/12 text-primary"
+                          : "border border-border bg-muted/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+                      )}
+                    >
+                      {isSelected ? (
+                        <><Check className="size-3" />{isEnglish ? "Selected" : "Selecionado"}</>
+                      ) : (
+                        <><ArrowLeftRight className="size-3" />{isEnglish ? "Compare" : "Comparar"}</>
+                      )}
+                    </button>
+                  )}
                 </div>
               </Link>
             )
@@ -818,6 +888,59 @@ export function PerifericosContent({ initialData, showAdminActions }: Periferico
 
       {/* Bottom padding for floating bar */}
       {selectedIds.length > 0 && <div className="h-16" />}
+
+      {/* Delete confirmation dialog (admin only) */}
+      {showAdminActions && (
+        <Dialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => {
+            if (!open) setDeleteError(null)
+            setDeleteDialog((prev) => ({ ...prev, open }))
+          }}
+        >
+          <DialogContent className="border border-white/[0.12] bg-[#0a0e17]/95">
+            <DialogHeader>
+              <DialogTitle>
+                {isEnglish ? "Delete Peripheral?" : "Deletar Periférico?"}
+              </DialogTitle>
+              <DialogDescription>
+                {deleteDialog.name ? (
+                  <>
+                    {isEnglish ? "You are about to delete " : "Você está prestes a deletar "}
+                    <span className="font-semibold text-foreground">{deleteDialog.name}</span>.{" "}
+                    {isEnglish ? "This action cannot be undone." : "Esta ação não pode ser desfeita."}
+                  </>
+                ) : (
+                  isEnglish ? "This action cannot be undone." : "Esta ação não pode ser desfeita."
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            {deleteError && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+                {deleteError}
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialog({ open: false, id: "", name: "" })}
+                disabled={deleting}
+              >
+                {isEnglish ? "Cancel" : "Cancelar"}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+              >
+                {deleting
+                  ? (isEnglish ? "Deleting..." : "Deletando...")
+                  : (isEnglish ? "Delete" : "Deletar")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

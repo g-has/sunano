@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { ShieldCheck, Users as UsersIcon, UserPlus, Lock, Save, ChevronDown, ChevronUp } from "lucide-react"
+import { toast } from "sonner"
 
 import BoxLoader from "@/components/ui/box-loader"
+import { usePageHeader } from "@/lib/page-header-context"
 import { ADMIN_FEATURES, createDefaultPermissions, normalizePermissions, type AdminProfile } from "@/lib/admin-permissions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -251,7 +253,9 @@ export default function AdminUsersPage() {
       setCurrentUserId(data.current_user_id ?? null)
       setUsers(data.users.map((u) => ({ ...u, permissions: normalizePermissions(u.permissions) })))
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load users" : "Erro ao carregar usuários"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to load users" : "Erro ao carregar usuários")
+      setError(message)
+      toast.error(isEnglish ? "Failed to load users" : "Erro ao carregar usuários", { description: message })
     } finally {
       setLoading(false)
     }
@@ -278,9 +282,14 @@ export default function AdminUsersPage() {
       })
       const data = await res.json().catch(() => null) as { error?: string; ok?: boolean } | null
       if (!res.ok || !data?.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to save" : "Erro ao salvar"))
+      toast.success(isEnglish ? "User updated" : "Usuário atualizado", {
+        description: user.display_name || user.email,
+      })
       await loadUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save" : "Erro ao salvar"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to save" : "Erro ao salvar")
+      setError(message)
+      toast.error(isEnglish ? "Failed to save user" : "Erro ao salvar usuário", { description: message })
     } finally {
       setSavingId(null)
     }
@@ -303,45 +312,41 @@ export default function AdminUsersPage() {
       })
       const data = await res.json().catch(() => null) as { error?: string; ok?: boolean } | null
       if (!res.ok || !data?.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to create" : "Erro ao criar"))
+      const createdEmail = newUser.email.trim()
       setNewUser({ email: "", displayName: "", role: "admin", permissions: normalizePermissions(createDefaultPermissions()) })
       setCreateSuccess(true)
       setShowCreateForm(false)
+      toast.success(isEnglish ? "Invite sent" : "Convite enviado", { description: createdEmail })
       await loadUsers()
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : (isEnglish ? "Failed to create" : "Erro ao criar"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to create" : "Erro ao criar")
+      setCreateError(message)
+      toast.error(isEnglish ? "Failed to create user" : "Erro ao criar usuário", { description: message })
     } finally {
       setCreating(false)
     }
   }
 
+  usePageHeader(
+    isEnglish ? "Users & permissions" : "Usuários e permissões",
+    isEnglish
+      ? "Control who can read or edit each section. WEB Master is always protected."
+      : "Controle quem pode ler ou editar cada seção. WEB Master é sempre protegido."
+  )
+
   return (
     <div className="space-y-6">
-      {/* Hero header */}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
-        <div className="relative p-6">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_40%)]" />
-          <div className="relative flex items-start justify-between gap-4">
-            <div className="space-y-2">
-              <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
-                <ShieldCheck className="size-3.5" />
-                {isEnglish ? "WEB Master only" : "Apenas WEB Master"}
-              </p>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                {isEnglish ? "Users & permissions" : "Usuários e permissões"}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {isEnglish
-                  ? "Control who can read or edit each section. WEB Master is always protected."
-                  : "Controle quem pode ler ou editar cada seção. WEB Master é sempre protegido."}
-              </p>
-            </div>
-            <Button onClick={() => { setShowCreateForm((v) => !v); setCreateError(null) }} className="shrink-0 gap-2">
-              <UserPlus className="size-4" />
-              {isEnglish ? "New user" : "Novo usuário"}
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* Actions */}
+      <div className="flex items-center justify-between gap-4">
+        <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
+          <ShieldCheck className="size-3.5" />
+          {isEnglish ? "WEB Master only" : "Apenas WEB Master"}
+        </p>
+        <Button onClick={() => { setShowCreateForm((v) => !v); setCreateError(null) }} className="shrink-0 gap-2">
+          <UserPlus className="size-4" />
+          {isEnglish ? "New user" : "Novo usuário"}
+        </Button>
+      </div>
 
       {/* Errors */}
       {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</div>}

@@ -3,14 +3,15 @@
 import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
 import { Plus, Pencil, Trash2, Search, Eye, FileText, BookOpen, Filter } from "lucide-react"
+import { toast } from "sonner"
 
 import BoxLoader from "@/components/ui/box-loader"
+import { usePageHeader } from "@/lib/page-header-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useLocale } from "@/lib/locale-context"
-import { supabase } from "@/lib/supabase"
 
 type BlogPost = {
   id: string
@@ -44,15 +45,16 @@ export default function AdminBlogPage() {
       setLoading(true)
       setError(null)
 
-      const { data, error: err } = await supabase
-        .from("blog_posts")
-        .select("id, title, slug, excerpt, cover_thumbnail_url, cover_image_url, is_published, created_at, peripherals(name, brand)")
-        .order("created_at", { ascending: false })
-
-      if (err) throw err
-      setPosts(((data ?? []) as unknown as BlogPost[]) ?? [])
+      const res = await fetch("/api/admin/blog/posts", { cache: "no-store" })
+      const data = (await res.json().catch(() => null)) as { posts?: BlogPost[]; error?: string } | null
+      if (!res.ok || !data?.posts) {
+        throw new Error(data?.error ?? (isEnglish ? "Failed to load articles" : "Erro ao carregar artigos"))
+      }
+      setPosts(data.posts)
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load articles" : "Erro ao carregar artigos"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to load articles" : "Erro ao carregar artigos")
+      setError(message)
+      toast.error(isEnglish ? "Failed to load articles" : "Erro ao carregar artigos", { description: message })
     } finally {
       setLoading(false)
     }
@@ -61,13 +63,20 @@ export default function AdminBlogPage() {
   async function removePost(id: string) {
     if (!confirm(isEnglish ? "Are you sure you want to delete this article?" : "Tem certeza que deseja excluir este artigo?")) return
 
-    const { error: err } = await supabase.from("blog_posts").delete().eq("id", id)
-    if (err) {
-      setError(err.message)
+    const target = posts.find((p) => p.id === id)
+    const res = await fetch(`/api/admin/blog/posts/${id}`, { method: "DELETE" })
+    const data = (await res.json().catch(() => null)) as { error?: string } | null
+    if (!res.ok) {
+      const message = data?.error ?? (isEnglish ? "Failed to delete article" : "Erro ao deletar artigo")
+      setError(message)
+      toast.error(isEnglish ? "Failed to delete article" : "Erro ao deletar artigo", { description: message })
       return
     }
 
     setPosts((prev) => prev.filter((post) => post.id !== id))
+    toast.success(isEnglish ? "Article deleted" : "Artigo deletado", {
+      description: target?.title,
+    })
   }
 
   const stats = useMemo(() => ({
@@ -97,16 +106,15 @@ export default function AdminBlogPage() {
     { key: "draft", label: isEnglish ? "Drafts" : "Rascunhos", count: stats.drafts },
   ]
 
+  usePageHeader(
+    isEnglish ? "Blog & Reviews" : "Blog & Reviews",
+    isEnglish ? "Manage reviews and peripheral-related articles." : "Gerencie reviews e artigos relacionados aos periféricos."
+  )
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Blog</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {isEnglish ? "Manage reviews and peripheral-related articles" : "Gerencie reviews e artigos relacionados aos periféricos"}
-          </p>
-        </div>
+      {/* Actions */}
+      <div className="flex justify-end">
         <Link href="/admin/blog/new">
           <Button className="gap-2">
             <Plus className="size-4" />

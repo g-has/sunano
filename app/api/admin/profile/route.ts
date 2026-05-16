@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import * as z from "zod"
 
 import type { AdminProfile } from "@/lib/admin-permissions"
+import { dbErrorResponse } from "@/lib/db-errors"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 const profileSchema = z.object({
@@ -31,7 +32,8 @@ export async function GET() {
       .maybeSingle()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      const { body, status } = dbErrorResponse(error, "Erro ao carregar perfil.")
+      return NextResponse.json(body, { status })
     }
 
     const typedProfile = profile as AdminProfile | null
@@ -106,7 +108,8 @@ export async function POST(request: Request) {
     )
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      const { body, status } = dbErrorResponse(error, "Erro ao salvar perfil.")
+      return NextResponse.json(body, { status })
     }
 
     return NextResponse.json({

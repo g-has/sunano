@@ -4,28 +4,26 @@ import { AlertTriangle, ShieldCheck, Sparkles } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLocale } from "@/lib/locale-context"
+import { usePageHeader } from "@/lib/page-header-context"
 
 export default function AdminMaintenancePage() {
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
   const maintenanceEnabled = process.env.MAINTENANCE_MODE === "true" || process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true"
 
+  usePageHeader(
+    isEnglish ? "Website maintenance mode" : "Modo de manutenção do site",
+    isEnglish
+      ? "When this mode is active, public routes are blocked and only authenticated admin users can keep navigating."
+      : "Quando este modo estiver ativo, qualquer rota pública fica bloqueada e apenas usuários autenticados no admin continuam navegando."
+  )
+
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
-          <Sparkles className="size-3.5" />
-          Maintenance
-        </p>
-        <h1 className="font-display text-3xl font-bold tracking-tight text-slate-50 md:text-4xl">
-          {isEnglish ? "Website maintenance mode" : "Modo de manutencao do site"}
-        </h1>
-        <p className="max-w-2xl text-sm text-slate-400">
-          {isEnglish
-            ? "When this mode is active, public routes are blocked and only authenticated admin users can keep navigating."
-            : "Quando este modo estiver ativo, qualquer rota publica fica bloqueada e apenas usuários autenticados no admin continuam navegando."}
-        </p>
-      </div>
+      <p className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
+        <Sparkles className="size-3.5" />
+        Maintenance
+      </p>
 
       <Card className="border-white/[0.08] bg-card">
         <CardHeader>

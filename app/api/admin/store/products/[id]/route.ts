@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAuthorizedProfile } from "@/lib/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
+import { dbErrorResponse } from "@/lib/db-errors"
 import { createSupabaseAdminClient } from "@/lib/supabase-admin"
 import type { Database } from "@/lib/supabase"
 
@@ -57,7 +58,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    const { body, status } = dbErrorResponse(error, "Erro ao atualizar produto.")
+    return NextResponse.json(body, { status })
+  }
 
   return NextResponse.json({ product: data })
 }
@@ -75,7 +79,10 @@ export async function DELETE(_req: NextRequest, context: { params: Promise<{ id:
   const db = createSupabaseAdminClient()
   const { error } = await db.from("store_products").delete().eq("id", id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    const { body, status } = dbErrorResponse(error, "Erro ao deletar produto.")
+    return NextResponse.json(body, { status })
+  }
 
   return NextResponse.json({ ok: true })
 }

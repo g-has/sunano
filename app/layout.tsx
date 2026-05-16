@@ -3,10 +3,12 @@ import "./globals.css"
 import type { Metadata, Viewport } from "next"
 import { Inter, Space_Grotesk } from "next/font/google"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/toaster"
 import { LocaleProvider } from "@/lib/locale-context"
 import { ThemeProvider } from "@/lib/theme-context"
 import { SidebarProvider } from "@/lib/sidebar-context"
 import { CartProvider } from "@/lib/cart-context"
+import { PageHeaderProvider } from "@/lib/page-header-context"
 import { LayoutShell } from "@/components/layout/LayoutShell"
 
 const inter = Inter({
@@ -43,9 +45,12 @@ export default function RootLayout({
           <LocaleProvider>
             <SidebarProvider>
               <CartProvider>
-                <TooltipProvider delayDuration={200}>
-                  <LayoutShell>{children}</LayoutShell>
-                </TooltipProvider>
+                <PageHeaderProvider>
+                  <TooltipProvider delayDuration={200}>
+                    <LayoutShell>{children}</LayoutShell>
+                    <Toaster />
+                  </TooltipProvider>
+                </PageHeaderProvider>
               </CartProvider>
             </SidebarProvider>
           </LocaleProvider>

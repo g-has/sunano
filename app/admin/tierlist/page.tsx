@@ -4,7 +4,9 @@ import { useEffect, useState, useMemo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Edit, Plus, Trash2, AlertCircle } from "lucide-react"
+import { toast } from "sonner"
 import BoxLoader from "@/components/ui/box-loader"
+import { usePageHeader } from "@/lib/page-header-context"
 import {
   DndContext,
   DragEndEvent,
@@ -38,7 +40,6 @@ import {
 } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useLocale } from "@/lib/locale-context"
-import { supabase } from "@/lib/supabase"
 import {
   CARD_TAG_STYLES,
   CARD_TIER_STYLES,
@@ -563,15 +564,16 @@ export default function AdminPeripheralsPage() {
     try {
       setLoading(true)
       setError(null)
-      const { data, error: err } = await supabase
-        .from("peripherals")
-        .select("id, name, brand, category, tier, price, image_url, tags, specs, created_at")
-        .order("created_at", { ascending: false })
-
-      if (err) throw err
-      setPeripherals(data || [])
+      const res = await fetch("/api/admin/peripherals", { cache: "no-store" })
+      const data = (await res.json().catch(() => null)) as { peripherals?: Peripheral[]; error?: string } | null
+      if (!res.ok || !data?.peripherals) {
+        throw new Error(data?.error ?? (isEnglish ? "Failed to load" : "Erro ao carregar"))
+      }
+      setPeripherals(data.peripherals)
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load" : "Erro ao carregar"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to load" : "Erro ao carregar")
+      setError(message)
+      toast.error(isEnglish ? "Failed to load peripherals" : "Erro ao carregar periféricos", { description: message })
     } finally {
       setLoading(false)
     }
@@ -623,9 +625,10 @@ export default function AdminPeripheralsPage() {
       setPeripherals(nextPeripherals)
 
       try {
-        const { error: err } = await supabase
-          .from("peripherals")
-          .update({
+        const res = await fetch(`/api/admin/peripherals/${draggedItem.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             tier: null,
             specs: {
               ...specs,
@@ -634,13 +637,18 @@ export default function AdminPeripheralsPage() {
               adminSoundProfile: null,
               adminTypingFeel: null,
             },
-          })
-          .eq("id", draggedItem.id)
-
-        if (err) throw err
+          }),
+        })
+        const data = (await res.json().catch(() => null)) as { error?: string } | null
+        if (!res.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to update" : "Erro ao atualizar"))
+        toast.success(isEnglish ? "Tier removed" : "Tier removido", {
+          description: draggedItem.name,
+        })
       } catch (err) {
         setPeripherals(peripherals)
-        setError(err instanceof Error ? err.message : (isEnglish ? "Failed to update" : "Erro ao atualizar"))
+        const message = err instanceof Error ? err.message : (isEnglish ? "Failed to update" : "Erro ao atualizar")
+        setError(message)
+        toast.error(isEnglish ? "Failed to update peripheral" : "Erro ao atualizar periférico", { description: message })
       }
 
       return
@@ -701,34 +709,47 @@ export default function AdminPeripheralsPage() {
     setPeripherals(nextPeripherals)
 
     try {
-      const { error: err } = await supabase.from("peripherals").update({
-        tier: newTier,
-        tags: ratingMode === "performance" ? [newColumn as Tag] : draggedItem.tags,
-        specs: nextSpecs,
-      }).eq("id", draggedItem.id)
-
-      if (err) throw err
+      const res = await fetch(`/api/admin/peripherals/${draggedItem.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tier: newTier,
+          tags: ratingMode === "performance" ? [newColumn as Tag] : draggedItem.tags,
+          specs: nextSpecs,
+        }),
+      })
+      const data = (await res.json().catch(() => null)) as { error?: string } | null
+      if (!res.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to update" : "Erro ao atualizar"))
+      toast.success(isEnglish ? `Moved to tier ${newTier}` : `Movido para tier ${newTier}`, {
+        description: draggedItem.name,
+      })
     } catch (err) {
       setPeripherals(peripherals)
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to update" : "Erro ao atualizar"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to update" : "Erro ao atualizar")
+      setError(message)
+      toast.error(isEnglish ? "Failed to update peripheral" : "Erro ao atualizar periférico", { description: message })
     }
   }
 
   async function confirmDelete() {
     if (!deleteDialog.id) return
 
+    const deletedItem = peripherals.find((p) => p.id === deleteDialog.id)
+
     try {
       setDeleting(true)
-      const { error: err } = await supabase
-        .from("peripherals")
-        .delete()
-        .eq("id", deleteDialog.id)
-
-      if (err) throw err
+      const res = await fetch(`/api/admin/peripherals/${deleteDialog.id}`, { method: "DELETE" })
+      const data = (await res.json().catch(() => null)) as { error?: string } | null
+      if (!res.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to delete" : "Erro ao deletar"))
       setPeripherals(peripherals.filter((p) => p.id !== deleteDialog.id))
       setDeleteDialog({ open: false, id: "" })
+      toast.success(isEnglish ? "Peripheral deleted" : "Periférico deletado", {
+        description: deletedItem?.name,
+      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to delete" : "Erro ao deletar"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to delete" : "Erro ao deletar")
+      setError(message)
+      toast.error(isEnglish ? "Failed to delete peripheral" : "Erro ao deletar periférico", { description: message })
     } finally {
       setDeleting(false)
     }
@@ -736,6 +757,12 @@ export default function AdminPeripheralsPage() {
 
   const selectedCategoryMeta = CATEGORY_META.find((c) => c.key === selectedCategory)
   const categoryLabel = selectedCategoryMeta ? (isEnglish ? selectedCategoryMeta.en : selectedCategoryMeta.pt) : "Tierlist"
+
+  usePageHeader(
+    `Admin Tierlist - ${categoryLabel}`,
+    isEnglish ? "Drag and drop to reorder. Click to edit." : "Arraste e solte para reorganizar. Clique para editar."
+  )
+
   const filtered = peripherals.filter((item) => item.category === selectedCategory)
   const unassignedItems = filtered.filter((item) => item.tier === null)
   const activeItem = activeId ? peripherals.find((p) => p.id === activeId) ?? null : null
@@ -757,14 +784,8 @@ export default function AdminPeripheralsPage() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-50">
-            Admin Tierlist - {categoryLabel}
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">{isEnglish ? "Drag and drop to reorder. Click to edit." : "Arraste e solte para reorganizar. Clique para editar."}</p>
-        </div>
+      {/* Actions */}
+      <div className="flex justify-end">
         <Link href="/admin/tierlist/new">
           <Button className="gap-2">
             <Plus className="size-4" />

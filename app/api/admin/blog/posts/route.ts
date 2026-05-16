@@ -1,0 +1,32 @@
+import { NextRequest, NextResponse } from "next/server"
+
+import { getAuthorizedProfile } from "@/lib/admin-auth"
+import { hasAdminPermission } from "@/lib/admin-permissions"
+import { dbErrorResponse } from "@/lib/db-errors"
+import { createSupabaseAdminClient } from "@/lib/supabase-admin"
+
+export const dynamic = "force-dynamic"
+export const runtime = "nodejs"
+
+export async function GET(_request: NextRequest) {
+  const auth = await getAuthorizedProfile()
+  if (auth.error || !auth.profile) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status })
+  }
+  if (!hasAdminPermission(auth.profile, "blog_read")) {
+    return NextResponse.json({ error: "Sem permissão para ler blog." }, { status: 403 })
+  }
+
+  const db = createSupabaseAdminClient()
+  const { data, error } = await db
+    .from("blog_posts")
+    .select("id, title, slug, excerpt, cover_thumbnail_url, cover_image_url, is_published, created_at, peripherals(name, brand)")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    const { body, status } = dbErrorResponse(error, "Erro ao listar artigos.")
+    return NextResponse.json(body, { status })
+  }
+
+  return NextResponse.json({ posts: data ?? [] })
+}

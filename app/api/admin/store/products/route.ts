@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAuthorizedProfile } from "@/lib/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
+import { dbErrorResponse } from "@/lib/db-errors"
 import { createSupabaseAdminClient } from "@/lib/supabase-admin"
 import { parseSlug } from "@/lib/stripe"
 
@@ -27,7 +28,10 @@ export async function GET(request: NextRequest) {
   }
 
   const { data, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    const { body, status } = dbErrorResponse(error, "Erro ao listar produtos.")
+    return NextResponse.json(body, { status })
+  }
 
   return NextResponse.json({ products: data })
 }
@@ -78,7 +82,10 @@ export async function POST(request: NextRequest) {
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    const { body, status } = dbErrorResponse(error, "Erro ao criar produto.")
+    return NextResponse.json(body, { status })
+  }
 
   return NextResponse.json({ product: data })
 }

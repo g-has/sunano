@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import * as z from "zod"
 
 import { hasAdminPermission } from "@/lib/admin-permissions"
+import { dbErrorResponse } from "@/lib/db-errors"
 import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 const blogPostSchema = z.object({
@@ -110,7 +111,8 @@ export async function POST(request: Request) {
     )
 
     if (profileEnsureError && !profileEnsureError.message.includes("admin_profiles")) {
-      return NextResponse.json({ error: profileEnsureError.message }, { status: 400 })
+      const { body, status } = dbErrorResponse(profileEnsureError, "Erro ao validar perfil do admin.")
+      return NextResponse.json(body, { status })
     }
 
     const payload = {
@@ -243,10 +245,8 @@ export async function POST(request: Request) {
     }
 
     if (result.error) {
-      return NextResponse.json(
-        { error: result.error.message },
-        { status: 400 }
-      )
+      const { body, status } = dbErrorResponse(result.error, "Erro ao salvar artigo.")
+      return NextResponse.json(body, { status })
     }
 
     const savedId = Array.isArray(result.data) ? result.data[0]?.id : result.data?.id

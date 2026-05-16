@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { AlertCircle, Edit, Plus, Store, Tag, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import BoxLoader from "@/components/ui/box-loader"
+import { usePageHeader } from "@/lib/page-header-context"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -62,7 +64,9 @@ export default function AdminStorePage() {
       if (!res.ok) throw new Error(data.error ?? "Erro ao carregar")
       setProducts(data.products ?? [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar")
+      const message = err instanceof Error ? err.message : "Erro ao carregar"
+      setError(message)
+      toast.error("Erro ao carregar produtos", { description: message })
     } finally {
       setLoading(false)
     }
@@ -72,14 +76,18 @@ export default function AdminStorePage() {
 
   async function handleDelete() {
     if (!deleteDialog.id) return
+    const target = products.find((p) => p.id === deleteDialog.id)
     setDeleting(true)
     try {
       const res = await fetch(`/api/admin/store/products/${deleteDialog.id}`, { method: "DELETE" })
       if (!res.ok) throw new Error("Erro ao deletar")
       setProducts((prev) => prev.filter((p) => p.id !== deleteDialog.id))
       setDeleteDialog({ open: false, id: "" })
+      toast.success("Produto deletado", { description: target?.name })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao deletar")
+      const message = err instanceof Error ? err.message : "Erro ao deletar"
+      setError(message)
+      toast.error("Erro ao deletar produto", { description: message })
     } finally {
       setDeleting(false)
     }
@@ -88,16 +96,12 @@ export default function AdminStorePage() {
   const storeCount = products.filter((p) => p.type === "store").length
   const bazaarCount = products.filter((p) => p.type === "bazaar").length
 
+  usePageHeader("Loja & Bazar", "Gerencie os produtos da loja e os itens do bazar (usados pelo Sunano).")
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-50">Loja & Bazar</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Gerencie os produtos da loja e os itens do bazar (usados pelo Sunano)
-          </p>
-        </div>
+      {/* Actions */}
+      <div className="flex justify-end">
         <div className="flex gap-2">
           <Link href="/admin/store/new?type=store">
             <Button variant="outline" className="gap-2 border-white/[0.12]">

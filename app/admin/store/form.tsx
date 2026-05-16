@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Loader2, Plus, Trash2, Upload } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -100,7 +101,9 @@ export function StoreProductForm({ product, defaultType = "store", onSuccess, on
       const url = await uploadImage(file)
       setImages((prev) => [...prev, url])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao enviar imagem")
+      const message = err instanceof Error ? err.message : "Erro ao enviar imagem"
+      setError(message)
+      toast.error("Erro ao enviar imagem", { description: message })
     } finally {
       setUploading(false)
       e.target.value = ""
@@ -113,17 +116,24 @@ export function StoreProductForm({ product, defaultType = "store", onSuccess, on
     setLoading(true)
 
     try {
+      if (!formData.name.trim()) {
+        throw new Error("Informe o nome do produto.")
+      }
       const priceCents = Math.round(parseFloat(formData.price_brl.replace(",", ".")) * 100)
 
       if (isNaN(priceCents) || priceCents <= 0) {
-        throw new Error("Preço inválido")
+        throw new Error("Preço inválido. Use um valor maior que zero (ex: 159,90).")
+      }
+      const stockValue = parseInt(formData.stock, 10)
+      if (isNaN(stockValue) || stockValue < 0) {
+        throw new Error("Estoque inválido. Use um número inteiro maior ou igual a zero.")
       }
 
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         price_cents: priceCents,
-        stock: parseInt(formData.stock, 10),
+        stock: stockValue,
         images,
         category: formData.category || null,
         type: formData.type,
@@ -149,9 +159,15 @@ export function StoreProductForm({ product, defaultType = "store", onSuccess, on
         throw new Error(data.error ?? "Erro ao salvar produto")
       }
 
+      toast.success(product ? "Produto atualizado" : "Produto criado", {
+        description: data.product.name,
+      })
+
       onSuccess(data.product)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar")
+      const message = err instanceof Error ? err.message : "Erro ao salvar"
+      setError(message)
+      toast.error("Erro ao salvar produto", { description: message })
     } finally {
       setLoading(false)
     }
@@ -223,10 +239,13 @@ export function StoreProductForm({ product, defaultType = "store", onSuccess, on
           <Label>Nome do produto *</Label>
           <Input
             required
+            minLength={2}
+            maxLength={200}
             value={formData.name}
             onChange={(e) => set("name", e.target.value)}
             placeholder="Ex: Logitech G Pro X Superlight 2"
           />
+          <p className="text-[10px] text-muted-foreground/60">Obrigatório. Use o nome completo do produto.</p>
         </div>
 
         <div className="space-y-2">
@@ -280,6 +299,7 @@ export function StoreProductForm({ product, defaultType = "store", onSuccess, on
               className="pl-9"
             />
           </div>
+          <p className="text-[10px] text-muted-foreground/60">Maior que zero. Use vírgula para centavos (ex: 159,90).</p>
           {pricePreview && (
             <p className="text-xs text-emerald-400">{pricePreview}</p>
           )}
@@ -291,6 +311,7 @@ export function StoreProductForm({ product, defaultType = "store", onSuccess, on
             required
             type="number"
             min={0}
+            step={1}
             value={formData.stock}
             onChange={(e) => set("stock", e.target.value)}
             placeholder="1"

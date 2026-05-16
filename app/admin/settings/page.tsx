@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ChangeEvent } from "react"
 import { Upload, Camera, KeyRound, Youtube, RefreshCw, CheckCircle2, AlertTriangle, Clock, User } from "lucide-react"
+import { toast } from "sonner"
 
 import BoxLoader from "@/components/ui/box-loader"
+import { usePageHeader } from "@/lib/page-header-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -107,9 +109,13 @@ export default function SettingsPage() {
       const data = await res.json().catch(() => null) as { ok?: boolean; error?: string; warning?: string | null; status?: typeof videoStatus } | null
       if (!res.ok || !data?.status) throw new Error(data?.error ?? "")
       setVideoStatus(data.status)
-      setSuccess(data.warning ?? (isEnglish ? "YouTube snapshot refreshed." : "Snapshot do YouTube atualizado."))
+      const msg = data.warning ?? (isEnglish ? "YouTube snapshot refreshed." : "Snapshot do YouTube atualizado.")
+      setSuccess(msg)
+      toast.success(isEnglish ? "YouTube synced" : "YouTube sincronizado", { description: msg })
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to refresh" : "Erro ao atualizar"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to refresh" : "Erro ao atualizar")
+      setError(message)
+      toast.error(isEnglish ? "Failed to refresh YouTube" : "Erro ao atualizar YouTube", { description: message })
     } finally {
       setVideoRefreshing(false)
     }
@@ -127,7 +133,9 @@ export default function SettingsPage() {
       setAvatarPreview(data.profile.avatar_url)
       setRole(data.profile.role)
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to load profile" : "Erro ao carregar perfil"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to load profile" : "Erro ao carregar perfil")
+      setError(message)
+      toast.error(isEnglish ? "Failed to load profile" : "Erro ao carregar perfil", { description: message })
     } finally {
       setLoading(false)
     }
@@ -150,8 +158,11 @@ export default function SettingsPage() {
       if (!res.ok || !data?.publicUrl) throw new Error(data?.error ?? "")
       setAvatarUrl(data.publicUrl)
       setAvatarPreview(data.publicUrl)
+      toast.success(isEnglish ? "Avatar uploaded" : "Avatar enviado")
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to upload avatar" : "Erro ao enviar avatar"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to upload avatar" : "Erro ao enviar avatar")
+      setError(message)
+      toast.error(isEnglish ? "Failed to upload avatar" : "Erro ao enviar avatar", { description: message })
     } finally {
       setUploading(false)
     }
@@ -174,9 +185,13 @@ export default function SettingsPage() {
       setAvatarUrl(data.profile.avatar_url)
       setAvatarPreview(data.profile.avatar_url)
       setRole(data.profile.role)
-      setSuccess(isEnglish ? "Profile saved successfully." : "Perfil salvo com sucesso.")
+      const msg = isEnglish ? "Profile saved successfully." : "Perfil salvo com sucesso."
+      setSuccess(msg)
+      toast.success(isEnglish ? "Profile saved" : "Perfil salvo")
     } catch (err) {
-      setError(err instanceof Error ? err.message : (isEnglish ? "Failed to save profile" : "Erro ao salvar perfil"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to save profile" : "Erro ao salvar perfil")
+      setError(message)
+      toast.error(isEnglish ? "Failed to save profile" : "Erro ao salvar perfil", { description: message })
     } finally {
       setSaving(false)
     }
@@ -186,11 +201,15 @@ export default function SettingsPage() {
     setPasswordError(null)
     setPasswordSuccess(false)
     if (newPassword.length < 8) {
-      setPasswordError(isEnglish ? "Password must be at least 8 characters." : "A senha deve ter no mínimo 8 caracteres.")
+      const msg = isEnglish ? "Password must be at least 8 characters." : "A senha deve ter no mínimo 8 caracteres."
+      setPasswordError(msg)
+      toast.error(msg)
       return
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError(isEnglish ? "Passwords do not match." : "As senhas não conferem.")
+      const msg = isEnglish ? "Passwords do not match." : "As senhas não conferem."
+      setPasswordError(msg)
+      toast.error(msg)
       return
     }
     try {
@@ -204,13 +223,21 @@ export default function SettingsPage() {
       setNewPassword("")
       setConfirmPassword("")
       setPasswordSuccess(true)
+      toast.success(isEnglish ? "Password updated" : "Senha atualizada")
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : (isEnglish ? "Failed to change password" : "Erro ao alterar senha"))
+      const message = err instanceof Error ? err.message : (isEnglish ? "Failed to change password" : "Erro ao alterar senha")
+      setPasswordError(message)
+      toast.error(isEnglish ? "Failed to change password" : "Erro ao alterar senha", { description: message })
     }
   }
 
   const previewName = useMemo(() => displayName.trim() || getNameFallback(email), [displayName, email])
   const roleLabel = role === "webmaster" ? "WEB Master" : role === "moderator" ? (isEnglish ? "Moderator" : "Moderador") : "Admin"
+
+  usePageHeader(
+    isEnglish ? "Settings" : "Configurações",
+    isEnglish ? "Manage your profile and system preferences." : "Gerencie seu perfil e preferências do sistema."
+  )
 
   if (loading) {
     return (
@@ -222,13 +249,6 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 pb-10">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{isEnglish ? "Settings" : "Configurações"}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {isEnglish ? "Manage your profile and system preferences." : "Gerencie seu perfil e preferências do sistema."}
-        </p>
-      </div>
-
       {/* Global messages */}
       {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</div>}
       {success && <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">{success}</div>}
