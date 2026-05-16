@@ -38,8 +38,11 @@ interface Peripheral {
     surface?: "cloth" | "hybrid" | "glass"
     driver?: string
     profile?: string
+    panelType?: string
     adminValueBand?: string
     adminRecommendedBand?: string
+    adminSoundProfile?: string
+    adminTypingFeel?: string
   }
 }
 
@@ -136,6 +139,7 @@ function getRatingModeLabel(mode: RatingMode, category: string): string {
     performance: "Performance",
     value: "Custo-Beneficio",
     recommended: "Recomendado",
+    soundTyping: "Som e Digitação",
   }
   return modeMap[mode]
 }
@@ -323,12 +327,12 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   ]
 
   const ratingModes: { key: RatingMode; label: string; color: string }[] = [
-    ...(category === "monitors" ? [{ key: "oled", label: getRatingModeLabel("oled", category), color: "bg-amber-400" }] : []),
-    { key: "performance", label: getRatingModeLabel("performance", category), color: "bg-red-400" },
-    { key: "value", label: getRatingModeLabel("value", category), color: "bg-emerald-400" },
-    { key: "recommended", label: getRatingModeLabel("recommended", category), color: "bg-purple-400" },
+    ...(category === "monitors" ? [{ key: "oled" as const, label: getRatingModeLabel("oled", category), color: "bg-amber-400" }] : []),
+    { key: "performance" as const, label: getRatingModeLabel("performance", category), color: "bg-red-400" },
+    { key: "value" as const, label: getRatingModeLabel("value", category), color: "bg-emerald-400" },
+    { key: "recommended" as const, label: getRatingModeLabel("recommended", category), color: "bg-purple-400" },
     ...(category === "switches" ? [
-      { key: "soundTyping", label: "Som e Digitação", color: "bg-cyan-500" },
+      { key: "soundTyping" as const, label: "Som e Digitação", color: "bg-cyan-500" },
     ] : []),
   ]
 
