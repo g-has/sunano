@@ -21,7 +21,6 @@ import {
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -31,13 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useLocale } from "@/lib/locale-context"
 import {
@@ -49,13 +42,16 @@ import {
   VALUE_COLUMN_COLORS,
 } from "@/lib/tierlist-theme"
 import { TierItemTooltipContent } from "@/components/tierlist/TierItemTooltipContent"
+import { FilterBar } from "@/components/tierlist/FilterBar"
 
 type RatingMode = "oled" | "performance" | "value" | "recommended" | "soundTyping"
 
-type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
+type Category = "all" | "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierValue = Tier | null
 type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
+type MouseShape = "symmetrical" | "ergonomic"
+type KeyboardLayout = "60%" | "75%" | "tkl" | "full-size"
 
 interface Peripheral {
   id: string
@@ -124,7 +120,7 @@ function getRatingModeLabel(mode: RatingMode, category: string, isEnglish: boole
   return isEnglish ? (mode_obj?.en || "") : (mode_obj?.pt || "")
 }
 
-type PriceBand = "budget" | "mid" | "premium"
+type PriceBand = "all" | "budget" | "mid" | "premium"
 
 type ModeColumn = {
   key: string
@@ -542,7 +538,12 @@ export default function AdminPeripheralsPage() {
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
   const [peripherals, setPeripherals] = useState<Peripheral[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<Category>("mouse")
+  const [selectedCategory, setSelectedCategory] = useState<Category>("all")
+  const [query, setQuery] = useState("")
+  const [selectedBrand, setSelectedBrand] = useState("all")
+  const [selectedPriceBand, setSelectedPriceBand] = useState<PriceBand>("all")
+  const [selectedMouseShape, setSelectedMouseShape] = useState<MouseShape | "all">("all")
+  const [selectedKeyboardLayout, setSelectedKeyboardLayout] = useState<KeyboardLayout | "all">("all")
   const [ratingMode, setRatingMode] = useState<RatingMode>("performance")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -754,14 +755,63 @@ export default function AdminPeripheralsPage() {
   }
 
   const selectedCategoryMeta = CATEGORY_META.find((c) => c.key === selectedCategory)
-  const categoryLabel = selectedCategoryMeta ? (isEnglish ? selectedCategoryMeta.en : selectedCategoryMeta.pt) : "Tierlist"
+  const categoryLabel = selectedCategory === "all"
+    ? (isEnglish ? "All" : "Geral")
+    : selectedCategoryMeta
+      ? (isEnglish ? selectedCategoryMeta.en : selectedCategoryMeta.pt)
+      : "Tierlist"
 
   usePageHeader(
     `Admin Tierlist - ${categoryLabel}`,
     isEnglish ? "Drag and drop to reorder. Click to edit." : "Arraste e solte para reorganizar. Clique para editar."
   )
 
-  const filtered = peripherals.filter((item) => item.category === selectedCategory)
+  const availableBrands = useMemo(() => {
+    const inCategory =
+      selectedCategory === "all"
+        ? peripherals
+        : peripherals.filter((item) => item.category === selectedCategory)
+    return ["all", ...Array.from(new Set(inCategory.map((item) => item.brand)))]
+  }, [peripherals, selectedCategory])
+
+  const filtered = useMemo(() => {
+    return peripherals.filter((item) => {
+      if (selectedCategory !== "all" && item.category !== selectedCategory) return false
+
+      const specs = item.specs ?? {}
+      const searchable = `${item.name} ${item.brand} ${typeof specs.driver === "string" ? specs.driver : ""} ${typeof specs.profile === "string" ? specs.profile : ""}`
+        .toLowerCase()
+      const matchesQuery = query.trim() === "" || searchable.includes(query.trim().toLowerCase())
+      const matchesBrand = selectedBrand === "all" || item.brand === selectedBrand
+      const matchesPrice = selectedPriceBand === "all" || getPriceBand(item.price) === selectedPriceBand
+
+      const matchesMouseShape =
+        selectedCategory !== "mouse" ||
+        selectedMouseShape === "all" ||
+        specs.mouseShape === selectedMouseShape
+
+      const matchesKeyboardLayout =
+        selectedCategory !== "keyboard" ||
+        selectedKeyboardLayout === "all" ||
+        specs.keyboardLayout === selectedKeyboardLayout
+
+      return matchesQuery && matchesBrand && matchesPrice && matchesMouseShape && matchesKeyboardLayout
+    })
+  }, [
+    peripherals,
+    selectedCategory,
+    query,
+    selectedBrand,
+    selectedPriceBand,
+    selectedMouseShape,
+    selectedKeyboardLayout,
+  ])
+
+  const activeFiltersCount = useMemo(() => {
+    return [selectedBrand, selectedPriceBand, selectedMouseShape, selectedKeyboardLayout].filter(
+      (value) => value !== "all",
+    ).length + (query.trim() ? 1 : 0)
+  }, [query, selectedBrand, selectedPriceBand, selectedMouseShape, selectedKeyboardLayout])
   const unassignedItems = filtered.filter((item) => item.tier === null)
   const activeItem = activeId ? peripherals.find((p) => p.id === activeId) ?? null : null
   const modeConfig = MODE_CONFIGS[ratingMode]
@@ -780,6 +830,21 @@ export default function AdminPeripheralsPage() {
     [filtered, modeConfig]
   )
 
+  const handleCategoryChange = (category: Category) => {
+    setSelectedCategory(category)
+    setSelectedBrand("all")
+    setSelectedMouseShape("all")
+    setSelectedKeyboardLayout("all")
+  }
+
+  const resetFilters = () => {
+    setQuery("")
+    setSelectedBrand("all")
+    setSelectedPriceBand("all")
+    setSelectedMouseShape("all")
+    setSelectedKeyboardLayout("all")
+  }
+
   return (
     <div className="space-y-4">
       {/* Actions */}
@@ -792,46 +857,52 @@ export default function AdminPeripheralsPage() {
         </Link>
       </div>
 
-      {/* Category Selector */}
-      <div className="space-y-3 rounded-xl border border-white/[0.08] bg-card p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <span className="text-sm font-semibold text-slate-300">{isEnglish ? "Category:" : "Categoria:"}</span>
-            <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as Category)}>
-              <SelectTrigger className="w-48 border-white/10 bg-white/5 h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORY_META.map((cat) => (
-                  <SelectItem key={cat.key} value={cat.key}>
-                    {isEnglish ? cat.en : cat.pt}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex rounded-lg border border-white/[0.1] bg-white/[0.02] p-1">
-            {RATING_MODES.filter((m) => {
-              if (m.key === "oled" && selectedCategory !== "monitors") return false
-              if (m.key === "soundTyping" && selectedCategory !== "switches") return false
-              return true
-            }).map((mode) => (
-              <button
-                key={mode.key}
-                type="button"
-                onClick={() => setRatingMode(mode.key)}
-                className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
-                  ratingMode === mode.key
-                    ? "bg-cyan-500/20 text-cyan-300"
-                    : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
-                }`}
-              >
-                {getRatingModeLabel(mode.key, selectedCategory, isEnglish)}
-              </button>
-            ))}
-          </div>
+      <FilterBar
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
+        query={query}
+        onQueryChange={setQuery}
+        selectedBrand={selectedBrand}
+        onBrandChange={setSelectedBrand}
+        selectedPriceBand={selectedPriceBand}
+        onPriceBandChange={setSelectedPriceBand}
+        selectedMouseShape={selectedMouseShape}
+        onMouseShapeChange={setSelectedMouseShape}
+        selectedKeyboardLayout={selectedKeyboardLayout}
+        onKeyboardLayoutChange={setSelectedKeyboardLayout}
+        availableBrands={availableBrands}
+        activeFiltersCount={activeFiltersCount}
+        filteredCount={filtered.length}
+        onReset={resetFilters}
+        showMouseShapeFilter={selectedCategory === "mouse"}
+        showKeyboardLayoutFilter={selectedCategory === "keyboard"}
+      />
+
+      <div className="flex flex-col gap-4 rounded-xl border border-white/[0.08] bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-medium text-slate-500">{isEnglish ? "You are viewing the tierlist sorted by:" : "Voce esta vendo a tierlist ordenada por:"}</p>
+          <p className="mt-0.5 text-sm font-semibold text-slate-100">{modeDescription}</p>
         </div>
-        <p className="text-xs text-slate-500">{modeDescription}</p>
+        <div className="flex rounded-lg border border-white/[0.1] bg-white/[0.02] p-1">
+          {RATING_MODES.filter((m) => {
+            if (m.key === "oled" && selectedCategory !== "monitors") return false
+            if (m.key === "soundTyping" && selectedCategory !== "switches") return false
+            return true
+          }).map((mode) => (
+            <button
+              key={mode.key}
+              type="button"
+              onClick={() => setRatingMode(mode.key)}
+              className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
+                ratingMode === mode.key
+                  ? "bg-cyan-500/20 text-cyan-300"
+                  : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
+              }`}
+            >
+              {getRatingModeLabel(mode.key, selectedCategory, isEnglish)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Error Alert */}
@@ -850,6 +921,27 @@ export default function AdminPeripheralsPage() {
       ) :(
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-card shadow-lg">
+            <div
+              className="grid border-b border-white/[0.08]"
+              style={{
+                gridTemplateColumns: `70px repeat(${modeConfig.columns.length}, minmax(220px, 1fr))`,
+              }}
+            >
+              <div className="border-r border-white/[0.08] bg-white/[0.02]" />
+              {modeConfig.columns.map((column, colIndex) => (
+                <div
+                  key={`header-${column.key}`}
+                  className={cn(
+                    "border-r border-white/[0.08] px-3 py-2.5 text-left last:border-r-0",
+                    colIndex % 2 === 0 ? "bg-white/[0.02]" : "bg-transparent",
+                  )}
+                >
+                  <span className={cn("text-[11px] font-bold uppercase tracking-widest", column.color)}>
+                    {column.title}
+                  </span>
+                </div>
+              ))}
+            </div>
             {itemsByTier.map((tierRow) => (
               <div
                 key={tierRow.key}
