@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { Upload, ChevronDown, ChevronUp, ImageIcon, Tag, Layers, FileText, ShoppingCart, Info } from "lucide-react"
+import { Upload, ChevronDown, ChevronUp, ImageIcon, Tag, Layers, FileText, ShoppingCart, Info, Link2, Search, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
@@ -60,6 +60,7 @@ const peripheralSchema = z.object({
   reviewUrl: z.string().optional(),
   reviewNote: z.string().optional(),
   guideUrl: z.string().optional(),
+  wikiUrl: z.string().optional(),
   notesLong: z.string().optional(),
   summary: z.string().optional(),
   highlights: z.string().optional(),
@@ -317,6 +318,134 @@ function RatingInput({
   )
 }
 
+interface LinkedProduct {
+  id: string
+  slug: string
+  name: string
+  type: "store" | "bazaar"
+  price_cents: number
+  images: string[]
+}
+
+function LinkedProductPicker({
+  kind,
+  value,
+  onChange,
+  excludeId,
+  isEnglish,
+}: {
+  kind: "store" | "bazaar"
+  value: LinkedProduct | null
+  onChange: (product: LinkedProduct | null) => void
+  excludeId: string | null
+  isEnglish: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [results, setResults] = useState<LinkedProduct[]>([])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setLoading(true)
+    fetch(`/api/admin/store/products?type=${kind}`, { cache: "no-store" })
+      .then((res) => res.json().catch(() => null))
+      .then((json: { products?: LinkedProduct[] } | null) => {
+        if (!cancelled) setResults(json?.products ?? [])
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [open, kind])
+
+  const filtered = query.trim()
+    ? results.filter((p) => p.name.toLowerCase().includes(query.trim().toLowerCase()))
+    : results
+  const visible = filtered.filter((p) => p.id !== excludeId)
+
+  const placeholderLabel = kind === "store"
+    ? (isEnglish ? "Search a store product…" : "Buscar produto da Loja…")
+    : (isEnglish ? "Search a bazaar item…" : "Buscar item do Bazar…")
+
+  return (
+    <div className="space-y-2">
+      {value ? (
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-2.5">
+          <div className="size-10 shrink-0 overflow-hidden rounded-md bg-muted/40">
+            {value.images?.[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={value.images[0]} alt={value.name} className="h-full w-full object-contain p-0.5" />
+            ) : (
+              <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">{value.name.slice(0, 2).toUpperCase()}</div>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">{value.name}</p>
+            <p className="text-xs text-muted-foreground">{(value.price_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+          </div>
+          <Button type="button" size="sm" variant="ghost" onClick={() => onChange(null)} className="text-muted-foreground hover:text-foreground">
+            <X className="size-4" />
+          </Button>
+        </div>
+      ) : (
+        <Button type="button" variant="outline" onClick={() => setOpen(true)} className="w-full justify-start gap-2 text-muted-foreground">
+          <Search className="size-4" />
+          {placeholderLabel}
+        </Button>
+      )}
+
+      {open && (
+        <div className="space-y-2 rounded-lg border border-border bg-card/60 p-3">
+          <div className="flex items-center gap-2">
+            <Input
+              autoFocus
+              placeholder={isEnglish ? "Type to filter…" : "Digite para filtrar…"}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="border-border bg-background"
+            />
+            <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
+              {isEnglish ? "Close" : "Fechar"}
+            </Button>
+          </div>
+          <div className="max-h-56 overflow-auto rounded-md border border-border/60 bg-background/40">
+            {loading ? (
+              <p className="p-3 text-xs text-muted-foreground">{isEnglish ? "Loading…" : "Carregando…"}</p>
+            ) : visible.length === 0 ? (
+              <p className="p-3 text-xs text-muted-foreground">{isEnglish ? "No items found." : "Nenhum item encontrado."}</p>
+            ) : (
+              <ul className="divide-y divide-border/60">
+                {visible.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      onClick={() => { onChange(p); setOpen(false) }}
+                      className="flex w-full items-center gap-3 p-2 text-left transition hover:bg-muted/30"
+                    >
+                      <div className="size-9 shrink-0 overflow-hidden rounded-md bg-muted/40">
+                        {p.images?.[0] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.images[0]} alt={p.name} className="h-full w-full object-contain p-0.5" />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">{p.name.slice(0, 2).toUpperCase()}</div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm text-foreground">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">{(p.price_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface PeripheralEditProps {
   peripheralId?: string
 }
@@ -338,6 +467,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   const [error, setError] = useState<string | null>(null)
   const [usdToBrl, setUsdToBrl] = useState<number | null>(null)
   const [originalUsdPrice, setOriginalUsdPrice] = useState<number | null>(null)
+  const [linkedStore, setLinkedStore] = useState<LinkedProduct | null>(null)
+  const [linkedBazaar, setLinkedBazaar] = useState<LinkedProduct | null>(null)
 
   const form = useForm<PeripheralFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -348,7 +479,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       category: "mouse",
       tier: "__none__",
       price: 0,
-      rankLabel: "", priceRange: "", reviewUrl: "", reviewNote: "", guideUrl: "",
+      rankLabel: "", priceRange: "", reviewUrl: "", reviewNote: "", guideUrl: "", wikiUrl: "",
       notesLong: "", summary: "", highlights: "", pros: "", cons: "", gallery: "",
       buyLinks: "", compatibility: "", notes: "", comparisons: "",
       weight: "", latency: "", switchType: "", coating: "", shape: "",
@@ -417,6 +548,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           reviewUrl: data.specs?.details?.reviewUrl ?? "",
           reviewNote: data.specs?.details?.reviewNote ?? "",
           guideUrl: data.specs?.details?.guideUrl ?? "",
+          wikiUrl: data.specs?.details?.wikiUrl ?? "",
           notesLong: data.specs?.details?.notesLong ?? "",
           summary: data.specs?.details?.summary ?? "",
           highlights: Array.isArray(data.specs?.details?.highlights) ? data.specs.details.highlights.join("\n") : data.specs?.details?.highlights ?? "",
@@ -450,6 +582,15 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         setSelectedTag(data.tags ?? [])
         if (data.image_url) setImagePreview(data.image_url)
       }
+
+      try {
+        const linksRes = await fetch(`/api/admin/peripherals/${peripheralId}/links`, { cache: "no-store" })
+        const linksJson = (await linksRes.json().catch(() => null)) as { store?: LinkedProduct | null; bazaar?: LinkedProduct | null } | null
+        if (linksRes.ok && linksJson) {
+          setLinkedStore(linksJson.store ?? null)
+          setLinkedBazaar(linksJson.bazaar ?? null)
+        }
+      } catch { /* ignore — links are optional */ }
     } catch (err) {
       const message = err instanceof Error ? err.message : (isEnglish ? "Failed to load peripheral" : "Erro ao carregar periférico")
       setError(message)
@@ -513,7 +654,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         details: {
           rankLabel: data.rankLabel || undefined, priceRange: data.priceRange || undefined,
           reviewUrl: data.reviewUrl || undefined, reviewNote: data.reviewNote || undefined,
-          guideUrl: data.guideUrl || undefined, notesLong: data.notesLong || undefined,
+          guideUrl: data.guideUrl || undefined, wikiUrl: data.wikiUrl || undefined,
+          notesLong: data.notesLong || undefined,
           summary: data.summary || undefined, highlights: splitLines(data.highlights),
           pros: splitLines(data.pros), cons: splitLines(data.cons), gallery: splitLines(data.gallery),
           buyLinks: parseBuyLinks(data.buyLinks), compatibility: data.compatibility || undefined,
@@ -537,19 +679,22 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         price: priceToSave, image_url: imageUrl, tags: selectedTag || [], specs,
       }
 
+      let savedId: string | null = peripheralId ?? null
+
       if (peripheralId) {
         const res = await fetch(`/api/admin/peripherals/${peripheralId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(peripheralData),
         })
-        const json = (await res.json().catch(() => null)) as { error?: string; field?: string } | null
+        const json = (await res.json().catch(() => null)) as { error?: string; field?: string; peripheral?: { id?: string } } | null
         if (!res.ok) {
           if (json?.field) {
             form.setError(json.field as any, { type: "server", message: json.error })
           }
           throw new Error(json?.error ?? (isEnglish ? "Failed to save" : "Erro ao salvar"))
         }
+        savedId = json?.peripheral?.id ?? peripheralId
         toast.success(isEnglish ? "Peripheral updated" : "Periférico atualizado", {
           description: data.name,
         })
@@ -559,16 +704,32 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(peripheralData),
         })
-        const json = (await res.json().catch(() => null)) as { error?: string; field?: string } | null
+        const json = (await res.json().catch(() => null)) as { error?: string; field?: string; peripheral?: { id?: string } } | null
         if (!res.ok) {
           if (json?.field) {
             form.setError(json.field as any, { type: "server", message: json.error })
           }
           throw new Error(json?.error ?? (isEnglish ? "Failed to save" : "Erro ao salvar"))
         }
+        savedId = json?.peripheral?.id ?? null
         toast.success(isEnglish ? "Peripheral created" : "Periférico criado", {
           description: data.name,
         })
+      }
+
+      if (savedId) {
+        const linkRes = await fetch(`/api/admin/peripherals/${savedId}/links`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            storeProductId: linkedStore?.id ?? null,
+            bazaarProductId: linkedBazaar?.id ?? null,
+          }),
+        })
+        if (!linkRes.ok) {
+          const linkJson = (await linkRes.json().catch(() => null)) as { error?: string } | null
+          throw new Error(linkJson?.error ?? (isEnglish ? "Failed to save linked products" : "Erro ao salvar produtos vinculados"))
+        }
       }
 
       router.replace(backHref)
@@ -1207,6 +1368,22 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         {/* SECTION 7: Wiki / Conteúdo */}
         <FormSection title={isEnglish ? "Wiki Content" : "Conteúdo da Wiki"} icon={<FileText className="size-4" />} defaultOpen={false}>
           <div className="space-y-4">
+            <div className="space-y-1.5 rounded-lg border border-border bg-muted/20 p-3">
+              <label className="text-sm font-medium text-foreground">
+                {isEnglish ? "External wiki URL (optional)" : "URL da wiki externa (opcional)"}
+              </label>
+              <Input
+                className="border-border bg-background"
+                placeholder="https://wiki.exemplo.com/produto"
+                {...form.register("wikiUrl")}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                {isEnglish
+                  ? "When filled, the public page shows a single link to this external wiki instead of the editorial content below."
+                  : "Quando preenchido, a página pública mostra apenas um botão para a wiki externa, no lugar do conteúdo editorial abaixo."}
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">{isEnglish ? "Summary" : "Resumo"}</label>
@@ -1275,6 +1452,39 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">{isEnglish ? "Extra notes" : "Notas extras"}</label>
               <Textarea className="border-border bg-background resize-none" placeholder={isEnglish ? "Additional observations" : "Observações adicionais"} rows={3} {...form.register("notes")} />
+            </div>
+          </div>
+        </FormSection>
+
+        {/* SECTION: Produtos vinculados */}
+        <FormSection title={isEnglish ? "Linked Products" : "Produtos Vinculados"} icon={<Link2 className="size-4" />} defaultOpen={false}>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              {isEnglish
+                ? "Tie this peripheral to a Loja product and/or a Bazar item. The link is shown on the public peripheral page, and Loja/Bazar pages cross-reference each other via this peripheral."
+                : "Vincule este periférico a um produto da Loja e/ou item do Bazar. O vínculo aparece na página do periférico, e as páginas da Loja e do Bazar mostram o item correspondente do outro lado."}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">{isEnglish ? "Linked Loja product" : "Produto da Loja vinculado"}</label>
+                <LinkedProductPicker
+                  kind="store"
+                  value={linkedStore}
+                  onChange={setLinkedStore}
+                  excludeId={linkedBazaar?.id ?? null}
+                  isEnglish={isEnglish}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">{isEnglish ? "Linked Bazar item" : "Item do Bazar vinculado"}</label>
+                <LinkedProductPicker
+                  kind="bazaar"
+                  value={linkedBazaar}
+                  onChange={setLinkedBazaar}
+                  excludeId={linkedStore?.id ?? null}
+                  isEnglish={isEnglish}
+                />
+              </div>
             </div>
           </div>
         </FormSection>

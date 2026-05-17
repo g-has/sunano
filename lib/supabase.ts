@@ -169,6 +169,7 @@ export type Database = {
           condition: "new" | "used" | "opened"
           condition_notes: string | null
           is_active: boolean
+          peripheral_id: string | null
           created_at: string
           updated_at: string
         }
@@ -185,6 +186,7 @@ export type Database = {
           condition?: "new" | "used" | "opened"
           condition_notes?: string | null
           is_active?: boolean
+          peripheral_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -201,6 +203,7 @@ export type Database = {
           condition?: "new" | "used" | "opened"
           condition_notes?: string | null
           is_active?: boolean
+          peripheral_id?: string | null
           created_at?: string
           updated_at?: string
         }

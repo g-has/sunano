@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { ArrowLeft, ShoppingCart, Package, Shield } from "lucide-react"
+import { ArrowLeft, ShoppingCart, Package, Shield, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CartButton, CartDrawer } from "@/components/store/CartDrawer"
@@ -11,6 +11,7 @@ import { formatBRL } from "@/lib/stripe"
 import { cn } from "@/lib/utils"
 import BoxLoader from "@/components/ui/box-loader"
 import { createClient } from "@supabase/supabase-js"
+import { buildPeripheralSlug } from "@/lib/peripheral-slug"
 
 interface Product {
   id: string
@@ -24,6 +25,25 @@ interface Product {
   type: "store" | "bazaar"
   condition: "new" | "used" | "opened"
   condition_notes: string | null
+  peripheral_id: string | null
+}
+
+interface LinkedBazaarProduct {
+  id: string
+  slug: string
+  name: string
+  price_cents: number
+  images: string[]
+  stock: number
+  condition: "new" | "used" | "opened"
+  condition_notes: string | null
+}
+
+interface LinkedPeripheral {
+  id: string
+  name: string
+  brand: string
+  image_url: string | null
 }
 
 const CONDITION_LABEL: Record<string, string> = {
@@ -39,6 +59,8 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
   const [added, setAdded] = useState(false)
+  const [linkedBazaar, setLinkedBazaar] = useState<LinkedBazaarProduct | null>(null)
+  const [linkedPeripheral, setLinkedPeripheral] = useState<LinkedPeripheral | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -48,7 +70,7 @@ export default function ProductPage() {
       )
       const { data } = await supabase
         .from("store_products")
-        .select("id, slug, name, description, price_cents, stock, images, category, type, condition, condition_notes")
+        .select("id, slug, name, description, price_cents, stock, images, category, type, condition, condition_notes, peripheral_id")
         .eq("slug", slug)
         .eq("type", "store")
         .eq("is_active", true)
@@ -56,6 +78,25 @@ export default function ProductPage() {
 
       setProduct(data ?? null)
       setLoading(false)
+
+      if (data?.peripheral_id) {
+        const [{ data: bazaarMatch }, { data: peripheralMatch }] = await Promise.all([
+          supabase
+            .from("store_products")
+            .select("id, slug, name, price_cents, images, stock, condition, condition_notes")
+            .eq("peripheral_id", data.peripheral_id)
+            .eq("type", "bazaar")
+            .eq("is_active", true)
+            .maybeSingle(),
+          supabase
+            .from("peripherals")
+            .select("id, name, brand, image_url")
+            .eq("id", data.peripheral_id)
+            .maybeSingle(),
+        ])
+        setLinkedBazaar((bazaarMatch as LinkedBazaarProduct | null) ?? null)
+        setLinkedPeripheral((peripheralMatch as LinkedPeripheral | null) ?? null)
+      }
     }
     load()
   }, [slug])
@@ -225,6 +266,65 @@ export default function ProductPage() {
             </div>
           </div>
         </div>
+
+        {(linkedBazaar || linkedPeripheral) && (
+          <div className="space-y-3 border-t border-white/[0.06] pt-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Também disponível
+            </p>
+            <div className="grid gap-3 md:grid-cols-2">
+              {linkedBazaar && (
+                <Link
+                  href={`/bazar/${linkedBazaar.slug}`}
+                  className="group flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 transition hover:border-amber-500/40 hover:bg-amber-500/10"
+                >
+                  <div className="size-14 shrink-0 overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.04]">
+                    {linkedBazaar.images?.[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={linkedBazaar.images[0]} alt={linkedBazaar.name} className="h-full w-full object-contain p-1" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-slate-600">
+                        <Package className="size-5" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-300">♻️ Versão usada no Bazar</p>
+                    <p className="truncate text-sm font-semibold text-slate-100">{linkedBazaar.name}</p>
+                    <p className="text-xs text-emerald-400">
+                      {formatBRL(linkedBazaar.price_cents)}
+                      {linkedBazaar.stock === 0 && <span className="ml-2 text-rose-300">Esgotado</span>}
+                    </p>
+                  </div>
+                  <span className="text-amber-300 transition group-hover:translate-x-0.5">→</span>
+                </Link>
+              )}
+              {linkedPeripheral && (
+                <Link
+                  href={`/perifericos/${buildPeripheralSlug(linkedPeripheral.name, linkedPeripheral.id)}`}
+                  className="group flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3 transition hover:border-white/[0.20] hover:bg-white/[0.04]"
+                >
+                  <div className="size-14 shrink-0 overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.04]">
+                    {linkedPeripheral.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={linkedPeripheral.image_url} alt={linkedPeripheral.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-slate-600">
+                        <Sparkles className="size-5" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ficha do periférico</p>
+                    <p className="truncate text-sm font-semibold text-slate-100">{linkedPeripheral.name}</p>
+                    <p className="text-xs text-slate-500">{linkedPeripheral.brand}</p>
+                  </div>
+                  <span className="text-slate-400 transition group-hover:translate-x-0.5">→</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

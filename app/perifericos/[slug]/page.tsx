@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Star } from "lucide-react"
+import { ExternalLink, Package, ShoppingBag, Star } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -158,6 +158,16 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   const reviewNote = details.reviewNote
   const guideUrl = details.guideUrl
   const notesLong = details.notesLong
+  const wikiUrl = typeof details.wikiUrl === "string" && details.wikiUrl.trim() ? details.wikiUrl.trim() : null
+
+  const { data: linkedProducts } = await supabase
+    .from("store_products")
+    .select("id, slug, name, type, price_cents, images, stock, is_active")
+    .eq("peripheral_id", data.id)
+    .eq("is_active", true) as { data: Array<{ id: string; slug: string; name: string; type: "store" | "bazaar"; price_cents: number; images: string[]; stock: number; is_active: boolean }> | null }
+
+  const linkedStore = linkedProducts?.find((p) => p.type === "store") ?? null
+  const linkedBazaar = linkedProducts?.find((p) => p.type === "bazaar") ?? null
 
   const specsTable = [
     { label: "Preco base", value: formatCurrency(data.price) },
@@ -256,15 +266,17 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </CardContent>
                 </Card>
 
-                <Card className="border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-sm">Notas</CardTitle>
-                    <CardDescription className="text-xs">Contexto e observacoes principais.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="max-h-56 overflow-auto text-sm text-muted-foreground whitespace-pre-wrap">
-                    {notesLong || "Sem notas cadastradas."}
-                  </CardContent>
-                </Card>
+                {!wikiUrl && (
+                  <Card className="border-border bg-card">
+                    <CardHeader>
+                      <CardTitle className="text-sm">Notas</CardTitle>
+                      <CardDescription className="text-xs">Contexto e observacoes principais.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="max-h-56 overflow-auto text-sm text-muted-foreground whitespace-pre-wrap">
+                      {notesLong || "Sem notas cadastradas."}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -291,12 +303,37 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                     {data.name}
                   </h1>
                   <p className="text-sm text-muted-foreground">{data.brand}</p>
-                  {details.summary && (
+                  {!wikiUrl && details.summary && (
                     <p className="mt-2 text-sm text-muted-foreground">
                       {details.summary}
                     </p>
                   )}
                 </div>
+
+                {wikiUrl && (
+                  <Card className="border-border bg-card">
+                    <CardHeader>
+                      <CardTitle className="text-sm">Wiki externa</CardTitle>
+                      <CardDescription className="text-xs">
+                        Este periférico usa uma wiki externa em vez do conteúdo editorial.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <a
+                        href={wikiUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-3 text-sm font-medium text-foreground transition hover:bg-muted/40"
+                      >
+                        <span className="flex items-center gap-2">
+                          <ExternalLink className="size-4 text-primary" />
+                          Acessar wiki externa
+                        </span>
+                        <span className="text-primary">→</span>
+                      </a>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <Card className="border-border bg-card">
@@ -380,70 +417,74 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </Card>
                 </div>
 
-                <Card className="border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-sm">Comentarios e recomendacoes</CardTitle>
-                    <CardDescription className="text-xs">Resumo geral do periférico.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="max-h-64 overflow-auto space-y-3 text-sm text-muted-foreground">
-                    {priceRange && (
-                      <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
-                        <span>Faixa de preco</span>
-                        <span className="font-semibold text-foreground">{priceRange}</span>
-                      </div>
-                    )}
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div>
-                        <p className="text-xs font-semibold text-emerald-400">Pontos positivos</p>
-                        {pros.length > 0 ? (
-                          <ul className="list-disc space-y-1 pl-4">
-                            {pros.map((item: string) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p>Sem pontos fortes cadastrados.</p>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-rose-400">Pontos negativos</p>
-                        {cons.length > 0 ? (
-                          <ul className="list-disc space-y-1 pl-4">
-                            {cons.map((item: string) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p>Sem pontos fracos cadastrados.</p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="grid gap-4 md:grid-cols-2">
+                {!wikiUrl && (
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-sm">Software</CardTitle>
-                      <CardDescription className="text-xs">Plataformas, softwares e requisitos.</CardDescription>
+                      <CardTitle className="text-sm">Comentarios e recomendacoes</CardTitle>
+                      <CardDescription className="text-xs">Resumo geral do periférico.</CardDescription>
                     </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground">
-                      {details.compatibility ? details.compatibility : "Informacao de compatibilidade nao cadastrada."}
+                    <CardContent className="max-h-64 overflow-auto space-y-3 text-sm text-muted-foreground">
+                      {priceRange && (
+                        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
+                          <span>Faixa de preco</span>
+                          <span className="font-semibold text-foreground">{priceRange}</span>
+                        </div>
+                      )}
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div>
+                          <p className="text-xs font-semibold text-emerald-400">Pontos positivos</p>
+                          {pros.length > 0 ? (
+                            <ul className="list-disc space-y-1 pl-4">
+                              {pros.map((item: string) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p>Sem pontos fortes cadastrados.</p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-rose-400">Pontos negativos</p>
+                          {cons.length > 0 ? (
+                            <ul className="list-disc space-y-1 pl-4">
+                              {cons.map((item: string) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p>Sem pontos fracos cadastrados.</p>
+                          )}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
+                )}
 
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Comentarios</CardTitle>
-                      <CardDescription className="text-xs">Detalhes extras da equipe.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground">
-                      {details.notes ? details.notes : "Sem observacoes adicionais."}
-                    </CardContent>
-                  </Card>
-                </div>
+                {!wikiUrl && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Card className="border-border bg-card">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Software</CardTitle>
+                        <CardDescription className="text-xs">Plataformas, softwares e requisitos.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="text-sm text-muted-foreground">
+                        {details.compatibility ? details.compatibility : "Informacao de compatibilidade nao cadastrada."}
+                      </CardContent>
+                    </Card>
 
-                {highlights.length > 0 && (
+                    <Card className="border-border bg-card">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Comentarios</CardTitle>
+                        <CardDescription className="text-xs">Detalhes extras da equipe.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="text-sm text-muted-foreground">
+                        {details.notes ? details.notes : "Sem observacoes adicionais."}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {!wikiUrl && highlights.length > 0 && (
                   <Card className="border-border bg-card">
                     <CardHeader>
                       <CardTitle className="text-sm">Destaques</CardTitle>
@@ -455,6 +496,69 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {(linkedStore || linkedBazaar) && (
+                  <Card className="border-border bg-card">
+                    <CardHeader>
+                      <CardTitle className="text-sm">Disponível para comprar</CardTitle>
+                      <CardDescription className="text-xs">Itens relacionados na Loja e no Bazar.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-3 md:grid-cols-2">
+                      {linkedStore && (
+                        <Link
+                          href={`/loja/${linkedStore.slug}`}
+                          className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3 text-sm text-foreground transition hover:bg-muted/40"
+                        >
+                          <div className="size-12 shrink-0 overflow-hidden rounded-lg border border-border bg-muted/40">
+                            {linkedStore.images?.[0] ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img alt={linkedStore.name} className="h-full w-full object-contain p-0.5" src={linkedStore.images[0]} />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                <ShoppingBag className="size-4" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-blue-300">🛒 Loja</p>
+                            <p className="truncate text-sm font-medium text-foreground">{linkedStore.name}</p>
+                            <p className="text-xs text-emerald-400">
+                              {(linkedStore.price_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              {linkedStore.stock === 0 && <span className="ml-2 text-rose-300">Esgotado</span>}
+                            </p>
+                          </div>
+                          <span className="text-primary">→</span>
+                        </Link>
+                      )}
+                      {linkedBazaar && (
+                        <Link
+                          href={`/bazar/${linkedBazaar.slug}`}
+                          className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-foreground transition hover:bg-amber-500/10"
+                        >
+                          <div className="size-12 shrink-0 overflow-hidden rounded-lg border border-border bg-muted/40">
+                            {linkedBazaar.images?.[0] ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img alt={linkedBazaar.name} className="h-full w-full object-contain p-0.5" src={linkedBazaar.images[0]} />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                <Package className="size-4" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">♻️ Bazar</p>
+                            <p className="truncate text-sm font-medium text-foreground">{linkedBazaar.name}</p>
+                            <p className="text-xs text-emerald-400">
+                              {(linkedBazaar.price_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              {linkedBazaar.stock === 0 && <span className="ml-2 text-rose-300">Esgotado</span>}
+                            </p>
+                          </div>
+                          <span className="text-primary">→</span>
+                        </Link>
+                      )}
                     </CardContent>
                   </Card>
                 )}
@@ -482,7 +586,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </Card>
                 )}
 
-                {comparisons.length > 0 && (
+                {!wikiUrl && comparisons.length > 0 && (
                   <Card className="border-border bg-card">
                     <CardHeader>
                       <CardTitle className="text-sm">Comparacoes</CardTitle>
