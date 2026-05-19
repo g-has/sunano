@@ -419,6 +419,7 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
           ))}
         </div>
       </div>
+      
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-lg">
         <table className="hidden w-full border-collapse md:table">
