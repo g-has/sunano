@@ -5,18 +5,12 @@ import { useMemo, useState, useEffect } from "react"
 import { PeripheralCard } from "./PeripheralCard"
 import { useLocale } from "@/lib/locale-context"
 import { cn } from "@/lib/utils"
-import {
-  RECOMMENDED_COLUMN_COLORS,
-  TAG_COLUMN_COLORS,
-  TIER_THEMES,
-  VALUE_COLUMN_COLORS,
-} from "@/lib/tierlist-theme"
+import { TIER_THEMES } from "@/lib/tierlist-theme"
 
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierValue = Tier | null
 type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
 type RatingMode = "oled" | "performance" | "value" | "recommended" | "soundTyping"
-type PriceBand = "budget" | "mid" | "premium"
 type RatingKey = "overall" | "performance" | "build" | "value" | "software" | "battery" | "qc"
 type Ratings = Partial<Record<RatingKey, number>>
 
@@ -39,10 +33,6 @@ interface Peripheral {
     driver?: string
     profile?: string
     panelType?: string
-    adminValueBand?: string
-    adminRecommendedBand?: string
-    adminSoundProfile?: string
-    adminTypingFeel?: string
   }
 }
 
@@ -54,77 +44,11 @@ interface TierRow {
   textColor: string
 }
 
-interface ModeColumn {
-  key: string
-  title: string
-  color: string
-}
-
 interface ModeConfig {
-  description: string
-  columns: ModeColumn[]
-  getColumnKeys: (item: Peripheral) => string[]
+  // Optional filter — only OLED mode narrows the item set.
+  filterItem?: (item: Peripheral) => boolean
   sortItems: (items: Peripheral[]) => Peripheral[]
 }
-
-const TIER_ROWS: TierRow[] = [
-  {
-    key: "GOAT",
-    label: "GOAT",
-    description: "Elite - Referencia absoluta",
-    gradient: TIER_THEMES.GOAT.accent,
-    textColor: TIER_THEMES.GOAT.textColor,
-  },
-  {
-    key: "SS",
-    label: "SS",
-    description: "Extremo - Quase perfeito",
-    gradient: TIER_THEMES.SS.accent,
-    textColor: TIER_THEMES.SS.textColor,
-  },
-  {
-    key: "S",
-    label: "S",
-    description: "Top - Excelente escolha",
-    gradient: TIER_THEMES.S.accent,
-    textColor: TIER_THEMES.S.textColor,
-  },
-  {
-    key: "A",
-    label: "A",
-    description: "Muito bom - Consistente e forte",
-    gradient: TIER_THEMES.A.accent,
-    textColor: TIER_THEMES.A.textColor,
-  },
-  {
-    key: "B",
-    label: "B",
-    description: "Bom - Opção sólida",
-    gradient: TIER_THEMES.B.accent,
-    textColor: TIER_THEMES.B.textColor,
-  },
-  {
-    key: "C",
-    label: "C",
-    description: "Ok - Funciona bem com limites",
-    gradient: TIER_THEMES.C.accent,
-    textColor: TIER_THEMES.C.textColor,
-  },
-  {
-    key: "L",
-    label: "L",
-    description: "Inferior - Apenas para casos específicos",
-    gradient: TIER_THEMES.L.accent,
-    textColor: TIER_THEMES.L.textColor,
-  },
-]
-
-const RATING_MODES: { key: RatingMode; label: string }[] = [
-  { key: "oled", label: "OLED" },
-  { key: "performance", label: "Performance" },
-  { key: "value", label: "Custo-Beneficio" },
-  { key: "recommended", label: "Recomendado" },
-]
 
 // Labels específicos por categoria para MOUSEPAD e GLASSPAD
 function getRatingModeLabel(mode: RatingMode, category: string): string {
@@ -133,7 +57,7 @@ function getRatingModeLabel(mode: RatingMode, category: string): string {
     if (mode === "value") return "Nacional"
     if (mode === "recommended") return "Recomendado"
   }
-  
+
   const modeMap: Record<RatingMode, string> = {
     oled: "OLED",
     performance: "Performance",
@@ -142,33 +66,6 @@ function getRatingModeLabel(mode: RatingMode, category: string): string {
     soundTyping: "Som e Digitação",
   }
   return modeMap[mode]
-}
-
-const TAG_COLUMNS: { key: Tag; title: string; color: string }[] = [
-  { key: "competitive", title: "Competitivo", color: TAG_COLUMN_COLORS.competitive },
-  { key: "versatile", title: "Versatil", color: TAG_COLUMN_COLORS.versatile },
-  { key: "value", title: "Valor", color: TAG_COLUMN_COLORS.value },
-]
-
-function getPerformanceColumnKeys(item: Peripheral) {
-  const primaryTag = item.tags.find((tag) => TAG_COLUMNS.some((column) => column.key === tag))
-
-  if (item.category === "mouse") {
-    return [primaryTag ?? "versatile"]
-  }
-
-  return item.tags.filter((tag) => TAG_COLUMNS.some((column) => column.key === tag))
-}
-
-function getStoredModeColumn(item: Peripheral, fieldName: keyof Peripheral["specs"], fallbackValue: string) {
-  const storedValue = item.specs?.[fieldName]
-  return typeof storedValue === "string" && storedValue ? storedValue : fallbackValue
-}
-
-function getPriceBand(price: number): PriceBand {
-  if (price <= 80) return "budget"
-  if (price <= 160) return "mid"
-  return "premium"
 }
 
 function getTierScore(tier: TierValue) {
@@ -183,7 +80,7 @@ function getTierScore(tier: TierValue) {
 }
 
 function getRecommendedScore(item: Peripheral) {
-    const tagScore = item.tags.reduce((accumulator, tag) => {
+  const tagScore = item.tags.reduce((accumulator, tag) => {
     if (tag === "competitive") return accumulator + 0.8
     if (tag === "versatile") return accumulator + 0.6
     if (tag === "value") return accumulator + 0.7
@@ -193,71 +90,34 @@ function getRecommendedScore(item: Peripheral) {
   return getTierScore(item.tier) + tagScore - Math.min(item.price / 300, 1)
 }
 
+function sortByTierThenName(items: Peripheral[]) {
+  return [...items].sort(
+    (left, right) =>
+      getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name),
+  )
+}
+
 const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
   performance: {
-    description: "Ordenado por desempenho puro",
-    columns: TAG_COLUMNS,
-    getColumnKeys: (item) => getPerformanceColumnKeys(item),
-    sortItems: (items) =>
-      [...items].sort((left, right) => {
-        const tierDiff = getTierScore(right.tier) - getTierScore(left.tier)
-        if (tierDiff !== 0) return tierDiff
-
-        return left.name.localeCompare(right.name)
-      }),
+    sortItems: sortByTierThenName,
   },
   value: {
-    description: "Distribuído por faixa de preco dentro de cada tier",
-    columns: [
-      { key: "budget", title: "Budget", color: VALUE_COLUMN_COLORS.budget },
-      { key: "mid", title: "Mid", color: VALUE_COLUMN_COLORS.mid },
-      { key: "premium", title: "Premium", color: VALUE_COLUMN_COLORS.premium },
-    ],
-    getColumnKeys: (item) => [getStoredModeColumn(item, "adminValueBand", getPriceBand(item.price))],
-    sortItems: (items) => [...items].sort((left, right) => left.price - right.price || left.name.localeCompare(right.name)),
+    sortItems: (items) =>
+      [...items].sort((left, right) => left.price - right.price || left.name.localeCompare(right.name)),
   },
   recommended: {
-    description: "Escolhas sugeridas por Sunano, priorizando equilibrio geral",
-    columns: [
-      { key: "top", title: "Top Picks", color: RECOMMENDED_COLUMN_COLORS.top },
-      { key: "strong", title: "Strong Picks", color: RECOMMENDED_COLUMN_COLORS.strong },
-      { key: "niche", title: "Niche Picks", color: RECOMMENDED_COLUMN_COLORS.niche },
-    ],
-    getColumnKeys: (item) => {
-      const score = getRecommendedScore(item)
-      const fallbackColumn = score >= 4.4 ? "top" : score >= 3.2 ? "strong" : "niche"
-      return [getStoredModeColumn(item, "adminRecommendedBand", fallbackColumn)]
-    },
     sortItems: (items) =>
-      [...items].sort((left, right) => getRecommendedScore(right) - getRecommendedScore(left) || left.name.localeCompare(right.name)),
+      [...items].sort(
+        (left, right) => getRecommendedScore(right) - getRecommendedScore(left) || left.name.localeCompare(right.name),
+      ),
   },
   oled: {
-    description: "Apenas painéis OLED",
-    columns: [{ key: "oled", title: "OLED", color: TAG_COLUMN_COLORS.value }],
-    getColumnKeys: (item) => {
-      const spec = item.specs?.panelType
-      return typeof spec === "string" && spec.toLowerCase().includes("oled") ? ["oled"] : []
-    },
-    sortItems: (items) =>
-      [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
+    filterItem: (item) =>
+      typeof item.specs?.panelType === "string" && item.specs.panelType.toLowerCase().includes("oled"),
+    sortItems: sortByTierThenName,
   },
   soundTyping: {
-    description: "Ordenado por som e digitação",
-    columns: [
-      { key: "thocky-linear", title: "Thocky Linear", color: "text-cyan-400" },
-      { key: "thocky-tactile", title: "Thocky Tactile", color: "text-cyan-300" },
-      { key: "clacky-linear", title: "Clacky Linear", color: "text-blue-400" },
-      { key: "clacky-tactile", title: "Clacky Tactile", color: "text-blue-300" },
-      { key: "hollow-linear", title: "Hollow Linear", color: "text-purple-400" },
-      { key: "hollow-tactile", title: "Hollow Tactile", color: "text-purple-300" },
-    ],
-    getColumnKeys: (item) => {
-      const sound = getStoredModeColumn(item, "adminSoundProfile", "thocky")
-      const typing = getStoredModeColumn(item, "adminTypingFeel", "linear")
-      return [`${sound}-${typing}`]
-    },
-    sortItems: (items) =>
-      [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
+    sortItems: sortByTierThenName,
   },
 }
 
@@ -345,8 +205,8 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
           : "Ordenado por desempenho puro"
         : ratingMode === "value"
           ? isEnglish
-            ? "Grouped by price range within each tier"
-            : "Distribuído por faixa de preco dentro de cada tier"
+            ? "Sorted by price"
+            : "Ordenado por preço"
           : ratingMode === "soundTyping"
             ? isEnglish
               ? "Sorted by sound and typing feel"
@@ -358,33 +218,21 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   const itemsByTier = useMemo(
     () =>
       tierRows.map((tier) => {
-        const tierItems = modeConfig.sortItems(filtered.filter((item) => item.tier === tier.key))
-
+        let tierItems = filtered.filter((item) => item.tier === tier.key)
+        if (modeConfig.filterItem) tierItems = tierItems.filter(modeConfig.filterItem)
         return {
           ...tier,
-          itemsByColumn: modeConfig.columns.map((column) => ({
-            ...column,
-            items: tierItems.filter((item) => modeConfig.getColumnKeys(item).includes(column.key)),
-          })),
-          totalItems: tierItems.length,
+          items: modeConfig.sortItems(tierItems),
         }
       }),
     [filtered, modeConfig, tierRows]
   )
 
-  const untieredItems = useMemo(
-    () => modeConfig.sortItems(filtered.filter((item) => item.tier === null)),
-    [filtered, modeConfig]
-  )
-
-  const untieredItemsByColumn = useMemo(
-    () =>
-      modeConfig.columns.map((column) => ({
-        ...column,
-        items: untieredItems.filter((item) => modeConfig.getColumnKeys(item).includes(column.key)),
-      })),
-    [modeConfig, untieredItems]
-  )
+  const untieredItems = useMemo(() => {
+    let items = filtered.filter((item) => item.tier === null)
+    if (modeConfig.filterItem) items = items.filter(modeConfig.filterItem)
+    return modeConfig.sortItems(items)
+  }, [filtered, modeConfig])
 
   const hasItems = filtered.length > 0
 
@@ -419,7 +267,7 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
           ))}
         </div>
       </div>
-      
+
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-lg">
         <table className="hidden w-full border-collapse md:table">
@@ -436,40 +284,68 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
                   )}
                 >
                   <div className={cn("py-3 text-2xl font-black", tierRow.textColor)}>{tierRow.label}</div>
-                  {tierRow.totalItems > 0 && (
+                  {tierRow.items.length > 0 && (
                     <div className={cn("pb-2 text-[10px] font-medium opacity-80", tierRow.textColor)}>
-                      {tierRow.totalItems}
+                      {tierRow.items.length}
                     </div>
                   )}
                 </td>
 
-                {tierRow.itemsByColumn.map((column, colIndex) => (
-                  <td
-                    key={`${tierRow.key}-${column.key}`}
-                    className={cn(
-                      "border-r border-border align-top last:border-r-0",
-                      colIndex % 2 === 0 ? "bg-muted/20" : "bg-transparent"
+                <td className="align-top bg-muted/20">
+                  <div className="p-2">
+                    {tierRow.items.length > 0 ? (
+                      <div className="grid w-full auto-rows-max grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+                        {tierRow.items.map((item) => (
+                          <PeripheralCard key={item.id} {...item} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex min-h-[48px] items-center justify-center">
+                        <span className="text-xs text-muted-foreground/30">—</span>
+                      </div>
                     )}
-                  >
-                    <div className="p-2">
-                      {column.items.length > 0 ? (
-                        <div className="grid w-full auto-rows-max grid-cols-2 gap-2">
-                          {column.items.map((item) => (
-                            <PeripheralCard key={item.id} {...item} />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex min-h-[48px] items-center justify-center">
-                          <span className="text-xs text-muted-foreground/30">—</span>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                ))}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        <div className="md:hidden">
+          {!hasItems ? (
+            <div className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">{isEnglish ? "No items found with the current filters." : "Nenhum item encontrado com os filtros atuais."}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {itemsByTier.map((tierRow) => {
+                if (tierRow.items.length === 0) return null
+
+                return (
+                  <div key={tierRow.key}>
+                    <div className={cn("flex items-center justify-between bg-gradient-to-r px-4 py-3", tierRow.gradient)}>
+                      <div className="flex items-center gap-3">
+                        <span className={cn("text-xl font-black", tierRow.textColor)}>{tierRow.label}</span>
+                        <span className={cn("text-xs font-medium opacity-80", tierRow.textColor)}>
+                          {tierRow.description}
+                        </span>
+                      </div>
+                      <span className={cn("text-sm font-semibold", tierRow.textColor)}>{tierRow.items.length} {isEnglish ? "items" : "itens"}</span>
+                    </div>
+
+                    <div className="p-4">
+                      <div className="grid grid-cols-3 gap-2">
+                        {tierRow.items.map((item) => (
+                          <PeripheralCard key={item.id} {...item} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
 
         {untieredItems.length > 0 && (
           <div className="border-t border-border bg-muted/10">
@@ -485,109 +361,23 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 gap-0 md:grid-cols-[repeat(4,minmax(0,1fr))]">
-              {untieredItemsByColumn.map((column, colIndex) => (
-                <div
-                  key={`untiered-${column.key}`}
-                  className={cn(
-                    "border-r border-border last:border-r-0",
-                    colIndex % 2 === 0 ? "bg-muted/20" : "bg-transparent"
-                  )}
-                >
-                  <div className="p-2">
-                    {column.items.length > 0 ? (
-                      <div className="grid w-full auto-rows-max grid-cols-2 gap-2">
-                        {column.items.map((item) => (
-                          <PeripheralCard key={item.id} {...item} />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex min-h-[48px] items-center justify-center">
-                        <span className="text-xs text-muted-foreground/30">—</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="hidden p-2 md:block">
+              <div className="grid w-full auto-rows-max grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+                {untieredItems.map((item) => (
+                  <PeripheralCard key={item.id} {...item} />
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 md:hidden">
+              <div className="grid grid-cols-3 gap-2">
+                {untieredItems.map((item) => (
+                  <PeripheralCard key={item.id} {...item} />
+                ))}
+              </div>
             </div>
           </div>
         )}
-
-        <div className="md:hidden">
-          {!hasItems ? (
-            <div className="p-8 text-center">
-              <p className="text-sm text-muted-foreground">{isEnglish ? "No items found with the current filters." : "Nenhum item encontrado com os filtros atuais."}</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {itemsByTier.map((tierRow) => {
-                const allTierItems = tierRow.itemsByColumn.flatMap((column) => column.items)
-
-                if (allTierItems.length === 0) return null
-
-                return (
-                  <div key={tierRow.key}>
-                    <div className={cn("flex items-center justify-between bg-gradient-to-r px-4 py-3", tierRow.gradient)}>
-                      <div className="flex items-center gap-3">
-                        <span className={cn("text-xl font-black", tierRow.textColor)}>{tierRow.label}</span>
-                        <span className={cn("text-xs font-medium opacity-80", tierRow.textColor)}>
-                          {tierRow.description}
-                        </span>
-                      </div>
-                      <span className={cn("text-sm font-semibold", tierRow.textColor)}>{allTierItems.length} {isEnglish ? "items" : "itens"}</span>
-                    </div>
-
-                    <div className="space-y-4 p-4">
-                      {tierRow.itemsByColumn
-                        .filter((column) => column.items.length > 0)
-                        .map((column) => (
-                          <div key={column.key}>
-                            <p className={cn("mb-2 text-[10px] font-semibold uppercase tracking-widest", column.color)}>
-                              {column.title}
-                            </p>
-                            <div className="grid grid-cols-3 gap-2">
-                              {column.items.map((item) => (
-                                <PeripheralCard key={item.id} {...item} />
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )
-              })}
-
-              {untieredItems.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between bg-gradient-to-r from-slate-700 to-slate-800 px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl font-black text-slate-100">-</span>
-                      <span className="text-xs font-medium opacity-80 text-slate-100">{isEnglish ? "No tier" : "Sem tier"}</span>
-                    </div>
-                    <span className="text-sm font-semibold text-slate-100">{untieredItems.length} {isEnglish ? "items" : "itens"}</span>
-                  </div>
-
-                  <div className="space-y-4 p-4">
-                    {untieredItemsByColumn
-                      .filter((column) => column.items.length > 0)
-                      .map((column) => (
-                        <div key={column.key}>
-                          <p className={cn("mb-2 text-[10px] font-semibold uppercase tracking-widest", column.color)}>
-                            {column.title}
-                          </p>
-                          <div className="space-y-2">
-                            {column.items.map((item) => (
-                              <PeripheralCard key={item.id} {...item} />
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </div>
     </section>
   )

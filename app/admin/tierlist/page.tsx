@@ -35,10 +35,7 @@ import { useLocale } from "@/lib/locale-context"
 import {
   CARD_TAG_STYLES,
   CARD_TIER_STYLES,
-  RECOMMENDED_COLUMN_COLORS,
-  TAG_COLUMN_COLORS,
   TIER_THEMES,
-  VALUE_COLUMN_COLORS,
 } from "@/lib/tierlist-theme"
 import { TierItemTooltipContent, type Ratings, type RatingKey } from "@/components/tierlist/TierItemTooltipContent"
 import { FilterBar } from "@/components/tierlist/FilterBar"
@@ -89,12 +86,6 @@ const TIER_ROWS: { key: Tier; label: string; accent: string; textColor: string }
   { key: "L", label: "L", accent: TIER_THEMES.L.accent, textColor: TIER_THEMES.L.textColor },
 ]
 
-const COLUMNS: { key: Tag; title: string }[] = [
-  { key: "competitive", title: "Competitive" },
-  { key: "versatile", title: "Versatile" },
-  { key: "value", title: "Value" },
-]
-
 const RATING_MODES: { key: RatingMode; en: string; pt: string }[] = [
   { key: "oled", en: "OLED", pt: "OLED" },
   { key: "performance", en: "Performance", pt: "Performance" },
@@ -121,22 +112,12 @@ function getRatingModeLabel(mode: RatingMode, category: string, isEnglish: boole
 
 type PriceBand = "all" | "budget" | "mid" | "premium"
 
-type ModeColumn = {
-  key: string
-  title: string
-  color: string
-}
-
 type ModeConfig = {
   enDescription: string
   ptDescription: string
-  columns: ModeColumn[]
-  getColumnKeys: (item: Peripheral) => string[]
+  // Optional filter — only OLED mode narrows the item set.
+  filterItem?: (item: Peripheral) => boolean
   sortItems: (items: Peripheral[]) => Peripheral[]
-}
-
-function getPrimaryTag(item: Peripheral): Tag | null {
-  return item.tags[0] ?? null
 }
 
 const RATING_KEYS: RatingKey[] = ["overall", "performance", "build", "value", "software", "battery", "qc"]
@@ -181,102 +162,43 @@ function getRecommendedScore(item: Peripheral) {
   return getTierScore(item.tier) + tagScore - Math.min(item.price / 300, 1)
 }
 
-const PERFORMANCE_COLUMN_KEYS: Tag[] = ["competitive", "versatile", "value"]
-
-function getPerformanceColumnKeys(item: Peripheral) {
-  const allowed = PERFORMANCE_COLUMN_KEYS as readonly string[]
-
-  if (item.category === "mouse") {
-    const primaryTag = getPrimaryTag(item)
-    if (primaryTag && allowed.includes(primaryTag)) return [primaryTag]
-    const fallback = item.tags.find((tag) => allowed.includes(tag))
-    return [fallback ?? "versatile"]
-  }
-
-  if (item.tags.length === 0) return ["value"]
-  const matched = item.tags.filter((tag) => allowed.includes(tag))
-  return matched.length > 0 ? matched : ["versatile"]
+function sortByTierThenName(items: Peripheral[]) {
+  return [...items].sort(
+    (left, right) =>
+      getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name),
+  )
 }
-
-function getStoredModeColumn(item: Peripheral, fieldName: string, fallbackValue: string) {
-  const storedValue = item.specs?.[fieldName]
-  return typeof storedValue === "string" && storedValue ? storedValue : fallbackValue
-}
-
-const PERFORMANCE_COLUMNS: ModeColumn[] = COLUMNS.map((column) => ({
-  ...column,
-  color: TAG_COLUMN_COLORS[column.key],
-}))
-const VALUE_COLUMNS: ModeColumn[] = [
-  { key: "budget", title: "Budget", color: VALUE_COLUMN_COLORS.budget },
-  { key: "mid", title: "Mid", color: VALUE_COLUMN_COLORS.mid },
-  { key: "premium", title: "Premium", color: VALUE_COLUMN_COLORS.premium },
-]
-const RECOMMENDED_COLUMNS: ModeColumn[] = [
-  { key: "top", title: "Top Picks", color: RECOMMENDED_COLUMN_COLORS.top },
-  { key: "strong", title: "Strong Picks", color: RECOMMENDED_COLUMN_COLORS.strong },
-  { key: "niche", title: "Niche Picks", color: RECOMMENDED_COLUMN_COLORS.niche },
-]
 
 const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
   performance: {
     enDescription: "Sorted by pure performance",
     ptDescription: "Ordenado por desempenho puro",
-    columns: PERFORMANCE_COLUMNS,
-    getColumnKeys: getPerformanceColumnKeys,
-    sortItems: (items) =>
-      [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
+    sortItems: sortByTierThenName,
   },
   value: {
-    enDescription: "Grouped by price range within each tier",
-    ptDescription: "Distribuído por faixa de preco dentro de cada tier",
-    columns: VALUE_COLUMNS,
-    getColumnKeys: (item) => [getStoredModeColumn(item, "adminValueBand", getPriceBand(item.price))],
+    enDescription: "Sorted by price",
+    ptDescription: "Ordenado por preço",
     sortItems: (items) => [...items].sort((left, right) => left.price - right.price || left.name.localeCompare(right.name)),
   },
   recommended: {
     enDescription: "Suggested picks by Sunano, prioritizing overall balance",
     ptDescription: "Escolhas sugeridas por Sunano, priorizando equilibrio geral",
-    columns: RECOMMENDED_COLUMNS,
-    getColumnKeys: (item) => {
-      const score = getRecommendedScore(item)
-      const fallbackColumn = score >= 4.4 ? "top" : score >= 3.2 ? "strong" : "niche"
-      return [getStoredModeColumn(item, "adminRecommendedBand", fallbackColumn)]
-    },
     sortItems: (items) =>
       [...items].sort((left, right) => getRecommendedScore(right) - getRecommendedScore(left) || left.name.localeCompare(right.name)),
   },
   oled: {
     enDescription: "Show only OLED panels",
     ptDescription: "Apenas painéis OLED",
-    columns: [
-      { key: "oled", title: "OLED", color: "text-cyan-300" },
-    ],
-    getColumnKeys: (item) => {
+    filterItem: (item) => {
       const spec = item.specs?.panelType
-      return typeof spec === "string" && spec.toLowerCase().includes("oled") ? ["oled"] : []
+      return typeof spec === "string" && spec.toLowerCase().includes("oled")
     },
-    sortItems: (items) =>
-      [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
+    sortItems: sortByTierThenName,
   },
   soundTyping: {
     enDescription: "Sorted by sound and typing feel",
     ptDescription: "Ordenado por som e digitação",
-    columns: [
-      { key: "thocky-linear", title: "Thocky Linear", color: "text-cyan-400" },
-      { key: "thocky-tactile", title: "Thocky Tactile", color: "text-cyan-300" },
-      { key: "clacky-linear", title: "Clacky Linear", color: "text-blue-400" },
-      { key: "clacky-tactile", title: "Clacky Tactile", color: "text-blue-300" },
-      { key: "hollow-linear", title: "Hollow Linear", color: "text-purple-400" },
-      { key: "hollow-tactile", title: "Hollow Tactile", color: "text-purple-300" },
-    ],
-    getColumnKeys: (item) => {
-      const sound = getStoredModeColumn(item, "adminSoundProfile", "thocky")
-      const typing = getStoredModeColumn(item, "adminTypingFeel", "linear")
-      return [`${sound}-${typing}`]
-    },
-    sortItems: (items) =>
-      [...items].sort((left, right) => getTierScore(right.tier) - getTierScore(left.tier) || left.name.localeCompare(right.name)),
+    sortItems: sortByTierThenName,
   },
 }
 
@@ -405,27 +327,25 @@ function DragOverlayCard({ item }: { item: Peripheral }) {
   )
 }
 
-// Droppable Column
-function DroppableColumn({
+// Droppable Tier row — single merged cell per tier
+function DroppableTier({
   tier,
-  column,
   items,
   onDelete,
   isDragging,
 }: {
   tier: Tier
-  column: string
   items: Peripheral[]
   onDelete: (id: string) => void
   isDragging: boolean
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: `${tier}-${column}` })
+  const { setNodeRef, isOver } = useDroppable({ id: tier })
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "relative border-r border-white/[0.08] last:border-r-0 transition-all duration-150",
+        "relative h-full transition-all duration-150",
         isOver && "bg-cyan-500/[0.06]"
       )}
     >
@@ -435,12 +355,12 @@ function DroppableColumn({
 
       <div className="p-2">
         {items.length > 0 ? (
-          <div className="grid auto-rows-max grid-cols-2 gap-2">
+          <div className="grid auto-rows-max grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2">
             {items.map((item) => (
               <DraggablePeripheralCard key={item.id} item={item} onDelete={onDelete} />
             ))}
             {isOver && (
-              <div className="col-span-2 flex h-7 items-center justify-center rounded border border-dashed border-cyan-400/50 bg-cyan-500/5">
+              <div className="col-span-full flex h-7 items-center justify-center rounded border border-dashed border-cyan-400/50 bg-cyan-500/5">
                 <p className="text-[9px] font-medium text-cyan-400">Soltar aqui</p>
               </div>
             )}
@@ -593,23 +513,12 @@ export default function AdminPeripheralsPage() {
     if (!draggedItem) return
 
     const overId = over.id.toString()
-    const specs = draggedItem.specs ?? {}
 
     if (overId === "unassigned-pool") {
+      if (draggedItem.tier === null) return
+
       const nextPeripherals = peripherals.map((item) =>
-        item.id === draggedItem.id
-          ? {
-              ...item,
-              tier: null,
-              specs: {
-                ...specs,
-                adminValueBand: undefined,
-                adminRecommendedBand: undefined,
-                adminSoundProfile: undefined,
-                adminTypingFeel: undefined,
-              },
-            }
-          : item
+        item.id === draggedItem.id ? { ...item, tier: null } : item
       )
 
       setPeripherals(nextPeripherals)
@@ -618,16 +527,7 @@ export default function AdminPeripheralsPage() {
         const res = await fetch(`/api/admin/peripherals/${draggedItem.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tier: null,
-            specs: {
-              ...specs,
-              adminValueBand: null,
-              adminRecommendedBand: null,
-              adminSoundProfile: null,
-              adminTypingFeel: null,
-            },
-          }),
+          body: JSON.stringify({ tier: null }),
         })
         const data = (await res.json().catch(() => null)) as { error?: string } | null
         if (!res.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to update" : "Erro ao atualizar"))
@@ -644,56 +544,14 @@ export default function AdminPeripheralsPage() {
       return
     }
 
-    const [newTier, newColumn] = overId.split("-") as [Tier, string]
+    const newTier = overId as Tier
 
-    const currentColumn =
-      ratingMode === "performance"
-        ? getPrimaryTag(draggedItem) ?? ""
-        : ratingMode === "value"
-          ? getStoredModeColumn(draggedItem, "adminValueBand", getPriceBand(draggedItem.price))
-          : ratingMode === "recommended"
-            ? getStoredModeColumn(
-                draggedItem,
-                "adminRecommendedBand",
-                getRecommendedScore(draggedItem) >= 4.4
-                  ? "top"
-                  : getRecommendedScore(draggedItem) >= 3.2
-                    ? "strong"
-                    : "niche"
-              )
-            : ratingMode === "oled"
-              ? (typeof draggedItem.specs?.panelType === "string" && draggedItem.specs.panelType.toLowerCase().includes("oled") ? "oled" : "")
-              : ratingMode === "soundTyping"
-                ? (() => {
-                    const sound = getStoredModeColumn(draggedItem, "adminSoundProfile", "thocky")
-                    const typing = getStoredModeColumn(draggedItem, "adminTypingFeel", "linear")
-                    return `${sound}-${typing}`
-                  })()
-                : ""
-
-    if (draggedItem.tier === newTier && currentColumn === newColumn) {
+    if (draggedItem.tier === newTier) {
       return
     }
 
-    const nextSpecs = {
-      ...specs,
-      ...(ratingMode === "value" ? { adminValueBand: newColumn } : {}),
-      ...(ratingMode === "recommended" ? { adminRecommendedBand: newColumn } : {}),
-      ...(ratingMode === "soundTyping" ? (() => {
-        const [sound, typing] = newColumn.split("-")
-        return { adminSoundProfile: sound, adminTypingFeel: typing }
-      })() : {}),
-    }
-
     const nextPeripherals = peripherals.map((item) =>
-      item.id === draggedItem.id
-        ? {
-            ...item,
-            tier: newTier,
-            tags: ratingMode === "performance" ? [newColumn as Tag] : item.tags,
-            specs: nextSpecs,
-          }
-        : item
+      item.id === draggedItem.id ? { ...item, tier: newTier } : item
     )
 
     setPeripherals(nextPeripherals)
@@ -702,11 +560,7 @@ export default function AdminPeripheralsPage() {
       const res = await fetch(`/api/admin/peripherals/${draggedItem.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tier: newTier,
-          tags: ratingMode === "performance" ? [newColumn as Tag] : draggedItem.tags,
-          specs: nextSpecs,
-        }),
+        body: JSON.stringify({ tier: newTier }),
       })
       const data = (await res.json().catch(() => null)) as { error?: string } | null
       if (!res.ok) throw new Error(data?.error ?? (isEnglish ? "Failed to update" : "Erro ao atualizar"))
@@ -810,14 +664,14 @@ export default function AdminPeripheralsPage() {
 
   const itemsByTier = useMemo(
     () =>
-      TIER_ROWS.map((tier) => ({
-        ...tier,
-        itemsByColumn: modeConfig.columns.map((column) => ({
-          ...column,
-          items: modeConfig.sortItems(filtered.filter((item) => item.tier === tier.key))
-            .filter((item) => modeConfig.getColumnKeys(item).includes(column.key)),
-        })),
-      })),
+      TIER_ROWS.map((tier) => {
+        let tierItems = filtered.filter((item) => item.tier === tier.key)
+        if (modeConfig.filterItem) tierItems = tierItems.filter(modeConfig.filterItem)
+        return {
+          ...tier,
+          items: modeConfig.sortItems(tierItems),
+        }
+      }),
     [filtered, modeConfig]
   )
 
@@ -916,28 +770,23 @@ export default function AdminPeripheralsPage() {
               <div
                 key={tierRow.key}
                 className="grid border-b border-white/[0.08] last:border-b-0"
-                style={{
-                  gridTemplateColumns: `70px repeat(${modeConfig.columns.length}, minmax(220px, 1fr))`,
-                }}
+                style={{ gridTemplateColumns: "70px 1fr" }}
               >
-                <div className={`flex items-center justify-center bg-gradient-to-b ${tierRow.accent} text-2xl font-black ${tierRow.textColor}`}>
+                <div className={`flex flex-col items-center justify-center bg-gradient-to-b ${tierRow.accent} text-2xl font-black ${tierRow.textColor}`}>
                   {tierRow.label}
+                  {tierRow.items.length > 0 && (
+                    <span className="text-[10px] font-medium opacity-80">{tierRow.items.length}</span>
+                  )}
                 </div>
 
-                {tierRow.itemsByColumn.map((column) => (
-                  <div
-                    key={`${tierRow.key}-${column.key}`}
-                    data-drop-zone={`${tierRow.key}-${column.key}`}
-                  >
-                    <DroppableColumn
-                      tier={tierRow.key}
-                      column={column.key}
-                      items={column.items}
-                      onDelete={(id) => setDeleteDialog({ open: true, id })}
-                      isDragging={activeId !== null}
-                    />
-                  </div>
-                ))}
+                <div data-drop-zone={tierRow.key}>
+                  <DroppableTier
+                    tier={tierRow.key}
+                    items={tierRow.items}
+                    onDelete={(id) => setDeleteDialog({ open: true, id })}
+                    isDragging={activeId !== null}
+                  />
+                </div>
               </div>
             ))}
           </section>

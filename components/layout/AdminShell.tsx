@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronLeft, ChevronRight, Eye, Gift, Home, LogOut, Menu, NotebookPen, Package, Settings, Users, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Eye, Gift, Home, LogOut, Menu, Mouse, NotebookPen, Package, Settings, Users, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { logoutAction } from "@/app/admin/actions"
@@ -23,7 +23,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/admin", label: isEnglish ? "Dashboard" : "Dashboard", icon: Home, permission: "dashboard_read" },
     { href: "/admin/tierlist", label: isEnglish ? "Tierlist" : "Tierlist", icon: Package, permission: "peripherals_read" },
-    { href: "/admin/perifericos", label: isEnglish ? "Peripherals" : "Perifericos", icon: Package, permission: "peripherals_read" },
+    { href: "/admin/perifericos", label: isEnglish ? "Peripherals" : "Periféricos", icon: Mouse, permission: "peripherals_read" },
     { href: "/admin/blog", label: isEnglish ? "Blog & Reviews" : "Blog & Reviews", icon: NotebookPen, permission: "blog_read" },
     { href: "/admin/offers", label: isEnglish ? "Offers" : "Ofertas", icon: Gift, permission: "offers_read" },
     { href: "/admin/users", label: isEnglish ? "Users" : "Usuários", icon: Users, requiresWebMaster: true },

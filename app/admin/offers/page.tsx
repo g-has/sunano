@@ -68,8 +68,8 @@ export default function AdminOffersPage() {
   usePageHeader(
     isEnglish ? "Offers" : "Ofertas",
     isEnglish
-      ? "Offers are now synced directly from Telegram group messages. Manual create/edit has been disabled."
-      : "As ofertas agora são sincronizadas diretamente das mensagens do grupo no Telegram. Cadastro/edição manual foi desativado."
+      ? "Offers synced directly from Telegram group messages."
+      : "Ofertas direto do grupo no Telegram."
   )
 
   return (

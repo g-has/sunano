@@ -38,7 +38,7 @@ export function PublicSidebar() {
     { href: "/", label: isEnglish ? "Home" : "Início", icon: Home },
     { href: "/tierlist", label: "Tierlist", icon: Package },
     { href: "/noticias", label: isEnglish ? "News" : "Noticias", icon: Newspaper },
-    { href: "/perifericos", label: isEnglish ? "Peripherals" : "Perifericos", icon: Mouse },
+    { href: "/perifericos", label: isEnglish ? "Peripherals" : "Periféricos", icon: Mouse },
     { href: "/blog", label: "Reviews", icon: Newspaper },
     { href: "/offers", label: isEnglish ? "Offers" : "Ofertas", icon: BadgePercent },
     { href: "/forum", label: "Forum", icon: MessageCircle },
