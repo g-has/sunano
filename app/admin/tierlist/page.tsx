@@ -30,7 +30,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Card, CardContent } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useLocale } from "@/lib/locale-context"
 import {
@@ -41,7 +40,7 @@ import {
   TIER_THEMES,
   VALUE_COLUMN_COLORS,
 } from "@/lib/tierlist-theme"
-import { TierItemTooltipContent } from "@/components/tierlist/TierItemTooltipContent"
+import { TierItemTooltipContent, type Ratings, type RatingKey } from "@/components/tierlist/TierItemTooltipContent"
 import { FilterBar } from "@/components/tierlist/FilterBar"
 
 type RatingMode = "oled" | "performance" | "value" | "recommended" | "soundTyping"
@@ -140,28 +139,18 @@ function getPrimaryTag(item: Peripheral): Tag | null {
   return item.tags[0] ?? null
 }
 
-function formatLabel(value: string) {
-  return value
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
-}
+const RATING_KEYS: RatingKey[] = ["overall", "performance", "build", "value", "software", "battery", "qc"]
 
-function getSpecPairs(item: Peripheral): { label: string; value: string }[] {
-  const specs = item.specs ?? {}
-  const pairs: { label: string; value: string }[] = []
-  if (typeof specs.connectivity === "string") pairs.push({ label: "Connect.", value: formatLabel(specs.connectivity) })
-  if (typeof specs.size === "string") pairs.push({ label: "Size", value: formatLabel(specs.size) })
-  if (typeof specs.driver === "string") pairs.push({ label: "Driver", value: String(specs.driver) })
-  if (typeof specs.mouseShape === "string") pairs.push({ label: "Shape", value: formatLabel(specs.mouseShape) })
-  if (typeof specs.keyboardLayout === "string") pairs.push({ label: "Layout", value: specs.keyboardLayout.toUpperCase() })
-  if (typeof specs.surface === "string") pairs.push({ label: "Surface", value: formatLabel(specs.surface) })
-  if (typeof specs.profile === "string") pairs.push({ label: "Profile", value: String(specs.profile) })
-  if (typeof specs.keyboardType === "string") pairs.push({ label: "Type", value: formatLabel(specs.keyboardType) })
-  if (typeof specs.padType === "string") pairs.push({ label: "Pad", value: formatLabel(specs.padType) })
-  if (typeof specs.refreshRate === "number") pairs.push({ label: "Refresh", value: `${specs.refreshRate}Hz` })
-  if (typeof specs.panelType === "string") pairs.push({ label: "Panel", value: formatLabel(specs.panelType) })
-  return pairs
+function extractRatings(item: Peripheral): Ratings {
+  const details = (item.specs as Record<string, unknown> | undefined)?.details as
+    | { ratings?: Record<string, unknown> }
+    | undefined
+  const raw = details?.ratings ?? {}
+  const ratings: Ratings = {}
+  for (const key of RATING_KEYS) {
+    if (typeof raw[key] === "number") ratings[key] = raw[key] as number
+  }
+  return ratings
 }
 
 function getPriceBand(price: number): PriceBand {
@@ -303,8 +292,11 @@ function DraggablePeripheralCard({
   const isEnglish = locale === "en-US"
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id })
   const tierStyle = item.tier ? CARD_TIER_STYLES[item.tier] : CARD_TIER_STYLES.L
-  const categoryMeta = CATEGORY_META.find((c) => c.key === item.category)
-  const specPairs = getSpecPairs(item)
+
+  const tierTheme = item.tier ? TIER_THEMES[item.tier] : TIER_THEMES.L
+  const primaryTag = item.tags[0]
+  const tagStyle = primaryTag ? CARD_TAG_STYLES[primaryTag] : null
+  const isGoat = item.tier === "GOAT"
 
   return (
     <Tooltip>
@@ -312,73 +304,74 @@ function DraggablePeripheralCard({
         <div
           ref={setNodeRef}
           style={{ opacity: isDragging ? 0.2 : 1 }}
-          className="group cursor-grab active:cursor-grabbing transition-opacity duration-100"
+          className={cn(
+            "group relative cursor-grab overflow-hidden rounded-lg border border-white/[0.10] bg-[#0a0e17]/90 transition-all duration-200 active:cursor-grabbing",
+            "hover:border-white/[0.22] hover:shadow-md hover:shadow-black/40",
+            isGoat && "shadow-[0_0_14px_rgba(240,97,97,0.18)]",
+          )}
           {...attributes}
           {...listeners}
         >
-          <Card className="border border-white/[0.10] bg-[#0a0e17]/90 p-0 shadow-md transition-all duration-200 hover:border-white/[0.22] hover:shadow-lg">
-            <CardContent className="p-0">
-              <div className="flex items-start gap-2.5 p-2.5">
-                <div className={cn("grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg text-[10px] font-bold shadow-md", tierStyle.bg, tierStyle.text)}>
-                  {item.image_url ? (
-                    <Image src={item.image_url} alt={item.name} width={40} height={40} className="h-full w-full object-cover" />
-                  ) : (
-                    item.brand.slice(0, 2).toUpperCase()
-                  )}
-                </div>
+          {/* Tier accent bar */}
+          <div className={cn("absolute bottom-0 left-0 top-0 w-[3px] bg-gradient-to-b", tierTheme.accent)} />
 
-                <div className="min-w-0 flex-1 pt-px">
-                  <p className="truncate text-[11px] font-bold leading-tight text-slate-100">{item.name}</p>
-                  <div className="mt-0.5 flex items-center gap-1.5">
-                    <span className="truncate text-[9px] text-slate-500">{item.brand}</span>
-                    <span className="text-slate-700">·</span>
-                    <span className="text-[9px] font-semibold text-emerald-400">${item.price}</span>
-                  </div>
-                  {item.tags.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {item.tags.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className={cn("rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide", CARD_TAG_STYLES[tag].bg, CARD_TAG_STYLES[tag].text)}
-                        >
-                          {tag.slice(0, 4)}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+          {/* Edit / Delete overlay */}
+          <div className="absolute right-1 top-1 z-10 flex gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+            <Link href={`/admin/tierlist/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
+              <Button size="icon" variant="ghost" className="size-6 bg-black/70 text-slate-300 hover:text-slate-100">
+                <Edit className="size-3" />
+              </Button>
+            </Link>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-6 bg-black/70 text-red-400 hover:text-red-300"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => onDelete(item.id)}
+            >
+              <Trash2 className="size-3" />
+            </Button>
+          </div>
 
-                <div className="flex shrink-0 flex-col gap-0.5 pt-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                  <Link href={`/admin/tierlist/${item.id}`}>
-                    <Button size="icon" variant="ghost" className="h-6 w-6 text-slate-400 hover:text-slate-100">
-                      <Edit className="size-3" />
-                    </Button>
-                  </Link>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-400" onClick={() => onDelete(item.id)}>
-                    <Trash2 className="size-3" />
-                  </Button>
-                </div>
+          {/* Image area */}
+          <div className="relative ml-[3px] h-12 overflow-hidden bg-black/60">
+            {isGoat && (
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-red-500/10 to-transparent" />
+            )}
+            {item.image_url ? (
+              <Image src={item.image_url} alt={item.name} width={120} height={48} className="h-full w-full object-contain p-0.5" />
+            ) : (
+              <div className={cn("flex h-full items-center justify-center text-[10px] font-black", tierStyle.bg, tierStyle.text)}>
+                {item.brand.slice(0, 2).toUpperCase()}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="ml-[3px] px-1.5 pb-1.5 pt-1">
+            <p className="line-clamp-2 text-[10px] font-bold leading-tight text-slate-100">{item.name}</p>
+            <div className="mt-0.5 flex items-center justify-between gap-1">
+              <p className="truncate text-[8px] text-slate-500">{item.brand}</p>
+              {tagStyle && <div className={cn("size-1.5 shrink-0 rounded-full", tagStyle.dot)} />}
+            </div>
+          </div>
         </div>
       </TooltipTrigger>
 
       <TooltipContent
         className="rounded-xl border border-white/[0.12] bg-[#0a0e17]/95 p-4 shadow-2xl backdrop-blur-md"
         sideOffset={12}
+        side="bottom"
+        align="center"
       >
         <TierItemTooltipContent
           name={item.name}
           brand={item.brand}
-          categoryLabel={isEnglish ? (categoryMeta?.en ?? item.category) : (categoryMeta?.pt ?? item.category)}
+          categoryLabel={item.category}
           image_url={item.image_url}
           tier={item.tier}
-          tags={item.tags}
-          specs={specPairs}
-          displayPrice={`$${item.price}`}
+          ratings={extractRatings(item)}
           isEnglish={isEnglish}
-          priceBand={getPriceBand(item.price)}
         />
       </TooltipContent>
     </Tooltip>
@@ -388,39 +381,26 @@ function DraggablePeripheralCard({
 // Floating card that follows the cursor during drag
 function DragOverlayCard({ item }: { item: Peripheral }) {
   const tierStyle = item.tier ? CARD_TIER_STYLES[item.tier] : CARD_TIER_STYLES.L
+  const tierTheme = item.tier ? TIER_THEMES[item.tier] : TIER_THEMES.L
 
   return (
-    <div className="w-[240px] rotate-1 scale-105 cursor-grabbing drop-shadow-2xl">
-      <Card className="border border-cyan-400/50 bg-[#0a0e17] p-0 ring-2 ring-cyan-400/20">
-        <CardContent className="p-0">
-          <div className="flex items-start gap-2.5 p-2.5">
-            <div className={cn("grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg text-[10px] font-bold shadow-md", tierStyle.bg, tierStyle.text)}>
-              {item.image_url ? (
-                <Image src={item.image_url} alt={item.name} width={40} height={40} className="h-full w-full object-cover" />
-              ) : (
-                item.brand.slice(0, 2).toUpperCase()
-              )}
+    <div className="w-[150px] rotate-2 scale-105 cursor-grabbing drop-shadow-2xl">
+      <div className="relative overflow-hidden rounded-lg border border-cyan-400/50 bg-[#0a0e17] ring-2 ring-cyan-400/20">
+        <div className={cn("absolute bottom-0 left-0 top-0 w-[3px] bg-gradient-to-b", tierTheme.accent)} />
+        <div className="relative ml-[3px] h-12 overflow-hidden bg-black/60">
+          {item.image_url ? (
+            <Image src={item.image_url} alt={item.name} width={150} height={48} className="h-full w-full object-contain p-0.5" />
+          ) : (
+            <div className={cn("flex h-full items-center justify-center text-[10px] font-black", tierStyle.bg, tierStyle.text)}>
+              {item.brand.slice(0, 2).toUpperCase()}
             </div>
-            <div className="min-w-0 flex-1 pt-px">
-              <p className="truncate text-[11px] font-bold leading-tight text-slate-100">{item.name}</p>
-              <div className="mt-0.5 flex items-center gap-1.5">
-                <span className="text-[9px] text-slate-500">{item.brand}</span>
-                <span className="text-slate-700">·</span>
-                <span className="text-[9px] font-semibold text-emerald-400">${item.price}</span>
-              </div>
-              {item.tags.length > 0 && (
-                <div className="mt-1.5 flex gap-1">
-                  {item.tags.slice(0, 2).map((tag) => (
-                    <span key={tag} className={cn("rounded px-1.5 py-0.5 text-[8px] font-bold uppercase", CARD_TAG_STYLES[tag].bg, CARD_TAG_STYLES[tag].text)}>
-                      {tag.slice(0, 4)}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+        <div className="ml-[3px] px-1.5 pb-1.5 pt-1">
+          <p className="line-clamp-2 text-[10px] font-bold leading-tight text-slate-100">{item.name}</p>
+          <p className="mt-0.5 truncate text-[8px] text-slate-500">{item.brand}</p>
+        </div>
+      </div>
     </div>
   )
 }
@@ -453,18 +433,18 @@ function DroppableColumn({
         <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-cyan-400/50" />
       )}
 
-      <div className="space-y-1.5 p-2">
+      <div className="p-2">
         {items.length > 0 ? (
-          <>
+          <div className="grid auto-rows-max grid-cols-2 gap-2">
             {items.map((item) => (
               <DraggablePeripheralCard key={item.id} item={item} onDelete={onDelete} />
             ))}
             {isOver && (
-              <div className="flex h-7 items-center justify-center rounded border border-dashed border-cyan-400/50 bg-cyan-500/5">
+              <div className="col-span-2 flex h-7 items-center justify-center rounded border border-dashed border-cyan-400/50 bg-cyan-500/5">
                 <p className="text-[9px] font-medium text-cyan-400">Soltar aqui</p>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <div
             className={cn(
@@ -510,7 +490,7 @@ function DroppableUnassignedPool({
       className={cn("transition-colors duration-150", isOver && "bg-amber-500/5")}
     >
       {items.length > 0 ? (
-        <div className="grid gap-2 p-3 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
+        <div className="grid gap-2 p-3 [grid-template-columns:repeat(auto-fill,minmax(130px,1fr))]">
           {items.map((item) => (
             <DraggablePeripheralCard key={item.id} item={item} onDelete={onDelete} />
           ))}

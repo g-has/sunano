@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { CARD_TAG_STYLES, CARD_TIER_STYLES, TIER_THEMES } from "@/lib/tierlist-theme"
+import { CARD_TAG_STYLES, CARD_TIER_STYLES, RATING_LEVEL_COLORS, TIER_THEMES } from "@/lib/tierlist-theme"
 
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
@@ -54,29 +54,14 @@ function formatLabel(value: string) {
     .join(" ")
 }
 
-function ratingColor(value: number) {
-  if (value >= 5) return "bg-emerald-500"
-  if (value >= 4) return "bg-primary"
-  if (value >= 3) return "bg-amber-500"
-  if (value >= 2) return "bg-orange-500"
-  return "bg-rose-500"
-}
-
-function ratingTextColor(value: number) {
-  if (value >= 5) return "text-emerald-300"
-  if (value >= 4) return "text-primary"
-  if (value >= 3) return "text-amber-300"
-  if (value >= 2) return "text-orange-300"
-  return "text-rose-300"
-}
-
 function RatingRow({ label, value }: { label: string; value: number }) {
-  const filled = Math.max(0, Math.min(6, value))
+  const filled = Math.max(0, Math.min(6, Math.round(value)))
+  const levelColor = RATING_LEVEL_COLORS[filled]
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-medium text-slate-300">{label}</span>
-        <span className={cn("text-[11px] font-bold tabular-nums", ratingTextColor(filled))}>
+        <span className={cn("text-[11px] font-bold tabular-nums", levelColor.text)}>
           {filled}<span className="text-slate-600">/6</span>
         </span>
       </div>
@@ -86,7 +71,7 @@ function RatingRow({ label, value }: { label: string; value: number }) {
             key={i}
             className={cn(
               "flex-1 rounded-sm transition-colors",
-              i < filled ? ratingColor(filled) : "bg-white/[0.06]",
+              i < filled ? levelColor.bar : "bg-white/[0.06]",
             )}
           />
         ))}

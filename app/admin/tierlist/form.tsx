@@ -32,6 +32,7 @@ import {
 import { useLocale } from "@/lib/locale-context"
 import { usePageHeader } from "@/lib/page-header-context"
 import { mapTier } from "@/lib/tier-utils"
+import { RATING_LEVEL_COLORS } from "@/lib/tierlist-theme"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
@@ -209,6 +210,7 @@ const COATING_OPTIONS = [
   "Emborrachado",
   "Plastico",
   "Magnesio",
+  "Metalizado",
   "Fibra de carbono",
   "Fibra de vidro",
 ]
@@ -262,15 +264,7 @@ function RatingInput({
 }) {
   const levels = [1, 2, 3, 4, 5, 6]
 
-  const RATING_COLORS = [
-    { bg: "bg-red-800 text-white", bar: "bg-red-800" }, // 0 - super vermelho
-    { bg: "bg-red-600 text-white", bar: "bg-red-600" }, // 1 - vermelho forte
-    { bg: "bg-yellow-400 text-black", bar: "bg-yellow-400" }, // 2 - amarelo alerta
-    { bg: "bg-zinc-400 text-black", bar: "bg-zinc-400" }, // 3 - cinza
-    { bg: "bg-green-600 text-white", bar: "bg-green-600" }, // 4 - verde
-    { bg: "bg-sky-500 text-white", bar: "bg-sky-500" }, // 5 - azul
-    { bg: "bg-purple-600 text-white", bar: "bg-purple-600" }, // 6 - roxo
-  ]
+  const RATING_COLORS = RATING_LEVEL_COLORS
 
   const activeColor = typeof value === "number" ? RATING_COLORS[value].bar : null
 
@@ -1070,6 +1064,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                       <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="fingertip">Fingertip</SelectItem>
                       <SelectItem value="small">{isEnglish ? "Small" : "Pequeno"}</SelectItem>
                       <SelectItem value="medium">{isEnglish ? "Medium" : "Médio"}</SelectItem>
                       <SelectItem value="large">{isEnglish ? "Large" : "Grande"}</SelectItem>

@@ -77,6 +77,19 @@ export const CARD_TAG_STYLES = {
   trimode:    { bg: "bg-indigo-500/15",  text: "text-indigo-300",  border: "border-indigo-500/30",  dot: "bg-indigo-400" },
 } as const
 
+// Rating scale colors (0–6) — single source of truth shared by the peripheral
+// create/edit form and the tierlist tooltip so the rating colors never drift.
+// Index = rating value.
+export const RATING_LEVEL_COLORS = [
+  { bg: "bg-red-800 text-white",    bar: "bg-red-800",    text: "text-red-400" },    // 0 — super vermelho
+  { bg: "bg-red-600 text-white",    bar: "bg-red-600",    text: "text-red-400" },    // 1 — vermelho forte
+  { bg: "bg-yellow-400 text-black", bar: "bg-yellow-400", text: "text-yellow-300" }, // 2 — amarelo alerta
+  { bg: "bg-zinc-400 text-black",   bar: "bg-zinc-400",   text: "text-zinc-300" },   // 3 — cinza
+  { bg: "bg-green-600 text-white",  bar: "bg-green-600",  text: "text-green-400" },  // 4 — verde
+  { bg: "bg-sky-500 text-white",    bar: "bg-sky-500",    text: "text-sky-400" },    // 5 — azul
+  { bg: "bg-purple-600 text-white", bar: "bg-purple-600", text: "text-purple-400" }, // 6 — roxo
+] as const
+
 export const CARD_TIER_STYLES = {
   GOAT: { bg: "bg-black", text: "text-white", accent: "bg-[#f06161]", ring: "ring-[#f06161]/50" },
   SS:   { bg: "bg-black", text: "text-white", accent: "bg-[#f08d61]", ring: "ring-[#f08d61]/45" },
