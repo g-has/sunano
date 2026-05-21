@@ -54,7 +54,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 }
 
 const TAG_LABEL: Record<string, string> = {
-  competitive: "Competitivo", versatile: "Versátil",
+  competitive: "Competitivo", versatile: "Bomba",
   value: "Custo-benefício",
 }
 

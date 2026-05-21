@@ -48,7 +48,7 @@ export function TierlistInfo() {
             <p>{isEnglish ? "Primary tags:" : "Tags principais:"}</p>
               <ul className="space-y-1.5 text-muted-foreground">
               <li>{isEnglish ? "Competitive: maximum performance focus" : "Competitivo: foco em performance máxima"}</li>
-              <li>{isEnglish ? "Versatile: balanced all-around usage" : "Versátil: equilíbrio para uso geral"}</li>
+              <li>{isEnglish ? "Bomba: balanced all-around usage" : "Bomba: equilíbrio para uso geral"}</li>
               <li>{isEnglish ? "Value: best cost-benefit picks" : "Valor: melhores opções de custo-benefício"}</li>
             </ul>
           </div>

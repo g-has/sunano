@@ -31,6 +31,23 @@ const RATING_LABELS_EN: Record<RatingKey, string> = {
   qc: "QC",
 }
 
+const TAG_LABELS: Record<Tag, { en: string; pt: string }> = {
+  competitive: { en: "Competitive", pt: "Competitivo" },
+  versatile: { en: "Bomba", pt: "Bomba" },
+  value: { en: "Value", pt: "Custo-benefício" },
+  cheap: { en: "Cheap", pt: "Barato" },
+  expensive: { en: "Expensive", pt: "Caro" },
+  light: { en: "Light mouse", pt: "Mouse Leve" },
+  heavy: { en: "Heavy mouse", pt: "Mouse Pesado" },
+  unbalanced: { en: "Unbalanced weight", pt: "Peso Desbalanceado" },
+  dpi_deviation: { en: "DPI Deviation", pt: "DPI Deviation" },
+  wobble_high: { en: "High wobble", pt: "Wooble Alto" },
+  wobble_low: { en: "Low wobble", pt: "Wooble Baixo" },
+  scroll_hard: { en: "Hard scroll", pt: "Scroll Duro" },
+  scroll_soft: { en: "Soft scroll", pt: "Scroll Mole" },
+  trimode: { en: "Trimode", pt: "Trimode" },
+}
+
 export interface TierItemTooltipContentProps {
   name: string
   brand: string
@@ -52,6 +69,12 @@ function formatLabel(value: string) {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ")
+}
+
+function formatTagLabel(tag: Tag, isEnglish?: boolean) {
+  const label = TAG_LABELS[tag]
+  if (!label) return formatLabel(tag)
+  return isEnglish ? label.en : label.pt
 }
 
 function RatingRow({ label, value }: { label: string; value: number }) {
@@ -152,6 +175,29 @@ export function TierItemTooltipContent({
         )}
       </div>
 
+      {/* Tags */}
+      {tags && tags.length > 0 && (
+        <div>
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Tags</p>
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+                  CARD_TAG_STYLES[tag].bg,
+                  CARD_TAG_STYLES[tag].text,
+                  CARD_TAG_STYLES[tag].border,
+                )}
+              >
+                <span className={cn("size-1.5 rounded-full", CARD_TAG_STYLES[tag].dot)} />
+                {formatTagLabel(tag, isEnglish)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Ratings (public-first) */}
       {ratings && (
         <div>
@@ -169,29 +215,6 @@ export function TierItemTooltipContent({
               {isEnglish ? "No ratings yet" : "Sem avaliações ainda"}
             </p>
           )}
-        </div>
-      )}
-
-      {/* Tags (admin only) */}
-      {tags && tags.length > 0 && (
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Tags</p>
-          <div className="flex flex-wrap gap-1.5">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
-                  CARD_TAG_STYLES[tag].bg,
-                  CARD_TAG_STYLES[tag].text,
-                  CARD_TAG_STYLES[tag].border,
-                )}
-              >
-                <span className={cn("size-1.5 rounded-full", CARD_TAG_STYLES[tag].dot)} />
-                {formatLabel(tag)}
-              </span>
-            ))}
-          </div>
         </div>
       )}
 

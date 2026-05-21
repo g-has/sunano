@@ -127,7 +127,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=seu-chave-anonima
    - **Preço**: Valor em dólares
    - **Categoria**: Teclado, Mouse, Mousepad, etc
   - **Tier**: GOAT, SS, S, A, B, C, L
-   - **Tags**: Competitive, Versatile, Value, Comfort
+   - **Tags**: Competitive, Bomba, Value, Comfort
    - **Imagem**: Upload de arquivo
    - **Specs**: Campos específicos por categoria
 

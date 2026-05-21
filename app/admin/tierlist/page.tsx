@@ -293,6 +293,7 @@ function DraggablePeripheralCard({
           image_url={item.image_url}
           tier={item.tier}
           ratings={extractRatings(item)}
+          tags={item.tags}
           isEnglish={isEnglish}
         />
       </TooltipContent>

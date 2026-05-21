@@ -1,13 +1,15 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ExternalLink, Package, ShoppingBag, Star } from "lucide-react"
+import { ExternalLink, Package, ShoppingBag } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getPeripheralByIdOrSlug } from "@/lib/server/repositories/peripherals-repository"
 import { listProductsByPeripheral } from "@/lib/server/repositories/store-repository"
 import { listPublishedPostsByPeripheral } from "@/lib/server/repositories/blog-repository"
+import { cn } from "@/lib/utils"
 import { mapTier } from "@/lib/tier-utils"
+import { CARD_TAG_STYLES, RATING_LEVEL_COLORS } from "@/lib/tierlist-theme"
 
 interface PerifericoPageProps {
   params: Promise<{ slug: string }>
@@ -28,6 +30,29 @@ function formatCurrency(value: number) {
   } catch (error) {
     return `R$${value}`
   }
+}
+
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
+
+const TAG_LABELS: Record<Tag, string> = {
+  competitive: "Competitivo",
+  versatile: "Bomba",
+  value: "Custo-beneficio",
+  cheap: "Barato",
+  expensive: "Caro",
+  light: "Mouse Leve",
+  heavy: "Mouse Pesado",
+  unbalanced: "Peso Desbalanceado",
+  dpi_deviation: "DPI Deviation",
+  wobble_high: "Wooble Alto",
+  wobble_low: "Wooble Baixo",
+  scroll_hard: "Scroll Duro",
+  scroll_soft: "Scroll Mole",
+  trimode: "Trimode",
+}
+
+function formatTagLabel(tag: string) {
+  return TAG_LABELS[tag as Tag] ?? formatLabel(tag)
 }
 
 function splitLines(value?: string | null) {
@@ -54,19 +79,28 @@ function normalizeRating(value: unknown, max = 6) {
   return Math.max(0, Math.min(max, Math.round(parsed)))
 }
 
-function RatingStars({ rating, max = 6 }: { rating: number; max?: number }) {
+function RatingRow({ label, rating }: { label: string; rating: number }) {
+  const filled = Math.max(0, Math.min(6, Math.round(rating)))
+  const levelColor = RATING_LEVEL_COLORS[filled]
   return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: max }).map((_, index) => (
-        <Star
-          key={index}
-          className={
-            index < rating
-              ? "size-3 fill-amber-400 text-amber-400"
-              : "size-3 fill-muted-foreground/30 text-muted-foreground/30"
-          }
-        />
-      ))}
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold", levelColor.bg)}>
+          {filled}/6
+        </span>
+      </div>
+      <div className="flex h-3 items-center gap-1">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className={cn(
+              "h-3 flex-1 rounded transition-colors",
+              index < filled ? levelColor.bar : "bg-muted/40",
+            )}
+          />
+        ))}
+      </div>
     </div>
   )
 }
@@ -148,13 +182,11 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
               <div className="space-y-3">
                 <Card className="border-border bg-card">
                   <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Rank</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex items-center justify-center">
-                    <div className="size-16 rounded-full border border-border bg-muted/40 flex items-center justify-center text-xl font-bold text-foreground">
+                    <span className="text-xs text-muted-foreground">Classificação</span>
+                    <span className="rounded-full border border-border bg-muted/40 px-3 py-1 text-sm font-semibold text-foreground">
                       {rankLabel}
-                    </div>
-                  </CardContent>
+                    </span>
+                  </CardHeader>
                 </Card>
 
                 <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-muted/40">
@@ -184,35 +216,14 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                     <CardTitle className="text-sm">Notas gerais</CardTitle>
                     <CardDescription className="text-xs">Escala de 0 a 6 (GOAT = 6).</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center justify-between">
-                      <span>Geral</span>
-                      <RatingStars rating={ratings.overall} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Construcao</span>
-                      <RatingStars rating={ratings.build} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Software</span>
-                      <RatingStars rating={ratings.software} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Bateria</span>
-                      <RatingStars rating={ratings.battery} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Performance</span>
-                      <RatingStars rating={ratings.performance} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>QC</span>
-                      <RatingStars rating={ratings.qc} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>CxB</span>
-                      <RatingStars rating={ratings.value} />
-                    </div>
+                  <CardContent className="space-y-3">
+                    <RatingRow label="Geral" rating={ratings.overall} />
+                    <RatingRow label="Construcao" rating={ratings.build} />
+                    <RatingRow label="Software" rating={ratings.software} />
+                    <RatingRow label="Bateria" rating={ratings.battery} />
+                    <RatingRow label="Performance" rating={ratings.performance} />
+                    <RatingRow label="QC" rating={ratings.qc} />
+                    <RatingRow label="Custo-beneficio" rating={ratings.value} />
                   </CardContent>
                 </Card>
 
@@ -242,11 +253,30 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                         {data.tier}
                       </Badge>
                     )}
-                    {data.tags?.map((tag) => (
-                      <Badge key={tag} variant="outline" className="border-border text-xs text-muted-foreground">
-                        {formatLabel(tag)}
-                      </Badge>
-                    ))}
+                    {data.tags?.map((tag) => {
+                      const style = CARD_TAG_STYLES[tag as Tag]
+                      if (!style) {
+                        return (
+                          <Badge key={tag} variant="outline" className="border-border text-xs text-muted-foreground">
+                            {formatTagLabel(tag)}
+                          </Badge>
+                        )
+                      }
+                      return (
+                        <span
+                          key={tag}
+                          className={cn(
+                            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+                            style.bg,
+                            style.text,
+                            style.border,
+                          )}
+                        >
+                          <span className={cn("size-1.5 rounded-full", style.dot)} />
+                          {formatTagLabel(tag)}
+                        </span>
+                      )
+                    })}
                   </div>
 
                   <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
@@ -306,18 +336,18 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                       <CardTitle className="text-sm">Pegada</CardTitle>
                       <CardDescription className="text-xs">Recomendacao por tamanho de mao.</CardDescription>
                     </CardHeader>
-                    <CardContent className="overflow-hidden rounded-lg border border-border bg-muted/20 text-sm text-muted-foreground">
-                      {gripInfo.map((row, index) => (
-                        <div
-                          key={row.label}
-                          className={`grid grid-cols-[1fr_auto] items-center gap-4 px-3 py-2 ${index === 0 ? "" : "border-t border-border"}`}
-                        >
-                          <span className="text-foreground/80">{row.label}</span>
-                          <span className="font-semibold text-foreground">{formatSpecValue(row.value)}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
+                  <CardContent className="divide-y divide-border text-sm text-muted-foreground">
+                    {gripInfo.map((row) => (
+                      <div
+                        key={row.label}
+                        className="flex items-center justify-between gap-4 px-3 py-2"
+                      >
+                        <span className="text-foreground/80">{row.label}</span>
+                        <span className="font-semibold text-foreground">{formatSpecValue(row.value)}</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">

@@ -1,7 +1,10 @@
 "use client"
 
+import Link from "next/link"
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useLocale } from "@/components/providers/locale-context"
+import { buildPeripheralSlug } from "@/lib/peripheral-slug"
 import { cn } from "@/lib/utils"
 import { CARD_TAG_STYLES, CARD_TIER_STYLES, TIER_THEMES } from "@/lib/tierlist-theme"
 import { TierItemTooltipContent, type Ratings } from "./TierItemTooltipContent"
@@ -39,6 +42,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
   const primaryTag = item.tags[0]
   const tagStyle = primaryTag ? CARD_TAG_STYLES[primaryTag] : null
   const isGoat = item.tier === "GOAT"
+  const href = `/perifericos/${buildPeripheralSlug(item.name, item.id)}`
 
   return (
     <Tooltip>
@@ -99,15 +103,18 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
         side="bottom"
         align="center"
       >
-        <TierItemTooltipContent
-          name={item.name}
-          brand={item.brand}
-          categoryLabel={item.category}
-          image_url={item.image_url}
-          tier={item.tier}
-          ratings={item.ratings ?? {}}
-          isEnglish={isEnglish}
-        />
+        <Link href={href} aria-label={item.name} className="block cursor-pointer hover:opacity-95">
+          <TierItemTooltipContent
+            name={item.name}
+            brand={item.brand}
+            categoryLabel={item.category}
+            image_url={item.image_url}
+            tier={item.tier}
+            ratings={item.ratings ?? {}}
+            tags={item.tags}
+            isEnglish={isEnglish}
+          />
+        </Link>
       </TooltipContent>
     </Tooltip>
   )
