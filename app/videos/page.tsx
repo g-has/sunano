@@ -4,7 +4,7 @@ import { ExternalLink, PlayCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { getYouTubeChannelFeed } from "@/lib/youtube"
+import { getYouTubeChannelFeed } from "@/lib/server/integrations/youtube"
 
 function formatDate(value: string) {
   if (!value) return ""

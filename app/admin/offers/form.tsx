@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 interface Offer {
   id: string

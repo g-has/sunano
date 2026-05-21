@@ -1,4 +1,6 @@
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
+import "server-only"
+
+import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
 
 const DAILY_SYNC_LIMIT = 12
 const SNAPSHOT_KEY = "youtube_channel_feed"

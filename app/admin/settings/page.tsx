@@ -6,13 +6,13 @@ import { Upload, Camera, KeyRound, Youtube, RefreshCw, CheckCircle2, AlertTriang
 import { toast } from "sonner"
 
 import BoxLoader from "@/components/ui/box-loader"
-import { usePageHeader } from "@/lib/page-header-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 type AdminProfile = {
   id: string

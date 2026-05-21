@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { Clock, Info, ListChecks, Star, Tag } from "lucide-react"
 
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 import { cn } from "@/lib/utils"
 
 type InfoTab = {
@@ -33,8 +33,8 @@ export function TierlistInfo() {
             </p>
             <p>
               {isEnglish
-                ? "Items are grouped by tier and then organized by mode: Performance, Value, and Recommended."
-                : "Os itens são agrupados por tier e organizados por modo: Performance, Custo-benefício e Recomendado."}
+                ? "Items are grouped by tier and then organized by mode: Overall, Value, and Recommended."
+                : "Os itens são agrupados por tier e organizados por modo: Geral, Custo-benefício e Recomendado."}
             </p>
           </div>
         ),

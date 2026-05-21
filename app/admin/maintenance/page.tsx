@@ -3,8 +3,8 @@
 import { AlertTriangle, ShieldCheck, Sparkles } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useLocale } from "@/lib/locale-context"
-import { usePageHeader } from "@/lib/page-header-context"
+import { useLocale } from "@/components/providers/locale-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 
 export default function AdminMaintenancePage() {
   const { locale } = useLocale()

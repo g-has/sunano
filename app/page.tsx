@@ -11,10 +11,10 @@ import {
   ShoppingBag,
   Sparkles,
   TrendingUp,
+  Trophy,
 } from "lucide-react"
 
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
-import { getYouTubeChannelFeed } from "@/lib/youtube"
+import { getHomeData } from "@/lib/server/repositories/home-repository"
 import { formatBRL } from "@/lib/stripe"
 import { mapTier } from "@/lib/tier-utils"
 import { CARD_TIER_STYLES } from "@/lib/tierlist-theme"
@@ -34,102 +34,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   monitors: "Monitor",
   switches: "Switches",
   dac_amp: "DAC/AMP",
-}
-
-type Peripheral = {
-  id: string
-  name: string
-  brand: string
-  image_url: string | null
-  category: string
-  tier: string | null
-}
-
-type BlogPost = {
-  id: string
-  slug: string
-  title: string
-  excerpt: string | null
-  cover_image_url: string | null
-  cover_thumbnail_url: string | null
-  read_time_minutes: number | null
-  created_at: string
-}
-
-type StoreProduct = {
-  id: string
-  slug: string
-  name: string
-  price_cents: number
-  images: string[]
-  type: "store" | "bazaar"
-  condition: "new" | "used" | "opened"
-}
-
-type ForumPost = {
-  id: string
-  slug: string
-  title: string
-  author_name: string
-  created_at: string
-}
-
-async function fetchHomeData() {
-  const db = createSupabaseAdminClient()
-
-  const [topPeripheralsRes, latestBlogRes, featuredProductsRes, forumPostsRes, ytFeed, countsRes] =
-    await Promise.all([
-      db
-        .from("peripherals")
-        .select("id, name, brand, image_url, category, tier")
-        .in("tier", ["GOAT", "SS", "S"])
-        .order("created_at", { ascending: false })
-        .limit(8),
-      db
-        .from("blog_posts")
-        .select("id, slug, title, excerpt, cover_image_url, cover_thumbnail_url, read_time_minutes, created_at")
-        .eq("is_published", true)
-        .order("created_at", { ascending: false })
-        .limit(3),
-      db
-        .from("store_products")
-        .select("id, slug, name, price_cents, images, type, condition")
-        .eq("is_active", true)
-        .gt("stock", 0)
-        .order("created_at", { ascending: false })
-        .limit(6),
-      db
-        .from("forum_posts")
-        .select("id, slug, title, author_name, created_at")
-        .eq("is_hidden", false)
-        .order("created_at", { ascending: false })
-        .limit(4),
-      getYouTubeChannelFeed({ forceRefresh: false }).catch(() => ({ data: null, error: null })),
-      Promise.all([
-        db.from("peripherals").select("id", { count: "exact", head: true }),
-        db.from("blog_posts").select("id", { count: "exact", head: true }).eq("is_published", true),
-        db.from("forum_posts").select("id", { count: "exact", head: true }).eq("is_hidden", false),
-      ]),
-    ])
-
-  const peripherals = (topPeripheralsRes.data ?? []) as Peripheral[]
-  const blog = (latestBlogRes.data ?? []) as BlogPost[]
-  const products = (featuredProductsRes.data ?? []) as StoreProduct[]
-  const forum = (forumPostsRes.data ?? []) as ForumPost[]
-  const videos = (ytFeed?.data?.videos ?? []).slice(0, 3)
-
-  return {
-    peripherals,
-    blog,
-    products,
-    forum,
-    videos,
-    counts: {
-      peripherals: countsRes[0].count ?? 0,
-      reviews: countsRes[1].count ?? 0,
-      forumPosts: countsRes[2].count ?? 0,
-    },
-  }
 }
 
 function formatTimeAgo(dateStr: string) {
@@ -176,7 +80,7 @@ function SectionHeader({
 }
 
 export default async function HomePage() {
-  const { peripherals, blog, products, forum, videos, counts } = await fetchHomeData()
+  const { peripherals, blog, products, forum, videos, counts } = await getHomeData()
 
   return (
     <div className="mx-auto max-w-6xl space-y-12 px-4 py-6 md:px-6 lg:px-8 md:py-10">
@@ -540,7 +444,7 @@ export default async function HomePage() {
         />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { href: "/perifericos", icon: Package, label: "Periféricos", color: "slate" },
+            { href: "/perifericos", icon: Trophy, label: "Periféricos", color: "slate" },
             { href: "/blog", icon: Newspaper, label: "Reviews", color: "slate" },
             { href: "/offers", icon: BadgePercent, label: "Ofertas", color: "slate" },
             { href: "/forum", icon: MessageCircle, label: "Fórum", color: "slate" },

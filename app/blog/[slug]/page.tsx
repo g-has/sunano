@@ -9,9 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { supabase } from "@/lib/supabase"
 import { getBlogImageWithFallback } from "@/lib/blog-images"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 type BlogPost = {
   id: string
@@ -73,24 +72,24 @@ export default function BlogPostPage() {
     async function loadPost(postSlug: string) {
       setLoading(true)
 
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select(
-          "id, title, slug, author_id, excerpt, cover_image_url, cover_thumbnail_url, video_url, content, created_at, admin_profiles(display_name, avatar_url, email), peripherals(name, brand)"
-        )
-        .eq("slug", postSlug)
-        .eq("is_published", true)
-        .maybeSingle()
+      try {
+        // O artigo vem do endpoint /api/blog/[slug] (delega ao repositório).
+        const res = await fetch(`/api/blog/${encodeURIComponent(postSlug)}`)
+        const data = await res.json().catch(() => null)
 
-      if (error) {
-        console.error("Error loading blog post:", error)
+        if (!res.ok || !data?.post) {
+          setPost(null)
+          return
+        }
+
+        const loaded = data.post as Partial<BlogPost>
+        setPost({ ...loaded, cover_thumbnail_url: loaded.cover_thumbnail_url ?? null } as BlogPost)
+      } catch (err) {
+        console.error("Error loading blog post:", err)
         setPost(null)
+      } finally {
         setLoading(false)
-        return
       }
-
-      setPost(data ? { ...data, cover_thumbnail_url: data.cover_thumbnail_url ?? null } as unknown as BlogPost : null)
-      setLoading(false)
     }
 
     loadPost(slug)

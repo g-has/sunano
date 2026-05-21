@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { hasAdminPermission } from "@/lib/admin-permissions"
-import { getAuthorizedProfile } from "@/lib/admin-auth"
-import { getTelegramOffers } from "@/lib/telegram-offers"
+import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
+import { getTelegramOffers } from "@/lib/server/integrations/telegram-offers"
 
 export async function GET() {
   try {

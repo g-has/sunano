@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation"
 
 import { hasAdminPermission } from "@/lib/admin-permissions"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 type AuthState = {
   error: string | null

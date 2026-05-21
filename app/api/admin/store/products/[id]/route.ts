@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAuthorizedProfile } from "@/lib/admin-auth"
+import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { dbErrorResponse } from "@/lib/db-errors"
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
-import type { Database } from "@/lib/supabase"
+import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
+import type { Database } from "@/lib/database.types"
 
 type StoreProductUpdate = Database["public"]["Tables"]["store_products"]["Update"]
 

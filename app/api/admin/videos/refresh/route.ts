@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { hasAdminPermission } from "@/lib/admin-permissions"
-import { getAuthorizedProfile } from "@/lib/admin-auth"
-import { getYouTubeChannelFeed, getYouTubeSnapshotStatus } from "@/lib/youtube"
+import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
+import { getYouTubeChannelFeed, getYouTubeSnapshotStatus } from "@/lib/server/integrations/youtube"
 
 export async function GET() {
   try {

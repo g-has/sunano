@@ -1,7 +1,8 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
+import { isAdminUser, upsertUserProfileFromAuth } from "@/lib/server/repositories/users-repository"
 
 type AuthState = { error: string | null }
 
@@ -25,21 +26,16 @@ export async function loginUserAction(_: AuthState, formData: FormData): Promise
     return { error: "invalid_credentials" }
   }
 
-  // Upsert user profile for email/password login
-  await (supabase.from("user_profiles") as any).upsert({
+  // Garante o perfil do usuário para login por e-mail/senha.
+  await upsertUserProfileFromAuth({
     id: authData.user.id,
-    display_name: authData.user.user_metadata?.full_name || authData.user.email?.split("@")[0] || "User",
-    avatar_url: authData.user.user_metadata?.avatar_url || null,
-  }, { onConflict: "id", ignoreDuplicates: true })
+    displayName:
+      authData.user.user_metadata?.full_name || authData.user.email?.split("@")[0] || "User",
+    avatarUrl: authData.user.user_metadata?.avatar_url || null,
+  })
 
-  // Redirect admins to admin panel, everyone else to forum
-  const { data: adminProfile } = await supabase
-    .from("admin_profiles")
-    .select("id")
-    .eq("id", authData.user.id)
-    .maybeSingle()
-
-  if (adminProfile) {
+  // Admins vão para o painel; demais usuários para o fórum.
+  if (await isAdminUser(authData.user.id)) {
     redirect("/admin")
   }
 

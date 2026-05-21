@@ -12,10 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { getLanguageEntry, I18N, LANGUAGE_OPTIONS, type LocaleCode } from "@/lib/i18n"
-import { useLocale } from "@/lib/locale-context"
-import { useTheme } from "@/lib/theme-context"
-import { useSidebar } from "@/lib/sidebar-context"
-import { usePageHeaderState } from "@/lib/page-header-context"
+import { useLocale } from "@/components/providers/locale-context"
+import { useTheme } from "@/components/providers/theme-context"
+import { useSidebar } from "@/components/providers/sidebar-context"
+import { usePageHeaderState } from "@/components/providers/page-header-context"
 import { cn } from "@/lib/utils"
 
 const SOCIAL_LINKS = [

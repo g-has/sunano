@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom"
 import Link from "next/link"
 
 import { loginUserAction } from "@/app/login/actions"
-import { supabase } from "@/lib/supabase"
+import { supabaseAuth } from "@/lib/client/supabase-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -33,7 +33,7 @@ export function UserLoginForm() {
     : null
 
   async function handleGoogleLogin() {
-    await supabase.auth.signInWithOAuth({
+    await supabaseAuth.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=/forum`,

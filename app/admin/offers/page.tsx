@@ -4,13 +4,13 @@ import { useEffect, useState } from "react"
 import { AlertCircle, ExternalLink, Loader2, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 
-import { usePageHeader } from "@/lib/page-header-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 
 import BoxLoader from "@/components/ui/box-loader"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 type TelegramOffer = {
   id: string

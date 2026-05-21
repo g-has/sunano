@@ -1,8 +1,10 @@
+import "server-only"
+
 import { createClient } from "@supabase/supabase-js"
 import fs from "node:fs"
 import path from "node:path"
 
-import type { Database } from "@/lib/supabase"
+import type { Database } from "@/lib/database.types"
 
 function readEnvFileValue(key: string) {
   try {

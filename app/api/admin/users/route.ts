@@ -9,8 +9,8 @@ import {
   normalizePermissions,
 } from "@/lib/admin-permissions"
 import { dbErrorResponse } from "@/lib/db-errors"
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 type AdminProfileRow = AdminProfile & {
   created_at: string

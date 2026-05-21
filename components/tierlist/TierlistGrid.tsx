@@ -3,14 +3,14 @@
 import { useMemo, useState, useEffect } from "react"
 
 import { PeripheralCard } from "./PeripheralCard"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 import { cn } from "@/lib/utils"
 import { TIER_THEMES } from "@/lib/tierlist-theme"
 
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierValue = Tier | null
 type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
-type RatingMode = "oled" | "performance" | "value" | "recommended" | "soundTyping"
+type RatingMode = "oled" | "overall" | "value" | "recommended" | "soundTyping"
 type RatingKey = "overall" | "performance" | "build" | "value" | "software" | "battery" | "qc"
 type Ratings = Partial<Record<RatingKey, number>>
 
@@ -53,14 +53,14 @@ interface ModeConfig {
 // Labels específicos por categoria para MOUSEPAD e GLASSPAD
 function getRatingModeLabel(mode: RatingMode, category: string): string {
   if (category === "mousepad" || category === "glasspad") {
-    if (mode === "performance") return "Geral"
+    if (mode === "overall") return "Geral"
     if (mode === "value") return "Nacional"
     if (mode === "recommended") return "Recomendado"
   }
 
   const modeMap: Record<RatingMode, string> = {
     oled: "OLED",
-    performance: "Performance",
+    overall: "Geral",
     value: "Custo-Beneficio",
     recommended: "Recomendado",
     soundTyping: "Som e Digitação",
@@ -98,7 +98,7 @@ function sortByTierThenName(items: Peripheral[]) {
 }
 
 const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
-  performance: {
+  overall: {
     sortItems: sortByTierThenName,
   },
   value: {
@@ -129,7 +129,7 @@ interface TierlistGridProps {
 export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
-  const [ratingMode, setRatingMode] = useState<RatingMode>("performance")
+  const [ratingMode, setRatingMode] = useState<RatingMode>("overall")
   const modeConfig = MODE_CONFIGS[ratingMode]
 
   const tierRows: TierRow[] = [
@@ -186,7 +186,7 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
 
   const ratingModes: { key: RatingMode; label: string; color: string }[] = [
     ...(category === "monitors" ? [{ key: "oled" as const, label: getRatingModeLabel("oled", category), color: "bg-amber-400" }] : []),
-    { key: "performance" as const, label: getRatingModeLabel("performance", category), color: "bg-red-400" },
+    { key: "overall" as const, label: getRatingModeLabel("overall", category), color: "bg-red-400" },
     { key: "value" as const, label: getRatingModeLabel("value", category), color: "bg-emerald-400" },
     { key: "recommended" as const, label: getRatingModeLabel("recommended", category), color: "bg-purple-400" },
     ...(category === "switches" ? [
@@ -199,10 +199,10 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
       ? isEnglish
         ? "Showing OLED panels"
         : "Mostrando painéis OLED"
-      : ratingMode === "performance"
+      : ratingMode === "overall"
         ? isEnglish
-          ? "Sorted by pure performance"
-          : "Ordenado por desempenho puro"
+          ? "Sorted by overall performance"
+          : "Ordenado por desempenho geral"
         : ratingMode === "value"
           ? isEnglish
             ? "Sorted by price"
@@ -238,8 +238,8 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
 
   // If category isn't monitors, don't allow OLED mode
   useEffect(() => {
-    if (ratingMode === "oled" && category !== "monitors") setRatingMode("performance")
-    if (ratingMode === "soundTyping" && category !== "switches") setRatingMode("performance")
+    if (ratingMode === "oled" && category !== "monitors") setRatingMode("overall")
+    if (ratingMode === "soundTyping" && category !== "switches") setRatingMode("overall")
   }, [category, ratingMode])
 
   return (

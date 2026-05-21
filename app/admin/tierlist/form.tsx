@@ -29,8 +29,8 @@ import {
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
-import { useLocale } from "@/lib/locale-context"
-import { usePageHeader } from "@/lib/page-header-context"
+import { useLocale } from "@/components/providers/locale-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 import { mapTier } from "@/lib/tier-utils"
 import { RATING_LEVEL_COLORS } from "@/lib/tierlist-theme"
 

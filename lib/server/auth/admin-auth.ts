@@ -1,5 +1,7 @@
+import "server-only"
+
 import type { AdminProfile } from "@/lib/admin-permissions"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 export type AuthorizedProfileResult = {
   error: string | null

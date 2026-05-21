@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Minus, Plus, ShoppingCart, Trash2, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useCart } from "@/lib/cart-context"
+import { useCart } from "@/components/providers/cart-context"
 import { formatBRL } from "@/lib/stripe"
 import { cn } from "@/lib/utils"
 

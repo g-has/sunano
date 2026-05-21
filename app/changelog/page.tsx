@@ -1,7 +1,7 @@
 "use client"
 
 import { Changelog1, type ChangelogEntry } from "@/components/ui/changelog-1"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {

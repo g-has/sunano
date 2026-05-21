@@ -1,42 +1,39 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
+import { queryPeripherals } from "@/lib/server/repositories/peripherals-repository"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
-const SHORT_COLUMNS = "id, name, brand, category, image_url"
-const FULL_COLUMNS = "id, name, brand, category, image_url, tier, price, tags, specs"
+/**
+ * Endpoint público de periféricos (busca, comparador, autocomplete).
+ *
+ * Aceita: `search`, `ids`, `exclude`, `category`, `limit`, `full`.
+ * A consulta vive no `peripherals-repository`.
+ */
+function parseIdList(value: string | null): string[] | undefined {
+  const trimmed = value?.trim()
+  if (!trimmed) return undefined
+  const list = trimmed.split(",").map((id) => id.trim()).filter(Boolean)
+  return list.length > 0 ? list : undefined
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const search = searchParams.get("search")?.trim() ?? ""
-  const ids = searchParams.get("ids")?.trim() ?? ""
-  const limit = Math.min(Number(searchParams.get("limit") || 200), 1000)
-  const full = searchParams.get("full") === "1"
+  const category = searchParams.get("category")?.trim() || undefined
 
-  const db = createSupabaseAdminClient()
-  let query = db
-    .from("peripherals")
-    .select(full ? FULL_COLUMNS : SHORT_COLUMNS)
-    .order("name", { ascending: true })
-    .limit(limit)
-
-  if (ids) {
-    const idList = ids.split(",").map((s) => s.trim()).filter(Boolean)
-    if (idList.length > 0) {
-      query = query.in("id", idList)
-    }
+  try {
+    const peripherals = await queryPeripherals({
+      search: searchParams.get("search")?.trim() ?? "",
+      ids: parseIdList(searchParams.get("ids")),
+      excludeIds: parseIdList(searchParams.get("exclude")),
+      category,
+      limit: Number(searchParams.get("limit") || 200),
+      full: searchParams.get("full") === "1",
+    })
+    return NextResponse.json({ peripherals })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro ao carregar periféricos."
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  if (search.length >= 2) {
-    query = query.ilike("name", `%${search}%`)
-  }
-
-  const { data, error } = await query
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json({ peripherals: data ?? [] })
 }

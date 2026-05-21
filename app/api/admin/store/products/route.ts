@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAuthorizedProfile } from "@/lib/admin-auth"
+import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { dbErrorResponse } from "@/lib/db-errors"
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
+import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
 import { parseSlug } from "@/lib/stripe"
 
 export async function GET(request: NextRequest) {

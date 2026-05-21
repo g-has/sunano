@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { CheckCircle, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useCart } from "@/lib/cart-context"
+import { useCart } from "@/components/providers/cart-context"
 import { Suspense } from "react"
 
 function SuccessContent() {

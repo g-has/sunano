@@ -1,24 +1,12 @@
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
+import { listActiveProductsByType } from "@/lib/server/repositories/store-repository"
 import { ProductCard } from "@/components/store/ProductCard"
 import { CartButton, CartDrawer } from "@/components/store/CartDrawer"
 import { ShoppingBag } from "lucide-react"
 
 export const revalidate = 60
 
-async function getStoreProducts() {
-  const db = createSupabaseAdminClient()
-  const { data } = await db
-    .from("store_products")
-    .select("id, slug, name, price_cents, stock, images, category, type, condition, condition_notes")
-    .eq("type", "store")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-
-  return data ?? []
-}
-
 export default async function LojaPage() {
-  const products = await getStoreProducts()
+  const products = await listActiveProductsByType("store")
 
   return (
     <>

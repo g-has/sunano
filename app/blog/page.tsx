@@ -7,9 +7,8 @@ import { useSearchParams } from "next/navigation"
 import BoxLoader from "@/components/ui/box-loader"
 import { SearchComponent, type SearchItem } from "@/components/ui/search-bar"
 import { GlassBlogCard } from "@/components/ui/glass-blog-card-shadcnui"
-import { supabase } from "@/lib/supabase"
 import { getBlogImageWithFallback } from "@/lib/blog-images"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 type BlogPost = {
   id: string
@@ -78,36 +77,32 @@ function BlogPageContent() {
   async function loadPosts() {
     setLoading(true)
 
-    // Build base query
-    let baseQuery = supabase
-      .from("blog_posts")
-      .select(
-        "id, title, slug, author_id, excerpt, cover_image_url, cover_thumbnail_url, read_time_minutes, created_at, admin_profiles(display_name, avatar_url, email), peripherals(id, name, brand)"
-      )
-      .eq("is_published", true)
-      .order("created_at", { ascending: false })
+    try {
+      // Os dados vêm do endpoint /api/blog (que delega ao repositório).
+      // Nenhuma consulta ao Supabase é feita a partir do navegador.
+      const query = peripheralFilter
+        ? `?peripheral=${encodeURIComponent(peripheralFilter)}`
+        : ""
+      const res = await fetch(`/api/blog${query}`)
+      const data = await res.json().catch(() => null)
 
-    if (peripheralFilter) {
-      baseQuery = baseQuery.eq("peripheral_id", peripheralFilter)
-    }
+      if (!res.ok || !data?.posts) {
+        throw new Error(data?.error ?? "Erro ao carregar posts")
+      }
 
-    const { data, error } = await baseQuery
+      const normalizedPosts = (data.posts as Array<Partial<BlogPost>>).map((post) => ({
+        ...post,
+        cover_thumbnail_url: post.cover_thumbnail_url ?? null,
+        read_time_minutes: post.read_time_minutes ?? null,
+      }))
 
-    if (error) {
-      console.error("Error loading blog posts:", error)
+      setPosts(normalizedPosts as BlogPost[])
+    } catch (err) {
+      console.error("Error loading blog posts:", err)
       setPosts([])
+    } finally {
       setLoading(false)
-      return
     }
-
-    const normalizedPosts = ((data ?? []) as unknown as Array<Partial<BlogPost>>).map((post) => ({
-      ...post,
-      cover_thumbnail_url: post.cover_thumbnail_url ?? null,
-      read_time_minutes: post.read_time_minutes ?? null,
-    }))
-
-    setPosts(normalizedPosts as BlogPost[])
-    setLoading(false)
   }
 
   const handleFilteredDataChange = useCallback(

@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Check, ExternalLink, Plus, Search, X } from "lucide-react"
 
-import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import BoxLoader from "@/components/ui/box-loader"
 
@@ -204,20 +203,19 @@ export function ComparePageClient() {
 
   const category = items.length > 0 ? items[0].category : null
 
-  // Fetch peripherals when ids change
+  // Fetch peripherals when ids change — via endpoint /api/peripherals.
   useEffect(() => {
     if (ids.length === 0) { setItems([]); setLoading(false); return }
     setLoading(true)
-    supabase
-      .from("peripherals")
-      .select("id, name, brand, image_url, category, tier, price, tags, specs")
-      .in("id", ids)
-      .then(({ data }) => {
-        const map = new Map((data ?? []).map((p: any) => [p.id, p]))
-        const sorted = ids.map((id) => map.get(id)).filter(Boolean) as PeripheralRow[]
-        setItems(sorted)
-        setLoading(false)
+    fetch(`/api/peripherals?full=1&ids=${ids.join(",")}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const list = (data?.peripherals ?? []) as PeripheralRow[]
+        const map = new Map(list.map((p) => [p.id, p]))
+        setItems(ids.map((id) => map.get(id)).filter(Boolean) as PeripheralRow[])
       })
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ids.join(",")])
 
@@ -258,20 +256,22 @@ export function ComparePageClient() {
     }
     setSearchLoading(true)
     const timer = setTimeout(async () => {
-      let q = (supabase as any)
-        .from("peripherals")
-        .select("id, name, brand, image_url, tier, price, category")
-        .ilike("name", `%${searchQuery.trim()}%`)
-
-      if (category) q = q.eq("category", category)
+      const params = new URLSearchParams({ full: "1", search: searchQuery.trim(), limit: "7" })
+      if (category) params.set("category", category)
 
       // Exclude already-selected, except the slot being swapped
       const excluded = activeSearch === "add" ? ids : ids.filter((id) => id !== activeSearch)
-      if (excluded.length > 0) q = q.not("id", "in", `(${excluded.join(",")})`)
+      if (excluded.length > 0) params.set("exclude", excluded.join(","))
 
-      const { data } = await q.limit(7)
-      setSearchResults((data ?? []) as SearchResult[])
-      setSearchLoading(false)
+      try {
+        const res = await fetch(`/api/peripherals?${params}`)
+        const data = await res.json().catch(() => null)
+        setSearchResults((data?.peripherals ?? []) as SearchResult[])
+      } catch {
+        setSearchResults([])
+      } finally {
+        setSearchLoading(false)
+      }
     }, 280)
     return () => { clearTimeout(timer) }
   // eslint-disable-next-line react-hooks/exhaustive-deps

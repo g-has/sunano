@@ -1,20 +1,11 @@
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { listAllPeripherals } from "@/lib/server/repositories/peripherals-repository"
 import { PerifericosContent } from "@/app/perifericos/perifericos-content"
 import { mapTier } from "@/lib/tier-utils"
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminPerifericosPage() {
-  const supabase = await createSupabaseServerClient()
-
-  const { data: peripherals, error } = await supabase
-    .from("peripherals")
-    .select("id, name, brand, image_url, category, tier, price, tags, specs")
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Error fetching peripherals:", error)
-  }
-
-  const peripheralsList = (peripherals ?? []) as any[]
+  const peripheralsList = await listAllPeripherals()
 
   const items = peripheralsList.map((p) => ({
     id: p.id,

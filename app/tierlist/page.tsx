@@ -1,21 +1,13 @@
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { listAllPeripherals } from "@/lib/server/repositories/peripherals-repository"
 import { TierlistInfo } from "@/components/tierlist/TierlistInfo"
 import { TierlistContent } from "@/components/tierlist/TierlistContent"
 import { mapTier } from "@/lib/tier-utils"
 
+// Renderização dinâmica: a tierlist deve refletir o banco a cada requisição.
+export const dynamic = "force-dynamic"
+
 export default async function TierlistPage() {
-  const supabase = await createSupabaseServerClient()
-
-  const { data: peripherals, error } = await supabase
-    .from("peripherals")
-    .select("id, name, brand, image_url, category, tier, price, tags, specs")
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Error fetching peripherals:", error)
-  }
-
-  const peripheralsList = (peripherals ?? []) as any[]
+  const peripheralsList = await listAllPeripherals()
 
   const items = peripheralsList.map((p) => {
     const specs = (p.specs || {}) as Record<string, unknown> & {

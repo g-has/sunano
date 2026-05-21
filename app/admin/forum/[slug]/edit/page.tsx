@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
-import { getAuthorizedProfile } from "@/lib/admin-auth"
+import { getForumPostForEdit } from "@/lib/server/repositories/forum-repository"
+import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import EditPostClient from "./EditPostClient"
 
@@ -17,28 +17,10 @@ export default async function EditForumPostPage({
     redirect("/admin/forum")
   }
 
-  const supabase = createSupabaseAdminClient()
-
-  const { data: post } = await (supabase
-    .from("forum_posts")
-    .select("id, slug, title, body, author_name, peripheral_refs, is_hidden, is_locked, is_pinned, vote_score, created_at") as any)
-    .eq("slug", slug)
-    .maybeSingle()
-
+  const post = await getForumPostForEdit(slug)
   if (!post) notFound()
 
-  const refs: string[] = post.peripheral_refs ?? []
-  let peripherals: { id: string; name: string; brand: string; category: string }[] = []
-  if (refs.length > 0) {
-    const { data } = await supabase
-      .from("peripherals").select("id, name, brand, category").in("id", refs)
-    peripherals = (data ?? []) as typeof peripherals
-  }
-
   return (
-    <EditPostClient
-      post={{ ...post, peripherals }}
-      canWrite={hasAdminPermission(auth.profile, "forum_write")}
-    />
+    <EditPostClient post={post} canWrite={hasAdminPermission(auth.profile, "forum_write")} />
   )
 }

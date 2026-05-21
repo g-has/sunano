@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ShoppingCart, Package } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatBRL } from "@/lib/stripe"
-import { useCart } from "@/lib/cart-context"
+import { useCart } from "@/components/providers/cart-context"
 
 interface ProductCardProps {
   id: string

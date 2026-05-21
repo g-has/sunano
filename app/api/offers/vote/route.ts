@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
-import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
+import { checkRateLimit, getClientIdentifier } from "@/lib/server/rate-limit"
+import { registerOfferVote } from "@/lib/server/repositories/offers-repository"
 
 const voteSchema = z.object({
   offerId: z.string().trim().min(1),
@@ -11,18 +11,16 @@ const voteSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const parsed = voteSchema.safeParse(body)
-
+    const parsed = voteSchema.safeParse(await request.json())
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos." }, { status: 400 })
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Dados inválidos." },
+        { status: 400 }
+      )
     }
 
-    const supabase = createSupabaseAdminClient()
     const identifier = getClientIdentifier(request)
-
     const rateLimit = await checkRateLimit({
-      supabase,
       action: "offer_vote",
       identifier,
       maxAttempts: 8,
@@ -30,22 +28,17 @@ export async function POST(request: Request) {
     })
 
     if (!rateLimit.allowed) {
-      return NextResponse.json({ error: "Aguarde alguns minutos antes de votar novamente." }, { status: 429 })
+      return NextResponse.json(
+        { error: "Aguarde alguns minutos antes de votar novamente." },
+        { status: 429 }
+      )
     }
 
-    const payload = {
-      offer_id: parsed.data.offerId,
-      voter_hash: identifier,
-      is_working: parsed.data.is_working ?? true,
-    }
-
-    const { error } = await (supabase
-      .from("offers_votes")
-      .upsert(payload as any, { onConflict: "offer_id,voter_hash" }) as any)
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
+    await registerOfferVote({
+      offerId: parsed.data.offerId,
+      voterHash: identifier,
+      isWorking: parsed.data.is_working ?? true,
+    })
 
     return NextResponse.json({ ok: true })
   } catch {

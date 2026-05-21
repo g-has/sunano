@@ -13,8 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { supabase } from "@/lib/supabase"
-import { useLocale } from "@/lib/locale-context"
+import { supabaseAuth } from "@/lib/client/supabase-auth"
+import { useLocale } from "@/components/providers/locale-context"
 import { cn } from "@/lib/utils"
 
 type UserState = {
@@ -38,23 +38,26 @@ export function AuthUser({ isCollapsed = false }: AuthUserProps) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // Use onAuthStateChange only — avoids the storage lock that getUser() causes
-    // when called simultaneously from multiple components.
+    // A sessão (login/logout) é observada pelo cliente de autenticação; os
+    // dados do perfil vêm do endpoint /api/auth/me — nunca de uma query direta
+    // ao Supabase a partir do navegador.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabaseAuth.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from("admin_profiles")
-          .select("display_name, avatar_url, email")
-          .eq("id", session.user.id)
-          .maybeSingle()
-
-        setUser({
-          name: profile?.display_name || session.user.email?.split("@")[0] || "User",
-          email: profile?.email || session.user.email || "",
-          avatar: profile?.avatar_url || "",
-        })
+        const fallbackName = session.user.email?.split("@")[0] || "User"
+        try {
+          const res = await fetch("/api/auth/me")
+          const data = await res.json()
+          const profile = data?.adminProfile
+          setUser({
+            name: profile?.display_name || fallbackName,
+            email: profile?.email || session.user.email || "",
+            avatar: profile?.avatar_url || "",
+          })
+        } catch {
+          setUser({ name: fallbackName, email: session.user.email || "", avatar: "" })
+        }
       } else {
         setUser(null)
       }
@@ -149,7 +152,7 @@ export function AuthUser({ isCollapsed = false }: AuthUserProps) {
         <DropdownMenuItem
           className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-300"
           onSelect={async () => {
-            await supabase.auth.signOut()
+            await supabaseAuth.auth.signOut()
             window.location.href = "/admin/login"
           }}
         >

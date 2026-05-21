@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, BarChart3, CheckCircle2, NotebookPen, Package, Plus, Sparkles, Users } from "lucide-react"
+import { ArrowRight, BarChart3, CheckCircle2, NotebookPen, Package, Plus, Sparkles, Trophy, Users } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 import { cn } from "@/lib/utils"
 
 const COLOR_STYLES = {
@@ -49,7 +49,7 @@ export default function AdminPage() {
       href: "/admin/tierlist",
       label: isEnglish ? "View Tier List" : "Ver Tier List",
       description: isEnglish ? "Organize the current ranking" : "Organize o ranking atual",
-      icon: Package,
+      icon: Trophy,
       color: "emerald",
     },
     {

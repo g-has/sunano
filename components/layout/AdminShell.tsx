@@ -7,8 +7,8 @@ import { useEffect, useState } from "react"
 
 import { logoutAction } from "@/app/admin/actions"
 import { Button } from "@/components/ui/button"
-import { useSidebar } from "@/lib/sidebar-context"
-import { useLocale } from "@/lib/locale-context"
+import { useSidebar } from "@/components/providers/sidebar-context"
+import { useLocale } from "@/components/providers/locale-context"
 import { cn } from "@/lib/utils"
 import { hasAdminPermission, type AdminPermissionKey, type AdminProfile, isWebMaster } from "@/lib/admin-permissions"
 

@@ -1,6 +1,7 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
+
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
+import { isAdminUser, upsertUserProfileFromAuth } from "@/lib/server/repositories/users-repository"
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -11,22 +12,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=missing_code`)
   }
 
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
-
+  const supabase = await createSupabaseServerClient()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=oauth_error`)
@@ -34,23 +20,23 @@ export async function GET(request: NextRequest) {
 
   const { data: authData } = await supabase.auth.getUser()
   if (authData.user) {
-    // Upsert user profile from OAuth metadata
-    await (supabase.from("user_profiles") as any).upsert({
+    // Garante o perfil do usuário a partir dos metadados do OAuth.
+    await upsertUserProfileFromAuth({
       id: authData.user.id,
-      display_name: authData.user.user_metadata?.full_name || authData.user.user_metadata?.name || authData.user.email?.split("@")[0] || "User",
-      avatar_url: authData.user.user_metadata?.avatar_url || authData.user.user_metadata?.picture || null,
-    }, { onConflict: "id", ignoreDuplicates: true })
+      displayName:
+        authData.user.user_metadata?.full_name ||
+        authData.user.user_metadata?.name ||
+        authData.user.email?.split("@")[0] ||
+        "User",
+      avatarUrl:
+        authData.user.user_metadata?.avatar_url ||
+        authData.user.user_metadata?.picture ||
+        null,
+    })
 
-    // Redirect admins to admin panel instead
-    if (next === "/forum") {
-      const { data: adminProfile } = await supabase
-        .from("admin_profiles")
-        .select("id")
-        .eq("id", authData.user.id)
-        .maybeSingle()
-      if (adminProfile) {
-        return NextResponse.redirect(`${origin}/admin`)
-      }
+    // Admins são redirecionados ao painel.
+    if (next === "/forum" && (await isAdminUser(authData.user.id))) {
+      return NextResponse.redirect(`${origin}/admin`)
     }
   }
 

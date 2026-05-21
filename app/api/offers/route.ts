@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server"
 
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
-import { getClientIdentifier } from "@/lib/rate-limit"
-import { getTelegramOffers } from "@/lib/telegram-offers"
+import { getClientIdentifier } from "@/lib/server/rate-limit"
+import { getTelegramOffers } from "@/lib/server/integrations/telegram-offers"
+import { getOfferVoteSummary } from "@/lib/server/repositories/offers-repository"
 
+/**
+ * Lista as ofertas vindas do Telegram já combinadas com os votos da tabela
+ * `offers_votes`. A consulta de votos vive no `offers-repository`.
+ */
 export async function GET(request: Request) {
   try {
     const result = await getTelegramOffers(30)
@@ -14,36 +18,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, offers: [], warning: result.warning, source: result.source })
     }
 
-    const supabase = createSupabaseAdminClient()
     const identifier = getClientIdentifier(request)
-
-    const { data: votes, error: votesError } = await supabase
-      .from("offers_votes")
-      .select("offer_id, is_working, voter_hash")
-      .in("offer_id", offerIds)
-
-    if (votesError) {
-      return NextResponse.json({ error: votesError.message }, { status: 400 })
-    }
-
-    const workingCounts: Record<string, number> = {}
-    const userVotes = new Set<string>()
-
-    for (const vote of (votes ?? []) as any[]) {
-      const v = vote as any
-      if (v.is_working) {
-        workingCounts[v.offer_id] = (workingCounts[v.offer_id] ?? 0) + 1
-      }
-      if (v.voter_hash === identifier) {
-        userVotes.add(v.offer_id)
-      }
-    }
+    const { workingCounts, userVoted } = await getOfferVoteSummary(offerIds, identifier)
 
     const offersWithVotes = offers.map((offer) => ({
       ...offer,
       chatTitle: null,
       votes_working: workingCounts[offer.id] ?? 0,
-      user_voted: userVotes.has(offer.id),
+      user_voted: userVoted.has(offer.id),
     }))
 
     return NextResponse.json({ ok: true, offers: offersWithVotes, warning: result.warning, source: result.source })

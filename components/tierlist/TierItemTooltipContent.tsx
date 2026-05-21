@@ -9,7 +9,7 @@ type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "ligh
 export type RatingKey = "overall" | "performance" | "build" | "value" | "software" | "battery" | "qc"
 export type Ratings = Partial<Record<RatingKey, number>>
 
-const RATING_ORDER: RatingKey[] = ["overall", "performance", "build", "value", "software", "battery", "qc"]
+const RATING_ORDER: RatingKey[] = ["overall", "overall", "build", "value", "software", "battery", "qc"]
 
 const RATING_LABELS_PT: Record<RatingKey, string> = {
   overall: "Geral",

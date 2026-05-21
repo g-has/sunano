@@ -5,14 +5,14 @@ import { ShieldCheck, Users as UsersIcon, UserPlus, Lock, Save, ChevronDown, Che
 import { toast } from "sonner"
 
 import BoxLoader from "@/components/ui/box-loader"
-import { usePageHeader } from "@/lib/page-header-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 import { ADMIN_FEATURES, createDefaultPermissions, normalizePermissions, type AdminProfile } from "@/lib/admin-permissions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 type AdminUser = AdminProfile & {
   created_at: string

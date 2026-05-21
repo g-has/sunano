@@ -11,7 +11,7 @@ import BoxLoader from "@/components/ui/box-loader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { supabase } from "@/lib/supabase"
+import { supabaseAuth } from "@/lib/client/supabase-auth"
 
 type PeripheralRef = { id: string; name: string; brand: string; category: string; image_url: string | null }
 
@@ -114,16 +114,22 @@ export default function ForumPostPage() {
   const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // A sessão vem do cliente de autenticação; o perfil vem de /api/auth/me.
+    const { data: { subscription } } = supabaseAuth.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from("user_profiles").select("display_name, avatar_url")
-          .eq("id", session.user.id).maybeSingle()
-        setAuthUser({
-          id: session.user.id,
-          display_name: profile?.display_name || session.user.email?.split("@")[0] || "Usuário",
-          avatar_url: profile?.avatar_url || null,
-        })
+        let displayName = session.user.email?.split("@")[0] || "Usuário"
+        let avatarUrl: string | null = null
+        try {
+          const res = await fetch("/api/auth/me")
+          const data = await res.json()
+          if (data?.userProfile) {
+            displayName = data.userProfile.display_name || displayName
+            avatarUrl = data.userProfile.avatar_url || null
+          }
+        } catch {
+          // mantém os fallbacks derivados do e-mail
+        }
+        setAuthUser({ id: session.user.id, display_name: displayName, avatar_url: avatarUrl })
       } else {
         setAuthUser(null)
         setUserVote(0)
@@ -152,12 +158,14 @@ export default function ForumPostPage() {
 
   useEffect(() => { loadPost() }, [loadPost])
 
-  // Load user's vote for this post
+  // Voto do usuário neste post — obtido via endpoint /api/forum/votes.
   useEffect(() => {
     if (!authUser || !post) return
-    ;(supabase as any).from("forum_votes")
-      .select("value").eq("post_id", post.id).maybeSingle()
-      .then(({ data }: any) => setUserVote(data?.value ?? 0))
+    const postId = post.id
+    fetch(`/api/forum/votes?postIds=${postId}`)
+      .then((res) => res.json())
+      .then((data) => setUserVote(data?.votes?.[postId] ?? 0))
+      .catch(() => setUserVote(0))
   }, [authUser, post])
 
   async function handleVote(value: 1 | -1 | 0) {
@@ -189,10 +197,15 @@ export default function ForumPostPage() {
   useEffect(() => {
     if (peripheralSearch.trim().length < 2) { setPeripheralResults([]); return }
     const timer = setTimeout(async () => {
-      const { data } = await supabase
-        .from("peripherals").select("id, name, brand, category")
-        .ilike("name", `%${peripheralSearch.trim()}%`).limit(8)
-      setPeripheralResults((data ?? []) as Peripheral[])
+      try {
+        const res = await fetch(
+          `/api/peripherals?search=${encodeURIComponent(peripheralSearch.trim())}&limit=8`
+        )
+        const data = await res.json().catch(() => null)
+        setPeripheralResults((data?.peripherals ?? []) as Peripheral[])
+      } catch {
+        setPeripheralResults([])
+      }
     }, 300)
     return () => clearTimeout(timer)
   }, [peripheralSearch])

@@ -15,14 +15,15 @@ import {
   Recycle,
   ShoppingBag,
   ShoppingCart,
+  Trophy,
   X,
 } from "lucide-react"
 
 import { AuthUser } from "@/components/auth/auth-user"
 import { Button } from "@/components/ui/button"
-import { useSidebar } from "@/lib/sidebar-context"
-import { useLocale } from "@/lib/locale-context"
-import { useCart } from "@/lib/cart-context"
+import { useSidebar } from "@/components/providers/sidebar-context"
+import { useLocale } from "@/components/providers/locale-context"
+import { useCart } from "@/components/providers/cart-context"
 import { cn } from "@/lib/utils"
 
 export function PublicSidebar() {
@@ -36,7 +37,7 @@ export function PublicSidebar() {
 
   const mainNavItems = [
     { href: "/", label: isEnglish ? "Home" : "Início", icon: Home },
-    { href: "/tierlist", label: "Tierlist", icon: Package },
+    { href: "/tierlist", label: "Tierlist", icon: Trophy },
     { href: "/noticias", label: isEnglish ? "News" : "Noticias", icon: Newspaper },
     { href: "/perifericos", label: isEnglish ? "Peripherals" : "Periféricos", icon: Mouse },
     { href: "/blog", label: "Reviews", icon: Newspaper },

@@ -1,7 +1,7 @@
 "use client"
 
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 export default function AdminLoginPage() {
   const { locale } = useLocale()

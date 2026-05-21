@@ -6,12 +6,12 @@ import { Plus, Pencil, Trash2, Search, Eye, FileText, BookOpen, Filter } from "l
 import { toast } from "sonner"
 
 import BoxLoader from "@/components/ui/box-loader"
-import { usePageHeader } from "@/lib/page-header-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 type BlogPost = {
   id: string

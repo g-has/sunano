@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getAuthorizedProfile } from "@/lib/admin-auth"
+import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
+import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"

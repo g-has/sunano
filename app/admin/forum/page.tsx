@@ -2,8 +2,12 @@ import { revalidatePath } from "next/cache"
 import Link from "next/link"
 import { Eye, EyeOff, Lock, LockOpen, MessageSquare, Pencil, Pin, PinOff, Search } from "lucide-react"
 
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
-import { getAuthorizedProfile } from "@/lib/admin-auth"
+import {
+  listForumPostsForModeration,
+  setForumCommentHidden,
+  setForumPostFlag,
+} from "@/lib/server/repositories/forum-repository"
+import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,34 +16,11 @@ const PAGE_SIZE = 20
 
 type FilterKey = "all" | "visible" | "hidden" | "locked" | "pinned"
 
-type ForumPost = {
-  id: string
-  slug: string
-  title: string
-  body_preview: string
-  author_name: string
-  is_hidden: boolean
-  is_locked: boolean
-  is_pinned: boolean
-  created_at: string
-  comment_count: number
-}
-
-type ForumComment = {
-  id: string
-  post_id: string
-  body: string
-  author_name: string
-  is_hidden: boolean
-  created_at: string
-}
-
 async function togglePostHidden(postId: string, hidden: boolean) {
   "use server"
   const auth = await getAuthorizedProfile()
   if (!auth.profile || !hasAdminPermission(auth.profile, "forum_write")) return
-  const supabase = createSupabaseAdminClient()
-  await (supabase.from("forum_posts") as any).update({ is_hidden: hidden }).eq("id", postId)
+  await setForumPostFlag(postId, "is_hidden", hidden)
   revalidatePath("/admin/forum")
 }
 
@@ -47,8 +28,7 @@ async function togglePostLocked(postId: string, locked: boolean) {
   "use server"
   const auth = await getAuthorizedProfile()
   if (!auth.profile || !hasAdminPermission(auth.profile, "forum_write")) return
-  const supabase = createSupabaseAdminClient()
-  await (supabase.from("forum_posts") as any).update({ is_locked: locked }).eq("id", postId)
+  await setForumPostFlag(postId, "is_locked", locked)
   revalidatePath("/admin/forum")
 }
 
@@ -56,8 +36,7 @@ async function togglePostPinned(postId: string, pinned: boolean) {
   "use server"
   const auth = await getAuthorizedProfile()
   if (!auth.profile || !hasAdminPermission(auth.profile, "forum_write")) return
-  const supabase = createSupabaseAdminClient()
-  await (supabase.from("forum_posts") as any).update({ is_pinned: pinned }).eq("id", postId)
+  await setForumPostFlag(postId, "is_pinned", pinned)
   revalidatePath("/admin/forum")
 }
 
@@ -65,8 +44,7 @@ async function toggleCommentHidden(commentId: string, hidden: boolean) {
   "use server"
   const auth = await getAuthorizedProfile()
   if (!auth.profile || !hasAdminPermission(auth.profile, "forum_write")) return
-  const supabase = createSupabaseAdminClient()
-  await (supabase.from("forum_comments") as any).update({ is_hidden: hidden }).eq("id", commentId)
+  await setForumCommentHidden(commentId, hidden)
   revalidatePath("/admin/forum")
 }
 
@@ -98,53 +76,16 @@ export default async function AdminForumPage({
     : "all") as FilterKey
   const q = params.q?.trim() ?? ""
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1)
-  const start = (page - 1) * PAGE_SIZE
-  const end = start + PAGE_SIZE - 1
 
   const canWrite = hasAdminPermission(auth.profile, "forum_write")
-  const supabase = createSupabaseAdminClient()
 
-  let query = supabase
-    .from("forum_posts")
-    .select("id, slug, title, body_preview, author_name, is_hidden, is_locked, is_pinned, created_at", { count: "exact" })
+  const {
+    posts: postsWithCounts,
+    commentsByPost,
+    total: count,
+  } = await listForumPostsForModeration({ filter, q, page, pageSize: PAGE_SIZE })
 
-  if (filter === "visible") query = (query as any).eq("is_hidden", false)
-  else if (filter === "hidden") query = (query as any).eq("is_hidden", true)
-  else if (filter === "locked") query = (query as any).eq("is_locked", true)
-  else if (filter === "pinned") query = (query as any).eq("is_pinned", true)
-
-  if (q) {
-    query = (query as any).or(`title.ilike.%${q}%,author_name.ilike.%${q}%`)
-  }
-
-  const { data: posts, count } = await (query as any)
-    .order("is_pinned", { ascending: false })
-    .order("created_at", { ascending: false })
-    .range(start, end)
-
-  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE)
-  const postIds = ((posts ?? []) as any[]).map((p: any) => p.id)
-  let commentsByPost: Record<string, ForumComment[]> = {}
-
-  if (postIds.length > 0) {
-    const { data: comments } = await supabase
-      .from("forum_comments")
-      .select("id, post_id, body, author_name, is_hidden, created_at")
-      .in("post_id", postIds)
-      .order("created_at", { ascending: true })
-
-    for (const c of (comments ?? []) as ForumComment[]) {
-      if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = []
-      commentsByPost[c.post_id].push(c)
-    }
-  }
-
-  const postsWithCounts: ForumPost[] = ((posts ?? []) as any[]).map((p: any) => ({
-    ...p,
-    is_pinned: p.is_pinned ?? false,
-    body_preview: p.body_preview ?? p.body ?? "",
-    comment_count: commentsByPost[p.id]?.length ?? 0,
-  }))
+  const totalPages = Math.ceil(count / PAGE_SIZE)
 
   function buildUrl(overrides: Partial<{ page: number; filter: FilterKey; q: string }>) {
     const p = new URLSearchParams()

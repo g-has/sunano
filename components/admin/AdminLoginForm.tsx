@@ -7,7 +7,7 @@ import { useFormStatus } from "react-dom"
 import { loginAction } from "@/app/admin/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 const initialState = { error: null as string | null }
 

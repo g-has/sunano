@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getStripe } from "@/lib/stripe"
-import { createSupabaseAdminClient } from "@/lib/supabase-admin"
+import { getStripe } from "@/lib/server/integrations/stripe"
+import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
 
 interface CheckoutItem {
   productId: string

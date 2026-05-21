@@ -1,15 +1,9 @@
-import Stripe from "stripe"
-
-let _stripe: Stripe | null = null
-
-export function getStripe(): Stripe {
-  if (!_stripe) {
-    const key = process.env.STRIPE_SECRET_KEY
-    if (!key) throw new Error("STRIPE_SECRET_KEY is not configured.")
-    _stripe = new Stripe(key, { apiVersion: "2026-04-22.dahlia" })
-  }
-  return _stripe
-}
+/**
+ * Helpers puros de formatação/slug — seguros para cliente e servidor.
+ *
+ * NÃO importa o SDK do Stripe nem segredos. O cliente Stripe (que usa a
+ * chave secreta) vive em `lib/server/integrations/stripe.ts` e é `server-only`.
+ */
 
 export function formatBRL(cents: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100)

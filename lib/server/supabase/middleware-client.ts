@@ -2,11 +2,11 @@ import { createServerClient } from "@supabase/ssr"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
-import type { Database } from "@/lib/supabase"
+import type { Database } from "@/lib/database.types"
 import type { AdminProfile } from "@/lib/admin-permissions"
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request: { headers: request.headers } })
+  const response = NextResponse.next({ request: { headers: request.headers } })
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",

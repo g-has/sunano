@@ -4,25 +4,16 @@ import { ExternalLink, Package, ShoppingBag, Star } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
-import { buildPeripheralSlug, coercePeripheralId, slugToSearchPattern } from "@/lib/peripheral-slug"
+import { getPeripheralByIdOrSlug } from "@/lib/server/repositories/peripherals-repository"
+import { listProductsByPeripheral } from "@/lib/server/repositories/store-repository"
+import { listPublishedPostsByPeripheral } from "@/lib/server/repositories/blog-repository"
 import { mapTier } from "@/lib/tier-utils"
 
 interface PerifericoPageProps {
   params: Promise<{ slug: string }>
 }
 
-type PeripheralRow = {
-  id: string
-  name: string
-  brand: string
-  category: string
-  tier: string | null
-  price: number
-  image_url: string | null
-  tags: string[]
-  specs: Record<string, any> | null
-}
+export const dynamic = "force-dynamic"
 
 function formatLabel(value: string) {
   return value
@@ -92,41 +83,9 @@ function formatSpecValue(value: unknown) {
 
 export default async function PerifericoPage({ params }: PerifericoPageProps) {
   const resolvedParams = await params
-  const supabase = await createSupabaseServerClient()
   const slug = decodeURIComponent(resolvedParams.slug)
-  const idFromSlug = coercePeripheralId(slug)
-  const baseSlug = slug.split("--")[0]
 
-  let data: PeripheralRow | null = null
-
-  if (idFromSlug) {
-    const { data: byId, error: byIdError } = await supabase
-      .from("peripherals")
-      .select("id, name, brand, category, tier, price, image_url, tags, specs")
-      .eq("id", idFromSlug)
-      .maybeSingle()
-
-    if (byIdError) {
-      console.error("Peripherals lookup by id failed:", { idFromSlug, slug, error: byIdError })
-    }
-
-    data = (byId ?? null) as PeripheralRow | null
-  }
-
-  if (!data) {
-    const searchPattern = slugToSearchPattern(baseSlug)
-    const { data: byName, error: byNameError } = await supabase
-      .from("peripherals")
-      .select("id, name, brand, category, tier, price, image_url, tags, specs")
-      .ilike("name", searchPattern)
-      .limit(1)
-
-    if (byNameError) {
-      console.error("Peripherals lookup by name failed:", { baseSlug, searchPattern, slug, error: byNameError })
-    }
-
-    data = (byName?.[0] ?? null) as PeripheralRow | null
-  }
+  const data = await getPeripheralByIdOrSlug(slug)
 
   if (!data) {
     notFound()
@@ -160,14 +119,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   const notesLong = details.notesLong
   const wikiUrl = typeof details.wikiUrl === "string" && details.wikiUrl.trim() ? details.wikiUrl.trim() : null
 
-  const { data: linkedProducts } = await supabase
-    .from("store_products")
-    .select("id, slug, name, type, price_cents, images, stock, is_active")
-    .eq("peripheral_id", data.id)
-    .eq("is_active", true) as { data: Array<{ id: string; slug: string; name: string; type: "store" | "bazaar"; price_cents: number; images: string[]; stock: number; is_active: boolean }> | null }
+  const linkedProducts = await listProductsByPeripheral(data.id)
 
-  const linkedStore = linkedProducts?.find((p) => p.type === "store") ?? null
-  const linkedBazaar = linkedProducts?.find((p) => p.type === "bazaar") ?? null
+  const linkedStore = linkedProducts.find((p) => p.type === "store") ?? null
+  const linkedBazaar = linkedProducts.find((p) => p.type === "bazaar") ?? null
 
   const specsTable = [
     { label: "Preco base", value: formatCurrency(data.price) },
@@ -185,12 +140,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
     { label: "Mao grande", value: details.gripLarge || "Claw/Finger" },
   ]
 
-  const { data: relatedPosts } = await supabase
-    .from("blog_posts")
-    .select("id, title, slug, cover_thumbnail_url, cover_image_url, created_at")
-    .eq("peripheral_id", data.id)
-    .eq("is_published", true)
-    .order("created_at", { ascending: false }) as any
+  const relatedPosts = await listPublishedPostsByPeripheral(data.id)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-4 md:px-6 lg:px-8">

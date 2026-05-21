@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { hasAdminPermission, isWebMaster, type AdminPermissionKey } from "@/lib/admin-permissions"
-import { updateSession } from "@/lib/supabase-middleware"
+import { updateSession } from "@/lib/server/supabase/middleware-client"
 
 function isMaintenanceEnabled() {
   const value = process.env.MAINTENANCE_MODE ?? process.env.NEXT_PUBLIC_MAINTENANCE_MODE

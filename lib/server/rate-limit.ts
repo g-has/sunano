@@ -1,7 +1,15 @@
-import { createHash } from "crypto"
-import type { SupabaseClient } from "@supabase/supabase-js"
+import "server-only"
 
-import type { Database } from "@/lib/supabase"
+import { createHash } from "crypto"
+
+import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
+
+/**
+ * Rate limiting baseado na tabela `rate_limit_events`.
+ *
+ * Faz parte da camada de domínio (`server-only`): cria o próprio cliente de
+ * banco, então as rotas não precisam manipular o Supabase diretamente.
+ */
 
 type RateLimitResult = {
   allowed: boolean
@@ -9,13 +17,13 @@ type RateLimitResult = {
 }
 
 type RateLimitParams = {
-  supabase: SupabaseClient<Database>
   action: string
   identifier: string
   maxAttempts: number
   windowSeconds: number
 }
 
+/** Deriva um identificador estável (hash) do visitante a partir da requisição. */
 export function getClientIdentifier(request: Request) {
   const forwardedFor = request.headers.get("x-forwarded-for")
   const realIp = request.headers.get("x-real-ip")
@@ -26,13 +34,14 @@ export function getClientIdentifier(request: Request) {
   return createHash("sha256").update(`${salt}:${ip}:${userAgent || "unknown"}`).digest("hex")
 }
 
+/** Verifica e registra uma tentativa para a janela de tempo informada. */
 export async function checkRateLimit({
-  supabase,
   action,
   identifier,
   maxAttempts,
   windowSeconds,
 }: RateLimitParams): Promise<RateLimitResult> {
+  const supabase = createSupabaseAdminClient()
   const since = new Date(Date.now() - windowSeconds * 1000).toISOString()
 
   const { count, error } = await supabase
@@ -50,6 +59,7 @@ export async function checkRateLimit({
     return { allowed: false, retryAfterSeconds: windowSeconds }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase.from("rate_limit_events").insert({ action, identifier } as any) as any)
 
   return { allowed: true }

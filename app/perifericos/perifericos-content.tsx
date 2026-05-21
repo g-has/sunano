@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useLocale } from "@/lib/locale-context"
-import { usePageHeader } from "@/lib/page-header-context"
+import { useLocale } from "@/components/providers/locale-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 import { buildPeripheralSlug } from "@/lib/peripheral-slug"
 import { cn } from "@/lib/utils"
 

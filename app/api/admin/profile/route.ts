@@ -3,7 +3,7 @@ import * as z from "zod"
 
 import type { AdminProfile } from "@/lib/admin-permissions"
 import { dbErrorResponse } from "@/lib/db-errors"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 const profileSchema = z.object({
   display_name: z.string().trim().max(80, "Nome deve ter no máximo 80 caracteres").optional(),

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { hasAdminPermission } from "@/lib/admin-permissions"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]

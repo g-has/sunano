@@ -6,11 +6,10 @@ import { ArrowLeft, ShoppingCart, Package, Shield, AlertTriangle, ShoppingBag, S
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CartButton, CartDrawer } from "@/components/store/CartDrawer"
-import { useCart } from "@/lib/cart-context"
+import { useCart } from "@/components/providers/cart-context"
 import { formatBRL } from "@/lib/stripe"
 import { cn } from "@/lib/utils"
 import BoxLoader from "@/components/ui/box-loader"
-import { createClient } from "@supabase/supabase-js"
 import { buildPeripheralSlug } from "@/lib/peripheral-slug"
 
 interface Product {
@@ -68,38 +67,21 @@ export default function BazarProductPage() {
 
   useEffect(() => {
     async function load() {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      const { data } = await supabase
-        .from("store_products")
-        .select("id, slug, name, description, price_cents, stock, images, category, type, condition, condition_notes, peripheral_id")
-        .eq("slug", slug)
-        .eq("type", "bazaar")
-        .eq("is_active", true)
-        .single()
-
-      setProduct(data ?? null)
-      setLoading(false)
-
-      if (data?.peripheral_id) {
-        const [{ data: storeMatch }, { data: peripheralMatch }] = await Promise.all([
-          supabase
-            .from("store_products")
-            .select("id, slug, name, price_cents, images, stock")
-            .eq("peripheral_id", data.peripheral_id)
-            .eq("type", "store")
-            .eq("is_active", true)
-            .maybeSingle(),
-          supabase
-            .from("peripherals")
-            .select("id, name, brand, image_url")
-            .eq("id", data.peripheral_id)
-            .maybeSingle(),
-        ])
-        setLinkedStore((storeMatch as LinkedStoreProduct | null) ?? null)
-        setLinkedPeripheral((peripheralMatch as LinkedPeripheral | null) ?? null)
+      try {
+        // Dados via endpoint /api/store/products/[slug] — sem Supabase no cliente.
+        const res = await fetch(`/api/store/products/${encodeURIComponent(slug)}?type=bazaar`)
+        const data = await res.json().catch(() => null)
+        if (!res.ok || !data?.product) {
+          setProduct(null)
+          return
+        }
+        setProduct(data.product as Product)
+        setLinkedStore((data.linkedProduct as LinkedStoreProduct | null) ?? null)
+        setLinkedPeripheral((data.linkedPeripheral as LinkedPeripheral | null) ?? null)
+      } catch {
+        setProduct(null)
+      } finally {
+        setLoading(false)
       }
     }
     load()

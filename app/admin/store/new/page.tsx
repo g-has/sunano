@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { StoreProductForm } from "../form"
 import { BackBreadcrumb } from "@/components/admin/BackBreadcrumb"
-import { usePageHeader } from "@/lib/page-header-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 
 function NewProductPage() {
   const router = useRouter()

@@ -13,6 +13,7 @@ import {
   Package,
   Settings,
   ShoppingBag,
+  Trophy,
   Users,
   X,
 } from "lucide-react"
@@ -20,8 +21,8 @@ import { useEffect, useState } from "react"
 
 import { AuthUser } from "@/components/auth/auth-user"
 import { Button } from "@/components/ui/button"
-import { useSidebar } from "@/lib/sidebar-context"
-import { useLocale } from "@/lib/locale-context"
+import { useSidebar } from "@/components/providers/sidebar-context"
+import { useLocale } from "@/components/providers/locale-context"
 import { cn } from "@/lib/utils"
 import {
   hasAdminPermission,
@@ -49,7 +50,7 @@ export function AdminSidebar() {
 
   const navItems: NavItem[] = [
     { href: "/admin", label: "Dashboard", icon: Home, permission: "dashboard_read" },
-    { href: "/admin/tierlist", label: "Tierlist", icon: Package, permission: "peripherals_read" },
+    { href: "/admin/tierlist", label: "Tierlist", icon: Trophy, permission: "peripherals_read" },
     { href: "/admin/perifericos", label: isEnglish ? "Peripherals" : "Periféricos", icon: Mouse, permission: "peripherals_read" },
     { href: "/admin/blog", label: "Blog & Reviews", icon: NotebookPen, permission: "blog_read" },
     { href: "/admin/forum", label: isEnglish ? "Forum" : "Fórum", icon: MessageSquare, permission: "forum_read" },

@@ -9,7 +9,7 @@ import { AlertCircle, ExternalLink, MessageCircle } from "lucide-react"
 import BoxLoader from "@/components/ui/box-loader"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 type TelegramOfferImage = {
   fileId: string
@@ -90,7 +90,6 @@ export default function OffersPage() {
   }
 
   return (
-
     <div className="mx-auto max-w-5xl space-y-5 px-4 py-6 md:px-6 lg:px-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

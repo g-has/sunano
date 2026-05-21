@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 
 export default function MaintenancePage() {
   const { locale } = useLocale()

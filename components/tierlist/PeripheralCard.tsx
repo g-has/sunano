@@ -1,7 +1,7 @@
 "use client"
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 import { cn } from "@/lib/utils"
 import { CARD_TAG_STYLES, CARD_TIER_STYLES, TIER_THEMES } from "@/lib/tierlist-theme"
 import { TierItemTooltipContent, type Ratings } from "./TierItemTooltipContent"
@@ -85,9 +85,9 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
             <p className="line-clamp-2 text-[10px] font-bold leading-tight text-slate-100">{item.name}</p>
             <div className="mt-0.5 flex items-center justify-between gap-1">
               <p className="truncate text-[8px] text-slate-500">{item.brand}</p>
-              {tagStyle && (
+              {/* {tagStyle && (
                 <div className={cn("size-1.5 shrink-0 rounded-full", tagStyle.dot)} />
-              )}
+              )} */}
             </div>
           </div>
         </div>

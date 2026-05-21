@@ -3,7 +3,7 @@ import * as z from "zod"
 
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { dbErrorResponse } from "@/lib/db-errors"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 const blogPostSchema = z.object({
   id: z.string().optional(),

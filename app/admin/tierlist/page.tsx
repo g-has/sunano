@@ -6,7 +6,7 @@ import Image from "next/image"
 import { Edit, Plus, Trash2, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import BoxLoader from "@/components/ui/box-loader"
-import { usePageHeader } from "@/lib/page-header-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 import {
   DndContext,
   DragEndEvent,
@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useLocale } from "@/lib/locale-context"
+import { useLocale } from "@/components/providers/locale-context"
 import {
   CARD_TAG_STYLES,
   CARD_TIER_STYLES,
@@ -88,7 +88,7 @@ const TIER_ROWS: { key: Tier; label: string; accent: string; textColor: string }
 
 const RATING_MODES: { key: RatingMode; en: string; pt: string }[] = [
   { key: "oled", en: "OLED", pt: "OLED" },
-  { key: "performance", en: "Performance", pt: "Performance" },
+  { key: "performance", en: "General", pt: "Geral" },
   { key: "value", en: "Value", pt: "Custo-Beneficio" },
   { key: "recommended", en: "Recommended", pt: "Recomendado" },
   { key: "soundTyping", en: "Sound & Typing", pt: "Som e Digitação" },

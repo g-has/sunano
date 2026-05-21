@@ -1,16 +1,11 @@
-import { createBrowserClient } from "@supabase/ssr"
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    // The default Web Locks-based lock causes 5s hangs on rapid page refresh when
-    // a previous navigation leaves an orphaned lock. Since this site doesn't rely
-    // on concurrent multi-tab token refresh coordination, a no-op lock is safe.
-    lock: <R>(_name: string, _acquireTimeout: number, fn: () => Promise<R>) => fn(),
-  },
-})
+/**
+ * Tipagem do schema do banco (Supabase / Postgres).
+ *
+ * Este arquivo contém SOMENTE tipos — nenhum código executável e nenhuma
+ * credencial. É seguro importar em qualquer camada (servidor ou cliente),
+ * pois tipos são apagados na compilação. As *consultas* propriamente ditas
+ * vivem exclusivamente na camada de domínio (`lib/server`).
+ */
 
 export type Database = {
   public: {

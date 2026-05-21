@@ -15,8 +15,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { BLOG_IMAGE_STANDARDS } from "@/lib/blog-images"
-import { useLocale } from "@/lib/locale-context"
-import { usePageHeader } from "@/lib/page-header-context"
+import { useLocale } from "@/components/providers/locale-context"
+import { usePageHeader } from "@/components/providers/page-header-context"
 
 type PeripheralOption = {
   id: string

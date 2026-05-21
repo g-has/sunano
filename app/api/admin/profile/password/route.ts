@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import * as z from "zod"
 
 import { canChangePasswords, isWebMaster } from "@/lib/admin-permissions"
-import { createSupabaseServerClient } from "@/lib/supabase-server"
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 const passwordSchema = z.object({
   password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres"),
