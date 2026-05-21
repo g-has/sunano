@@ -167,6 +167,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
     { label: "Shape", value: details.shape ?? specs.mouseShape },
     { label: "Coating", value: details.coating ?? specs.coating },
   ]
+  const headlineSpecs = specsTable
+    .map((spec) => ({ ...spec, display: formatSpecValue(spec.value) }))
+    .filter((spec) => spec.display !== "-")
+    .slice(0, 3)
 
   const gripInfo = [
     { label: "Mao pequena", value: details.gripSmall || "Claw/Palm" },
@@ -253,36 +257,56 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                         {data.tier}
                       </Badge>
                     )}
-                    {data.tags?.map((tag) => {
-                      const style = CARD_TAG_STYLES[tag as Tag]
-                      if (!style) {
-                        return (
-                          <Badge key={tag} variant="outline" className="border-border text-xs text-muted-foreground">
-                            {formatTagLabel(tag)}
-                          </Badge>
-                        )
-                      }
-                      return (
-                        <span
-                          key={tag}
-                          className={cn(
-                            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
-                            style.bg,
-                            style.text,
-                            style.border,
-                          )}
-                        >
-                          <span className={cn("size-1.5 rounded-full", style.dot)} />
-                          {formatTagLabel(tag)}
-                        </span>
-                      )
-                    })}
                   </div>
 
                   <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
                     {data.name}
                   </h1>
                   <p className="text-sm text-muted-foreground">{data.brand}</p>
+
+                  {data.tags?.length ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {data.tags.map((tag) => {
+                        const style = CARD_TAG_STYLES[tag as Tag]
+                        if (!style) {
+                          return (
+                            <Badge key={tag} variant="outline" className="border-border text-xs text-muted-foreground">
+                              {formatTagLabel(tag)}
+                            </Badge>
+                          )
+                        }
+                        return (
+                          <span
+                            key={tag}
+                            className={cn(
+                              "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+                              style.bg,
+                              style.text,
+                              style.border,
+                            )}
+                          >
+                            <span className={cn("size-1.5 rounded-full", style.dot)} />
+                            {formatTagLabel(tag)}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+
+                  {headlineSpecs.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      {headlineSpecs.map((spec) => (
+                        <div
+                          key={spec.label}
+                          className="rounded-md border border-border bg-muted/30 px-2 py-1"
+                        >
+                          <span className="font-medium text-foreground/80">{spec.label}:</span>{" "}
+                          <span className="font-semibold text-foreground">{spec.display}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {!wikiUrl && details.summary && (
                     <p className="mt-2 text-sm text-muted-foreground">
                       {details.summary}

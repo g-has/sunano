@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocale } from "@/components/providers/locale-context"
 import { usePageHeader } from "@/components/providers/page-header-context"
 import { buildPeripheralSlug } from "@/lib/peripheral-slug"
+import { CARD_TAG_STYLES } from "@/lib/tierlist-theme"
 import { cn } from "@/lib/utils"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
@@ -32,6 +33,7 @@ type KeyboardType = "mechanical" | "magnetic" | "optical"
 type PadType = "speed" | "control" | "hybrid"
 type Surface = PadType | "glass" | "cloth"
 type PanelType = "ips" | "tn" | "va" | "oled" | "other"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
 
 type Peripheral = {
   id: string
@@ -41,7 +43,7 @@ type Peripheral = {
   category: Category
   tier: Tier | null
   price: number
-  tags: Array<"competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode">
+  tags: Tag[]
   specs: {
     mouseShape?: "symmetrical" | "ergonomic"
     keyboardLayout?: string
@@ -62,16 +64,6 @@ interface PerifericosContentProps {
   showAdminActions?: boolean
 }
 
-const TIER_CLASS: Record<Tier, string> = {
-  GOAT: "tier-badge-t0",
-  SS:   "tier-badge-t05",
-  S:    "tier-badge-t1",
-  A:    "tier-badge-t2",
-  B:    "bg-muted/60 border border-border",
-  C:    "bg-muted/40 border border-border",
-  L:    "bg-muted/30 border border-border",
-}
-
 const CATEGORY_LABELS_PT: Record<Category, string> = {
   keyboard: "Teclados", mouse: "Mouses",
   mousepad: "Mousepads", glasspad: "Glasspads", iem: "IEMs", headset: "Headsets",
@@ -90,23 +82,31 @@ function formatLabel(value: string) {
   return value.split("-").map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ")
 }
 
+const TAG_LABELS: Record<Tag, string> = {
+  competitive: "Competitivo",
+  versatile: "Bomba",
+  value: "Custo-beneficio",
+  cheap: "Barato",
+  expensive: "Caro",
+  light: "Mouse Leve",
+  heavy: "Mouse Pesado",
+  unbalanced: "Peso Desbalanceado",
+  dpi_deviation: "DPI Deviation",
+  wobble_high: "Wooble Alto",
+  wobble_low: "Wooble Baixo",
+  scroll_hard: "Scroll Duro",
+  scroll_soft: "Scroll Mole",
+  trimode: "Trimode",
+}
+
+function formatTagLabel(tag: Tag) {
+  return TAG_LABELS[tag] ?? formatLabel(tag)
+}
+
 function getPriceBand(price: number): Exclude<PriceBand, "all"> {
   if (price <= 80) return "budget"
   if (price <= 160) return "mid"
   return "premium"
-}
-
-function TierBadge({ tier }: { tier: Tier }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-white/90 shadow-sm",
-        TIER_CLASS[tier]
-      )}
-    >
-      {tier}
-    </span>
-  )
 }
 
 export function PerifericosContent({ initialData: initialDataProp, showAdminActions }: PerifericosContentProps) {
@@ -419,15 +419,6 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
     }
   }
 
-  const formatCurrency = (value: number) => {
-    const currency = isEnglish ? "USD" : "BRL"
-    try {
-      return new Intl.NumberFormat(locale, { style: "currency", currency }).format(value)
-    } catch {
-      return `${isEnglish ? "$" : "R$"}${value}`
-    }
-  }
-
   usePageHeader(
     isEnglish ? "Peripherals" : "Periféricos",
     isEnglish
@@ -722,13 +713,6 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
                     : "border-border hover:border-border/70"
                 )}
               >
-                {/* Tier badge */}
-                {item.tier && (
-                  <div className="absolute right-3 top-3 z-10">
-                    <TierBadge tier={item.tier} />
-                  </div>
-                )}
-
                 {/* Image area */}
                 <div className="relative overflow-hidden rounded-t-xl border-b border-border bg-muted/10">
                   <div className="flex h-36 items-center justify-center">
@@ -763,6 +747,25 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
                     <p className="mt-0.5 text-xs text-muted-foreground">{item.brand}</p>
                   </div>
 
+                  {item.tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {item.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className={cn(
+                            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+                            CARD_TAG_STYLES[tag].bg,
+                            CARD_TAG_STYLES[tag].text,
+                            CARD_TAG_STYLES[tag].border,
+                          )}
+                        >
+                          <span className={cn("size-1.5 rounded-full", CARD_TAG_STYLES[tag].dot)} />
+                          {formatTagLabel(tag)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   {specChips.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {specChips.slice(0, 3).map((chip) => (
@@ -776,11 +779,7 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
                     </div>
                   )}
 
-                  <div className="mt-auto flex items-center justify-between border-t border-border/40 pt-3">
-                    <span className="text-base font-bold text-foreground">{formatCurrency(item.price)}</span>
-                    <Badge variant="secondary" className="bg-muted/30 text-[10px] text-muted-foreground">
-                      {categoryLabels[item.category]}
-                    </Badge>
+                  <div className="mt-auto flex items-center justify-end pt-3">
                   </div>
 
                   {showAdminActions ? (
