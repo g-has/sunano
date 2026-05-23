@@ -79,6 +79,20 @@ function getTierScore(tier: TierValue) {
   return 0
 }
 
+function getTierSubtitle(tier: Tier, isEnglish: boolean) {
+  if (isEnglish) return ""
+  const subtitles: Record<Tier, string> = {
+    GOAT: "Simplesmente",
+    SS: "Excepcional",
+    S: "Muito bom",
+    A: "Bom",
+    B: "Decente",
+    C: "Decente",
+    L: "Veio Podi",
+  }
+  return subtitles[tier]
+}
+
 function getRecommendedScore(item: Peripheral) {
   const tagScore = item.tags.reduce((accumulator, tag) => {
     if (tag === "competitive") return accumulator + 0.8
@@ -284,6 +298,11 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
                   )}
                 >
                   <div className={cn("py-3 text-2xl font-black", tierRow.textColor)}>{tierRow.label}</div>
+                  {getTierSubtitle(tierRow.key, isEnglish) && (
+                    <div className={cn("pb-2 text-[10px] font-medium opacity-80", tierRow.textColor)}>
+                      {getTierSubtitle(tierRow.key, isEnglish)}
+                    </div>
+                  )}
                 </td>
 
                 <td className="align-top bg-muted/20">

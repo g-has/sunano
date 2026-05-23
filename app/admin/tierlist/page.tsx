@@ -169,6 +169,20 @@ function sortByTierThenName(items: Peripheral[]) {
   )
 }
 
+function getTierSubtitle(tier: Tier, isEnglish: boolean) {
+  if (isEnglish) return ""
+  const subtitles: Record<Tier, string> = {
+    GOAT: "Simplesmente",
+    SS: "Excepcional",
+    S: "Muito bom",
+    A: "Bom",
+    B: "Decente",
+    C: "Decente",
+    L: "Veio Podi",
+  }
+  return subtitles[tier]
+}
+
 const MODE_CONFIGS: Record<RatingMode, ModeConfig> = {
   performance: {
     enDescription: "Sorted by pure performance",
@@ -774,6 +788,11 @@ export default function AdminPeripheralsPage() {
               >
                 <div className={`flex flex-col items-center justify-center bg-gradient-to-b ${tierRow.accent} text-2xl font-black ${tierRow.textColor}`}>
                   {tierRow.label}
+                  {getTierSubtitle(tierRow.key, isEnglish) && (
+                    <span className="text-[10px] font-medium opacity-80">
+                      {getTierSubtitle(tierRow.key, isEnglish)}
+                    </span>
+                  )}
                 </div>
 
                 <div data-drop-zone={tierRow.key}>
