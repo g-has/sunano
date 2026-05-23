@@ -274,7 +274,6 @@ function DraggablePeripheralCard({
             <p className="line-clamp-2 text-[10px] font-bold leading-tight text-slate-100">{item.name}</p>
             <div className="mt-0.5 flex items-center justify-between gap-1">
               <p className="truncate text-[8px] text-slate-500">{item.brand}</p>
-              {tagStyle && <div className={cn("size-1.5 shrink-0 rounded-full", tagStyle.dot)} />}
             </div>
           </div>
         </div>

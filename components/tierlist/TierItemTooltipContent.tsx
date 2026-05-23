@@ -9,7 +9,7 @@ type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "ligh
 export type RatingKey = "overall" | "performance" | "build" | "value" | "software" | "battery" | "qc"
 export type Ratings = Partial<Record<RatingKey, number>>
 
-const RATING_ORDER: RatingKey[] = ["overall", "overall", "build", "value", "software", "battery", "qc"]
+const RATING_ORDER: RatingKey[] = ["overall", "performance", "build", "value", "software", "battery", "qc"]
 
 const RATING_LABELS_PT: Record<RatingKey, string> = {
   overall: "Geral",
@@ -122,11 +122,13 @@ export function TierItemTooltipContent({
 
   const labels = isEnglish ? RATING_LABELS_EN : RATING_LABELS_PT
   const ratingEntries = ratings
-    ? RATING_ORDER.filter((key) => typeof ratings[key] === "number").map((key) => ({
-        key,
-        label: labels[key],
-        value: ratings[key] as number,
-      }))
+    ? RATING_ORDER.filter((key, index) => RATING_ORDER.indexOf(key) === index)
+        .filter((key) => typeof ratings[key] === "number")
+        .map((key) => ({
+          key,
+          label: labels[key],
+          value: ratings[key] as number,
+        }))
     : []
 
   return (
@@ -183,13 +185,12 @@ export function TierItemTooltipContent({
               <span
                 key={tag}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+                  "rounded-full border px-2.5 py-1 text-[11px] font-semibold",
                   CARD_TAG_STYLES[tag].bg,
                   CARD_TAG_STYLES[tag].text,
                   CARD_TAG_STYLES[tag].border,
                 )}
               >
-                <span className={cn("size-1.5 rounded-full", CARD_TAG_STYLES[tag].dot)} />
                 {formatTagLabel(tag, isEnglish)}
               </span>
             ))}
