@@ -774,9 +774,6 @@ export default function AdminPeripheralsPage() {
               >
                 <div className={`flex flex-col items-center justify-center bg-gradient-to-b ${tierRow.accent} text-2xl font-black ${tierRow.textColor}`}>
                   {tierRow.label}
-                  {tierRow.items.length > 0 && (
-                    <span className="text-[10px] font-medium opacity-80">{tierRow.items.length}</span>
-                  )}
                 </div>
 
                 <div data-drop-zone={tierRow.key}>

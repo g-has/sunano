@@ -284,11 +284,6 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
                   )}
                 >
                   <div className={cn("py-3 text-2xl font-black", tierRow.textColor)}>{tierRow.label}</div>
-                  {tierRow.items.length > 0 && (
-                    <div className={cn("pb-2 text-[10px] font-medium opacity-80", tierRow.textColor)}>
-                      {tierRow.items.length}
-                    </div>
-                  )}
                 </td>
 
                 <td className="align-top bg-muted/20">
@@ -330,7 +325,6 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
                           {tierRow.description}
                         </span>
                       </div>
-                      <span className={cn("text-sm font-semibold", tierRow.textColor)}>{tierRow.items.length} {isEnglish ? "items" : "itens"}</span>
                     </div>
 
                     <div className="p-4">
@@ -356,9 +350,6 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
                   {isEnglish ? "No tier" : "Sem tier"}
                 </span>
               </div>
-              <span className="text-sm font-semibold text-muted-foreground">
-                {untieredItems.length} {isEnglish ? "items" : "itens"}
-              </span>
             </div>
 
             <div className="hidden p-2 md:block">
