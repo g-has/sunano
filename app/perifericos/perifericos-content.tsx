@@ -32,7 +32,7 @@ type KeyboardType = "mechanical" | "magnetic" | "optical"
 type PadType = "speed" | "control" | "hybrid"
 type Surface = PadType | "glass" | "cloth"
 type PanelType = "ips" | "tn" | "va" | "oled" | "other"
-type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80"
 
 type Peripheral = {
   id: string
@@ -130,9 +130,14 @@ const TAG_LABELS: Record<Tag, string> = {
   scroll_hard: "Scroll Duro",
   scroll_soft: "Scroll Mole",
   trimode: "Trimode",
+  stable: "Estável",
+  unstable: "Instável",
+  "8_80": "8 80",
 }
 
-function formatTagLabel(tag: Tag) {
+function formatTagLabel(tag: Tag, category?: string) {
+  if (category === "keyboard" && tag === "light") return "Leve"
+  if (category === "keyboard" && tag === "heavy") return "Pesado"
   return TAG_LABELS[tag] ?? formatLabel(tag)
 }
 
@@ -900,7 +905,7 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
                               )}
                             >
                               <span className={cn("size-1.5 rounded-full", CARD_TAG_STYLES[tag].dot)} />
-                              {formatTagLabel(tag)}
+                              {formatTagLabel(tag, item.category)}
                             </span>
                           ))}
                         </div>

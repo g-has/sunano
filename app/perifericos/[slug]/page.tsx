@@ -9,7 +9,8 @@ import { listProductsByPeripheral } from "@/lib/server/repositories/store-reposi
 import { listPublishedPostsByPeripheral } from "@/lib/server/repositories/blog-repository"
 import { cn } from "@/lib/utils"
 import { mapTier } from "@/lib/tier-utils"
-import { CARD_TAG_STYLES, RATING_LEVEL_COLORS } from "@/lib/tierlist-theme"
+import { CARD_TAG_STYLES, CARD_TIER_STYLES, RATING_LEVEL_COLORS, TIER_THEMES } from "@/lib/tierlist-theme"
+import { BackButton } from "@/components/ui/back-button"
 
 interface PerifericoPageProps {
   params: Promise<{ slug: string }>
@@ -32,7 +33,7 @@ function formatCurrency(value: number) {
   }
 }
 
-type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80"
 
 const TAG_LABELS: Record<Tag, string> = {
   competitive: "Competitivo",
@@ -49,9 +50,14 @@ const TAG_LABELS: Record<Tag, string> = {
   scroll_hard: "Scroll Duro",
   scroll_soft: "Scroll Mole",
   trimode: "Trimode",
+  stable: "Estável",
+  unstable: "Instável",
+  "8_80": "8 80",
 }
 
-function formatTagLabel(tag: string) {
+function formatTagLabel(tag: string, category?: string) {
+  if (category === "keyboard" && tag === "light") return "Leve"
+  if (category === "keyboard" && tag === "heavy") return "Pesado"
   return TAG_LABELS[tag as Tag] ?? formatLabel(tag)
 }
 
@@ -158,40 +164,109 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   const linkedStore = linkedProducts.find((p) => p.type === "store") ?? null
   const linkedBazaar = linkedProducts.find((p) => p.type === "bazaar") ?? null
 
-  const specsTable = [
-    { label: "Preco base", value: formatCurrency(data.price) },
-    { label: "Peso", value: details.weight ?? specs.weight },
-    { label: "Latencia", value: details.latency ?? specs.latency },
-    { label: "Sensor", value: specs.driver ?? details.sensor },
-    { label: "Switch", value: details.switchType ?? specs.switchType },
-    { label: "Shape", value: details.shape ?? specs.mouseShape },
-    { label: "Coating", value: details.coating ?? specs.coating },
-  ]
+  const formatConnectivity = (v?: string) =>
+    v === "wired" ? "Com fio" : v === "wireless" ? "Sem fio" : v
+
+  const formatKeyboardType = (v?: string) =>
+    v === "mechanical" ? "Mecânico" : v === "optical" ? "Óptico" : v === "magnetic" ? "Magnético" : v
+
+  const formatTrimode = (v?: string) =>
+    v === "yes" ? "Sim" : v === "no" ? "Não" : v
+
+  const specsBase = [{ label: "Preco base", value: formatCurrency(data.price) }]
+
+  const specsTable: { label: string; value: unknown }[] = (() => {
+    switch (data.category) {
+      case "mouse":
+        return [...specsBase,
+          { label: "Sensor", value: specs.driver ?? details.sensor },
+          { label: "Peso", value: details.weight ?? specs.weight },
+          { label: "Latencia", value: details.latency ?? specs.latency },
+          { label: "Switch", value: details.switchType ?? specs.switchType },
+          { label: "Shape", value: details.shape ?? specs.mouseShape },
+          { label: "Coating", value: details.coating ?? specs.coating },
+        ]
+      case "keyboard":
+        return [...specsBase,
+          { label: "Layout", value: specs.keyboardLayout },
+          { label: "Tipo", value: formatKeyboardType(specs.keyboardType) },
+          { label: "Conectividade", value: formatConnectivity(specs.connectivity) },
+          { label: "Switch", value: details.switchType ?? specs.switchType },
+          { label: "Peso", value: details.weight ?? specs.weight },
+          { label: "Latencia", value: details.latency ?? specs.latency },
+          { label: "Deadzone", value: details.deadzone },
+          { label: "RT Minimo", value: details.rtMin },
+          { label: "Features", value: details.features },
+        ]
+      case "mousepad":
+      case "glasspad":
+        return [...specsBase,
+          { label: "Superficie", value: specs.surface ?? details.surface },
+          { label: "Tipo", value: specs.padType ?? details.padType },
+          { label: "Tamanho", value: specs.size ?? details.size },
+          { label: "Profile", value: specs.profile ?? details.profile },
+        ]
+      case "monitors":
+        return [...specsBase,
+          { label: "Taxa de atualizacao", value: specs.refreshRate ? `${specs.refreshRate}Hz` : undefined },
+          { label: "Painel", value: specs.panelType },
+        ]
+      case "headset":
+      case "iem":
+        return [...specsBase,
+          { label: "Conectividade", value: formatConnectivity(specs.connectivity) },
+          { label: "Compatibilidade", value: details.compatibility },
+        ]
+      case "dac_amp":
+        return [...specsBase,
+          { label: "Conectividade", value: formatConnectivity(specs.connectivity) },
+          { label: "Trimode", value: formatTrimode(specs.trimode) },
+        ]
+      case "switches":
+        return [...specsBase,
+          { label: "Tipo", value: formatKeyboardType(specs.keyboardType) },
+          { label: "Switch", value: details.switchType ?? specs.switchType },
+        ]
+      default:
+        // feet, chairs — só preço base
+        return [...specsBase]
+    }
+  })()
+
   const headlineSpecs = specsTable
     .map((spec) => ({ ...spec, display: formatSpecValue(spec.value) }))
     .filter((spec) => spec.display !== "-")
     .slice(0, 3)
 
+  const showGrip = data.category === "mouse"
   const gripInfo = [
     { label: "Mao pequena", value: details.gripSmall || "Claw/Palm" },
     { label: "Mao media", value: details.gripMedium || "Claw/Palm" },
     { label: "Mao grande", value: details.gripLarge || "Claw/Finger" },
   ]
 
+  const tierStyle = data.tier ? TIER_THEMES[data.tier as keyof typeof TIER_THEMES] : null
+
   const relatedPosts = await listPublishedPostsByPeripheral(data.id)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-4 md:px-6 lg:px-8">
+      <div className="mb-3">
+        <BackButton />
+      </div>
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
               <div className="space-y-3">
-                <Card className="border-border bg-card">
-                  <CardHeader className="pb-2">
-                    <span className="text-xs text-muted-foreground">Classificação</span>
-                    <span className="rounded-full border border-border bg-muted/40 px-3 py-1 text-sm font-semibold text-foreground">
-                      {rankLabel}
-                    </span>
-                  </CardHeader>
-                </Card>
+                {tierStyle ? (
+                  <div className={cn("rounded-2xl bg-gradient-to-br px-4 py-3 text-center", tierStyle.accent, tierStyle.textColor)}>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest opacity-60 mb-1">Classificação</p>
+                    <p className="text-3xl font-bold tracking-tight leading-none">{rankLabel}</p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Classificação</p>
+                    <p className="text-sm font-semibold text-foreground">{rankLabel}</p>
+                  </div>
+                )}
 
                 <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-muted/40">
                   {data.image_url ? (
@@ -224,7 +299,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                     <RatingRow label="Geral" rating={ratings.overall} />
                     <RatingRow label="Construcao" rating={ratings.build} />
                     <RatingRow label="Software" rating={ratings.software} />
-                    <RatingRow label="Bateria" rating={ratings.battery} />
+                    <RatingRow label={data.category === "keyboard" ? "Digitação" : "Bateria"} rating={ratings.battery} />
                     <RatingRow label="Performance" rating={ratings.performance} />
                     <RatingRow label="QC" rating={ratings.qc} />
                     <RatingRow label="Custo-beneficio" rating={ratings.value} />
@@ -271,7 +346,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                         if (!style) {
                           return (
                             <Badge key={tag} variant="outline" className="border-border text-xs text-muted-foreground">
-                              {formatTagLabel(tag)}
+                              {formatTagLabel(tag, data.category)}
                             </Badge>
                           )
                         }
@@ -286,7 +361,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                             )}
                           >
                             <span className={cn("size-1.5 rounded-full", style.dot)} />
-                            {formatTagLabel(tag)}
+                            {formatTagLabel(tag, data.category)}
                           </span>
                         )
                       })}
@@ -339,7 +414,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </Card>
                 )}
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className={cn("grid gap-4", showGrip ? "md:grid-cols-2" : "grid-cols-1")}>
                   <Card className="border-border bg-card">
                     <CardHeader>
                       <CardTitle className="text-sm">Especs</CardTitle>
@@ -355,23 +430,25 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Pegada</CardTitle>
-                      <CardDescription className="text-xs">Recomendacao por tamanho de mao.</CardDescription>
-                    </CardHeader>
-                  <CardContent className="divide-y divide-border text-sm text-muted-foreground">
-                    {gripInfo.map((row) => (
-                      <div
-                        key={row.label}
-                        className="flex items-center justify-between gap-4 px-3 py-2"
-                      >
-                        <span className="text-foreground/80">{row.label}</span>
-                        <span className="font-semibold text-foreground">{formatSpecValue(row.value)}</span>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                  {showGrip && (
+                    <Card className="border-border bg-card">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Pegada</CardTitle>
+                        <CardDescription className="text-xs">Recomendacao por tamanho de mao.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="divide-y divide-border text-sm text-muted-foreground">
+                        {gripInfo.map((row) => (
+                          <div
+                            key={row.label}
+                            className="flex items-center justify-between gap-4 px-3 py-2"
+                          >
+                            <span className="text-foreground/80">{row.label}</span>
+                            <span className="font-semibold text-foreground">{formatSpecValue(row.value)}</span>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">

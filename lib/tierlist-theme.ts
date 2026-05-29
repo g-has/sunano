@@ -45,6 +45,9 @@ export const TAG_COLUMN_COLORS = {
   scroll_hard: "text-stone-300",
   scroll_soft: "text-lime-300",
   trimode: "text-indigo-300",
+  stable: "text-teal-300",
+  unstable: "text-orange-300",
+  "8_80": "text-blue-300",
 } as const
 
 export const VALUE_COLUMN_COLORS = {
@@ -75,6 +78,9 @@ export const CARD_TAG_STYLES = {
   scroll_hard:{ bg: "bg-stone-500/15",   text: "text-stone-300",   border: "border-stone-500/30",   dot: "bg-stone-400" },
   scroll_soft:{ bg: "bg-lime-500/15",    text: "text-lime-300",    border: "border-lime-500/30",    dot: "bg-lime-400" },
   trimode:    { bg: "bg-indigo-500/15",  text: "text-indigo-300",  border: "border-indigo-500/30",  dot: "bg-indigo-400" },
+  stable:     { bg: "bg-teal-500/15",   text: "text-teal-300",    border: "border-teal-500/30",    dot: "bg-teal-400" },
+  unstable:   { bg: "bg-orange-500/15", text: "text-orange-300",  border: "border-orange-500/30",  dot: "bg-orange-400" },
+  "8_80":     { bg: "bg-blue-500/15",   text: "text-blue-300",    border: "border-blue-500/30",    dot: "bg-blue-400" },
 } as const
 
 // Rating scale colors (0–6) — single source of truth shared by the peripheral

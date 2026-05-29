@@ -37,7 +37,7 @@ import { RATING_LEVEL_COLORS } from "@/lib/tierlist-theme"
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierField = Tier | "__none__"
-type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80"
 
 const peripheralSchema = z.object({
   name: z
@@ -97,6 +97,9 @@ const peripheralSchema = z.object({
   profile: z.string().optional(),
   keyboardType: z.string().optional(),
   trimode: z.string().optional(),
+  deadzone: z.string().optional(),
+  rtMin: z.string().optional(),
+  features: z.string().optional(),
   refreshRate: z.preprocess(
     (value) => (value === "" || value === null || Number.isNaN(value) ? undefined : value),
     z.number().positive().optional()
@@ -145,6 +148,9 @@ const TAGS_OPTIONS: { key: Tag; en: string; pt: string; color: string }[] = [
   { key: "scroll_hard", en: "Hard scroll", pt: "Scroll Duro", color: "border-stone-400/50 bg-stone-500/10 text-stone-300 data-[active=true]:bg-stone-500/30 data-[active=true]:border-stone-400" },
   { key: "scroll_soft", en: "Soft scroll", pt: "Scroll Mole", color: "border-lime-400/50 bg-lime-500/10 text-lime-300 data-[active=true]:bg-lime-500/30 data-[active=true]:border-lime-400" },
   { key: "trimode", en: "Trimode", pt: "Trimode", color: "border-indigo-400/50 bg-indigo-500/10 text-indigo-300 data-[active=true]:bg-indigo-500/30 data-[active=true]:border-indigo-400" },
+  { key: "stable", en: "Stable", pt: "Estável", color: "border-teal-400/50 bg-teal-500/10 text-teal-300 data-[active=true]:bg-teal-500/30 data-[active=true]:border-teal-400" },
+  { key: "unstable", en: "Unstable", pt: "Instável", color: "border-orange-400/50 bg-orange-500/10 text-orange-300 data-[active=true]:bg-orange-500/30 data-[active=true]:border-orange-400" },
+  { key: "8_80", en: "8 80", pt: "8 80", color: "border-blue-400/50 bg-blue-500/10 text-blue-300 data-[active=true]:bg-blue-500/30 data-[active=true]:border-blue-400" },
 ]
 
 const BRAND_OPTIONS = [
@@ -488,6 +494,9 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       ratingBattery: undefined, ratingPerformance: undefined, ratingQc: undefined, ratingValue: undefined,
       keyboardType: "",
       trimode: "",
+      deadzone: "",
+      rtMin: "",
+      features: "",
       padType: "",
       refreshRate: undefined,
       panelType: "",
@@ -563,6 +572,9 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           comparisons: Array.isArray(data.specs?.details?.comparisons) ? data.specs.details.comparisons.join("\n") : data.specs?.details?.comparisons ?? "",
           weight: data.specs?.details?.weight ?? "",
           latency: data.specs?.details?.latency ?? "",
+          deadzone: data.specs?.details?.deadzone ?? "",
+          rtMin: data.specs?.details?.rtMin ?? "",
+          features: data.specs?.details?.features ?? "",
           switchType: data.specs?.details?.switchType ?? "",
           coating: data.specs?.details?.coating ?? "",
           shape: data.specs?.details?.shape ?? "",
@@ -661,6 +673,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           buyLinks: parseBuyLinks(data.buyLinks), compatibility: data.compatibility || undefined,
           notes: data.notes || undefined, comparisons: splitLines(data.comparisons),
           weight: data.weight || undefined, latency: data.latency || undefined,
+          deadzone: data.deadzone || undefined, rtMin: data.rtMin || undefined,
+          features: data.features || undefined,
           switchType: data.switchType || undefined, coating: data.coating || undefined,
           shape: data.shape || undefined, gripSmall: data.gripSmall || undefined,
           gripMedium: data.gripMedium || undefined, gripLarge: data.gripLarge || undefined,
@@ -1216,8 +1230,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Profile</label>
-                  <Input className="border-border bg-background" placeholder="Rapid Trigger, Hall Effect" {...form.register("profile")} />
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{isEnglish ? "Weight" : "Peso"}</label>
+                  <Input className="border-border bg-background" placeholder="800g" {...form.register("weight")} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</label>
@@ -1235,6 +1249,22 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Switch</label>
                   <Input className="border-border bg-background" placeholder={isEnglish ? "Linear, Tactile, Clicky" : "Linear, Tátil, Clicky"} {...form.register("switchType")} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{isEnglish ? "Latency" : "Latência"}</label>
+                  <Input className="border-border bg-background" placeholder="0.5ms" {...form.register("latency")} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Deadzone</label>
+                  <Input className="border-border bg-background" placeholder="0.1mm" {...form.register("deadzone")} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">RT Mínimo</label>
+                  <Input className="border-border bg-background" placeholder="0.1mm" {...form.register("rtMin")} />
+                </div>
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Features</label>
+                  <Input className="border-border bg-background" placeholder="Rapid Trigger, Hall Effect, RGB..." {...form.register("features")} />
                 </div>
               </>
             )}
