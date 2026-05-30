@@ -33,7 +33,7 @@ function formatCurrency(value: number) {
   }
 }
 
-type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80" | "poron" | "borracha" | "grosso" | "fino" | "rapido" | "devagar" | "hibrido"
 
 const TAG_LABELS: Record<Tag, string> = {
   competitive: "Competitivo",
@@ -53,6 +53,13 @@ const TAG_LABELS: Record<Tag, string> = {
   stable: "Estável",
   unstable: "Instável",
   "8_80": "8 80",
+  poron: "Poron",
+  borracha: "Borracha",
+  grosso: "Grosso",
+  fino: "Fino",
+  rapido: "Rápido",
+  devagar: "Devagar",
+  hibrido: "Híbrido",
 }
 
 function formatTagLabel(tag: string, category?: string) {
@@ -297,9 +304,9 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <RatingRow label="Geral" rating={ratings.overall} />
-                    <RatingRow label="Construcao" rating={ratings.build} />
-                    <RatingRow label="Software" rating={ratings.software} />
-                    <RatingRow label={data.category === "keyboard" ? "Digitação" : "Bateria"} rating={ratings.battery} />
+                    <RatingRow label={data.category === "mousepad" ? "Superfície" : "Construção"} rating={ratings.build} />
+                    <RatingRow label={data.category === "mousepad" ? "Base" : "Software"} rating={ratings.software} />
+                    <RatingRow label={data.category === "keyboard" ? "Digitação" : data.category === "mousepad" ? "Costura" : "Bateria"} rating={ratings.battery} />
                     <RatingRow label="Performance" rating={ratings.performance} />
                     <RatingRow label="QC" rating={ratings.qc} />
                     <RatingRow label="Custo-beneficio" rating={ratings.value} />

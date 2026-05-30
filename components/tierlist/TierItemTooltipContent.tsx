@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { CARD_TAG_STYLES, CARD_TIER_STYLES, RATING_LEVEL_COLORS, TIER_THEMES } from "@/lib/tierlist-theme"
 
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
-type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80" | "poron" | "borracha" | "grosso" | "fino" | "rapido" | "devagar" | "hibrido"
 
 export type RatingKey = "overall" | "performance" | "build" | "value" | "software" | "battery" | "qc"
 export type Ratings = Partial<Record<RatingKey, number>>
@@ -49,6 +49,13 @@ const TAG_LABELS: Record<Tag, { en: string; pt: string }> = {
   stable: { en: "Stable", pt: "Estável" },
   unstable: { en: "Unstable", pt: "Instável" },
   "8_80": { en: "8 80", pt: "8 80" },
+  poron: { en: "Poron", pt: "Poron" },
+  borracha: { en: "Rubber", pt: "Borracha" },
+  grosso: { en: "Thick", pt: "Grosso" },
+  fino: { en: "Thin", pt: "Fino" },
+  rapido: { en: "Fast", pt: "Rápido" },
+  devagar: { en: "Slow", pt: "Devagar" },
+  hibrido: { en: "Hybrid", pt: "Híbrido" },
 }
 
 export interface TierItemTooltipContentProps {
@@ -126,15 +133,20 @@ export function TierItemTooltipContent({
   const labels = isEnglish ? RATING_LABELS_EN : RATING_LABELS_PT
   const batteryLabel = categoryLabel === "keyboard"
     ? (isEnglish ? "Typing" : "Digitação")
-    : labels.battery
+    : categoryLabel === "mousepad"
+      ? (isEnglish ? "Stitching" : "Costura")
+      : labels.battery
   const ratingEntries = ratings
     ? RATING_ORDER.filter((key, index) => RATING_ORDER.indexOf(key) === index)
         .filter((key) => typeof ratings[key] === "number")
-        .map((key) => ({
-          key,
-          label: key === "battery" ? batteryLabel : labels[key],
-          value: ratings[key] as number,
-        }))
+        .map((key) => {
+          let label = key === "battery" ? batteryLabel : labels[key]
+          if (categoryLabel === "mousepad") {
+            if (key === "software") label = isEnglish ? "Base" : "Base"
+            if (key === "build") label = isEnglish ? "Surface" : "Superfície"
+          }
+          return { key, label, value: ratings[key] as number }
+        })
     : []
 
   return (

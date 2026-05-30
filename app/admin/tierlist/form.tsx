@@ -38,7 +38,7 @@ import { removeBackground, fileToDataUrl } from "@/lib/client/remove-background"
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierField = Tier | "__none__"
-type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80" | "poron" | "borracha" | "grosso" | "fino" | "rapido" | "devagar" | "hibrido"
 
 const peripheralSchema = z.object({
   name: z
@@ -106,6 +106,10 @@ const peripheralSchema = z.object({
     z.number().positive().optional()
   ),
   panelType: z.string().optional(),
+  glide: z.string().optional(),
+  padSpeed: z.string().optional(),
+  stoppingPower: z.string().optional(),
+  thickness: z.string().optional(),
 })
 
 type PeripheralFormData = z.infer<typeof peripheralSchema>
@@ -152,6 +156,13 @@ const TAGS_OPTIONS: { key: Tag; en: string; pt: string; color: string }[] = [
   { key: "stable", en: "Stable", pt: "Estável", color: "border-teal-400/50 bg-teal-500/10 text-teal-300 data-[active=true]:bg-teal-500/30 data-[active=true]:border-teal-400" },
   { key: "unstable", en: "Unstable", pt: "Instável", color: "border-orange-400/50 bg-orange-500/10 text-orange-300 data-[active=true]:bg-orange-500/30 data-[active=true]:border-orange-400" },
   { key: "8_80", en: "8 80", pt: "8 80", color: "border-blue-400/50 bg-blue-500/10 text-blue-300 data-[active=true]:bg-blue-500/30 data-[active=true]:border-blue-400" },
+  { key: "poron", en: "Poron", pt: "Poron", color: "border-purple-400/50 bg-purple-500/10 text-purple-300 data-[active=true]:bg-purple-500/30 data-[active=true]:border-purple-400" },
+  { key: "borracha", en: "Rubber", pt: "Borracha", color: "border-zinc-400/50 bg-zinc-500/10 text-zinc-300 data-[active=true]:bg-zinc-500/30 data-[active=true]:border-zinc-400" },
+  { key: "grosso", en: "Thick", pt: "Grosso", color: "border-amber-400/50 bg-amber-500/10 text-amber-300 data-[active=true]:bg-amber-500/30 data-[active=true]:border-amber-400" },
+  { key: "fino", en: "Thin", pt: "Fino", color: "border-cyan-400/50 bg-cyan-500/10 text-cyan-300 data-[active=true]:bg-cyan-500/30 data-[active=true]:border-cyan-400" },
+  { key: "rapido", en: "Fast", pt: "Rápido", color: "border-green-400/50 bg-green-500/10 text-green-300 data-[active=true]:bg-green-500/30 data-[active=true]:border-green-400" },
+  { key: "devagar", en: "Slow", pt: "Devagar", color: "border-sky-400/50 bg-sky-500/10 text-sky-300 data-[active=true]:bg-sky-500/30 data-[active=true]:border-sky-400" },
+  { key: "hibrido", en: "Hybrid", pt: "Híbrido", color: "border-teal-400/50 bg-teal-500/10 text-teal-300 data-[active=true]:bg-teal-500/30 data-[active=true]:border-teal-400" },
 ]
 
 const BRAND_OPTIONS = [
@@ -506,6 +517,10 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       padType: "",
       refreshRate: undefined,
       panelType: "",
+      glide: "",
+      padSpeed: "",
+      stoppingPower: "",
+      thickness: "",
     },
   })
 
@@ -667,6 +682,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         mouseShape: data.mouseShape, keyboardLayout: data.keyboardLayout, keyboardType: data.keyboardType, connectivity: data.connectivity,
         trimode: data.trimode || undefined,
         size: data.size, surface: data.surface, padType: data.padType, driver: data.driver, profile: data.profile,
+        glide: data.glide || undefined, padSpeed: data.padSpeed || undefined,
+        stoppingPower: data.stoppingPower || undefined, thickness: data.thickness || undefined,
         refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
         panelType: data.panelType || undefined,
         details: {
@@ -1137,6 +1154,11 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                 if (field.key === "ratingBattery" && watchedCategory === "keyboard") {
                   label = isEnglish ? "Typing" : "Digitação"
                 }
+                if (watchedCategory === "mousepad") {
+                  if (field.key === "ratingSoftware") label = isEnglish ? "Base" : "Base"
+                  if (field.key === "ratingBuild") label = isEnglish ? "Surface" : "Superfície"
+                  if (field.key === "ratingBattery") label = isEnglish ? "Stitching" : "Costura"
+                }
                 return (
                   <RatingInput
                     key={field.key}
@@ -1388,7 +1410,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Surface</label>
                   <Select value={form.watch("surface") || ""} onValueChange={(v) => form.setValue("surface", v)}>
                     <SelectTrigger className="border-border bg-background">
-                      <SelectValue placeholder={isEnglish ? "Select surface" : "Selecione"} />
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="cloth">Cloth</SelectItem>
@@ -1398,25 +1420,102 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Profile</label>
-                  <Input className="border-border bg-background" placeholder="Control / Speed" {...form.register("profile")} />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pad type</label>
-                  <Select value={form.watch("padType") || ""} onValueChange={(v) => form.setValue("padType", v)}>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Perfil</label>
+                  <Select value={form.watch("profile") || ""} onValueChange={(v) => form.setValue("profile", v)}>
                     <SelectTrigger className="border-border bg-background">
-                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="speed">Speed</SelectItem>
-                      <SelectItem value="control">Control</SelectItem>
-                      <SelectItem value="hybrid">Hybrid</SelectItem>
+                      <SelectItem value="Speed">Speed</SelectItem>
+                      <SelectItem value="Control">Control</SelectItem>
+                      <SelectItem value="Híbrido">Híbrido</SelectItem>
+                      <SelectItem value="Híbrido + Speed">Híbrido + Speed</SelectItem>
+                      <SelectItem value="Híbrido + Control">Híbrido + Control</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{isEnglish ? "Size" : "Tamanho"}</label>
-                  <Input className="border-border bg-background" placeholder="480×400mm, XL" {...form.register("size")} />
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Deslize</label>
+                  <Select value={form.watch("glide") || ""} onValueChange={(v) => form.setValue("glide", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Rápido">Rápido</SelectItem>
+                      <SelectItem value="Devagar">Devagar</SelectItem>
+                      <SelectItem value="Equilibrado">Equilibrado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Velocidade</label>
+                  <Select value={form.watch("padSpeed") || ""} onValueChange={(v) => form.setValue("padSpeed", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Alta">Alta</SelectItem>
+                      <SelectItem value="Média">Média</SelectItem>
+                      <SelectItem value="Baixa">Baixa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Poder de Parada</label>
+                  <Select value={form.watch("stoppingPower") || ""} onValueChange={(v) => form.setValue("stoppingPower", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Baixo">Baixo</SelectItem>
+                      <SelectItem value="Médio">Médio</SelectItem>
+                      <SelectItem value="Alto">Alto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Base</label>
+                  <Select value={form.watch("padType") || ""} onValueChange={(v) => form.setValue("padType", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Poron">Poron</SelectItem>
+                      <SelectItem value="Borracha">Borracha</SelectItem>
+                      <SelectItem value="Fibra de Carbono">Fibra de Carbono</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Espessura</label>
+                  <Select value={form.watch("thickness") || ""} onValueChange={(v) => form.setValue("thickness", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1mm">1mm</SelectItem>
+                      <SelectItem value="2mm">2mm</SelectItem>
+                      <SelectItem value="3mm">3mm</SelectItem>
+                      <SelectItem value="4mm">4mm</SelectItem>
+                      <SelectItem value="5mm">5mm</SelectItem>
+                      <SelectItem value="6mm">6mm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tamanho</label>
+                  <Select value={form.watch("size") || ""} onValueChange={(v) => form.setValue("size", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="S">S</SelectItem>
+                      <SelectItem value="M">M</SelectItem>
+                      <SelectItem value="L">L</SelectItem>
+                      <SelectItem value="XL">XL</SelectItem>
+                      <SelectItem value="XXL">XXL</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </>
             )}
