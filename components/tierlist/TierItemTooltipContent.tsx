@@ -124,12 +124,15 @@ export function TierItemTooltipContent({
   const tierLabel = tier ?? (isEnglish ? "Under Review" : "Sob Revisão")
 
   const labels = isEnglish ? RATING_LABELS_EN : RATING_LABELS_PT
+  const batteryLabel = categoryLabel === "keyboard"
+    ? (isEnglish ? "Typing" : "Digitação")
+    : labels.battery
   const ratingEntries = ratings
     ? RATING_ORDER.filter((key, index) => RATING_ORDER.indexOf(key) === index)
         .filter((key) => typeof ratings[key] === "number")
         .map((key) => ({
           key,
-          label: labels[key],
+          label: key === "battery" ? batteryLabel : labels[key],
           value: ratings[key] as number,
         }))
     : []
