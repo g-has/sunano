@@ -38,7 +38,7 @@ import { removeBackground, fileToDataUrl } from "@/lib/client/remove-background"
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
 type TierField = Tier | "__none__"
-type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80" | "poron" | "borracha" | "grosso" | "fino" | "rapido" | "devagar" | "hibrido"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80" | "poron" | "borracha" | "grosso" | "fino" | "rapido" | "devagar" | "hibrido" | "aspero" | "liso" | "mug" | "macio" | "afetado_umidade" | "ultrapassado"
 
 const peripheralSchema = z.object({
   name: z
@@ -88,8 +88,12 @@ const peripheralSchema = z.object({
   ratingPerformance: z.number().min(0).max(6).optional(),
   ratingQc: z.number().min(0).max(6).optional(),
   ratingValue: z.number().min(0).max(6).optional(),
+  ratingMaintenance: z.number().min(0).max(6).optional(),
   mouseShape: z.string().optional(),
   keyboardLayout: z.string().optional(),
+  keyboardPlate: z.string().optional(),
+  keyboardCase: z.string().optional(),
+  hotSwap: z.string().optional(),
   connectivity: z.string().optional(),
   size: z.string().optional(),
   surface: z.string().optional(),
@@ -110,6 +114,8 @@ const peripheralSchema = z.object({
   padSpeed: z.string().optional(),
   stoppingPower: z.string().optional(),
   thickness: z.string().optional(),
+  surfaceMaterial: z.string().optional(),
+  hasBattery: z.boolean().optional(),
 })
 
 type PeripheralFormData = z.infer<typeof peripheralSchema>
@@ -163,6 +169,12 @@ const TAGS_OPTIONS: { key: Tag; en: string; pt: string; color: string }[] = [
   { key: "rapido", en: "Fast", pt: "Rápido", color: "border-green-400/50 bg-green-500/10 text-green-300 data-[active=true]:bg-green-500/30 data-[active=true]:border-green-400" },
   { key: "devagar", en: "Slow", pt: "Devagar", color: "border-sky-400/50 bg-sky-500/10 text-sky-300 data-[active=true]:bg-sky-500/30 data-[active=true]:border-sky-400" },
   { key: "hibrido", en: "Hybrid", pt: "Híbrido", color: "border-teal-400/50 bg-teal-500/10 text-teal-300 data-[active=true]:bg-teal-500/30 data-[active=true]:border-teal-400" },
+  { key: "aspero", en: "Rough", pt: "Áspero", color: "border-stone-400/50 bg-stone-500/10 text-stone-300 data-[active=true]:bg-stone-500/30 data-[active=true]:border-stone-400" },
+  { key: "liso", en: "Smooth", pt: "Liso", color: "border-sky-400/50 bg-sky-500/10 text-sky-300 data-[active=true]:bg-sky-500/30 data-[active=true]:border-sky-400" },
+  { key: "mug", en: "Mug", pt: "Mug", color: "border-amber-400/50 bg-amber-500/10 text-amber-300 data-[active=true]:bg-amber-500/30 data-[active=true]:border-amber-400" },
+  { key: "macio", en: "Soft", pt: "Macio", color: "border-pink-400/50 bg-pink-500/10 text-pink-300 data-[active=true]:bg-pink-500/30 data-[active=true]:border-pink-400" },
+  { key: "afetado_umidade", en: "Moisture affected", pt: "Afetado por umidade", color: "border-blue-400/50 bg-blue-500/10 text-blue-300 data-[active=true]:bg-blue-500/30 data-[active=true]:border-blue-400" },
+  { key: "ultrapassado", en: "Outdated", pt: "Ultrapassado", color: "border-gray-400/50 bg-gray-500/10 text-gray-300 data-[active=true]:bg-gray-500/30 data-[active=true]:border-gray-400" },
 ]
 
 const BRAND_OPTIONS = [
@@ -185,6 +197,7 @@ const BRAND_OPTIONS = [
   "Dell",
   "Ducky",
   "Endgame Gear",
+  "Epomaker",
   "Everglide",
   "Fantech",
   "Philco",
@@ -203,7 +216,9 @@ const BRAND_OPTIONS = [
   "LG",
   "Logitech",
   "Mad Catz",
+  "Madlions",
   "MCHOSE",
+  "Mechlands",
   "Melgeek",
   "Msi",
   "Nollie",
@@ -248,6 +263,7 @@ const RATING_FIELDS: { key: keyof PeripheralFormData; label: string; ptLabel: st
   { key: "ratingSoftware", label: "Software", ptLabel: "Software" },
   { key: "ratingBattery", label: "Battery", ptLabel: "Bateria" },
   { key: "ratingQc", label: "QC", ptLabel: "Controle de Qualidade" },
+  { key: "ratingMaintenance", label: "Maintenance", ptLabel: "Manutenção" },
 ]
 
 interface SectionProps {
@@ -508,8 +524,9 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       weight: "", latency: "", switchType: "", coating: "", shape: "",
       gripSmall: "", gripMedium: "", gripLarge: "",
       ratingOverall: undefined, ratingBuild: undefined, ratingSoftware: undefined,
-      ratingBattery: undefined, ratingPerformance: undefined, ratingQc: undefined, ratingValue: undefined,
-      keyboardType: "",
+      ratingBattery: undefined, ratingPerformance: undefined, ratingQc: undefined, ratingValue: undefined, ratingMaintenance: undefined,
+      hasBattery: undefined,
+      keyboardType: "", keyboardPlate: "", keyboardCase: "", hotSwap: "",
       trimode: "",
       deadzone: "",
       rtMin: "",
@@ -609,6 +626,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           ratingPerformance: data.specs?.details?.ratings?.performance,
           ratingQc: data.specs?.details?.ratings?.qc,
           ratingValue: data.specs?.details?.ratings?.value,
+          ratingMaintenance: data.specs?.details?.ratings?.maintenance,
+          hasBattery: data.specs?.hasBattery ?? undefined,
           trimode: data.specs?.trimode ?? "",
           ...data.specs,
         })
@@ -673,17 +692,22 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       const ratings = {
         overall: data.ratingOverall, build: data.ratingBuild, software: data.ratingSoftware,
         battery: data.ratingBattery, performance: data.ratingPerformance, qc: data.ratingQc, value: data.ratingValue,
+        maintenance: data.ratingMaintenance,
       }
       const cleanedRatings = Object.fromEntries(
         Object.entries(ratings).filter(([, v]) => typeof v === "number" && !Number.isNaN(v))
       )
 
       const specs = {
-        mouseShape: data.mouseShape, keyboardLayout: data.keyboardLayout, keyboardType: data.keyboardType, connectivity: data.connectivity,
+        mouseShape: data.mouseShape, keyboardLayout: data.keyboardLayout, keyboardType: data.keyboardType,
+        keyboardPlate: data.keyboardPlate || undefined, keyboardCase: data.keyboardCase || undefined, hotSwap: data.hotSwap || undefined,
+        connectivity: data.connectivity,
         trimode: data.trimode || undefined,
         size: data.size, surface: data.surface, padType: data.padType, driver: data.driver, profile: data.profile,
         glide: data.glide || undefined, padSpeed: data.padSpeed || undefined,
         stoppingPower: data.stoppingPower || undefined, thickness: data.thickness || undefined,
+        surfaceMaterial: data.surfaceMaterial || undefined,
+        hasBattery: data.hasBattery ?? undefined,
         refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
         panelType: data.panelType || undefined,
         details: {
@@ -1159,6 +1183,43 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   if (field.key === "ratingBuild") label = isEnglish ? "Surface" : "Superfície"
                   if (field.key === "ratingBattery") label = isEnglish ? "Stitching" : "Costura"
                 }
+                if (watchedCategory === "iem" || watchedCategory === "headset") {
+                  if (field.key === "ratingSoftware") label = isEnglish ? "Equalization" : "Equalização"
+                  if (field.key === "ratingBattery" && watchedCategory === "iem") return null
+                  if (field.key === "ratingBattery" && watchedCategory === "headset" && !form.watch("hasBattery")) return null
+                }
+                if (watchedCategory === "feet") {
+                  if (field.key === "ratingBuild") label = isEnglish ? "Material" : "Material"
+                  if (field.key === "ratingSoftware") label = isEnglish ? "Speed" : "Velocidade"
+                  if (field.key === "ratingBattery" || field.key === "ratingQc") return null
+                }
+                if (watchedCategory === "glasspad") {
+                  if (field.key === "ratingSoftware") label = isEnglish ? "Base" : "Base"
+                  if (field.key === "ratingBuild") label = isEnglish ? "Surface" : "Superfície"
+                  if (field.key === "ratingBattery") label = isEnglish ? "Speed" : "Velocidade"
+                }
+                if (watchedCategory === "chairs") {
+                  if (field.key === "ratingPerformance") label = isEnglish ? "Comfort" : "Conforto"
+                  if (field.key === "ratingBattery") label = isEnglish ? "Warranty" : "Garantia"
+                  if (field.key === "ratingSoftware") label = isEnglish ? "Features" : "Recursos"
+                }
+                if (watchedCategory === "monitors") {
+                  if (field.key === "ratingBuild") label = isEnglish ? "Panel" : "Painel"
+                  if (field.key === "ratingSoftware") label = isEnglish ? "Settings Menu" : "Menu de Configuração"
+                  if (field.key === "ratingBattery") label = isEnglish ? "Warranty" : "Garantia"
+                  if (field.key === "ratingMaintenance") label = isEnglish ? "Build" : "Construção"
+                }
+                if (watchedCategory === "switches") {
+                  if (field.key === "ratingSoftware") label = isEnglish ? "Sound" : "Som"
+                  if (field.key === "ratingBattery") label = isEnglish ? "Typing" : "Digitação"
+                  if (field.key === "ratingQc" || field.key === "ratingMaintenance") return null
+                }
+                if (watchedCategory === "dac_amp") {
+                  if (field.key === "ratingSoftware") label = isEnglish ? "Features" : "Recursos"
+                  if (field.key === "ratingBattery") label = isEnglish ? "Power" : "Potência"
+                  if (field.key === "ratingMaintenance") return null
+                }
+                if (watchedCategory !== "chairs" && watchedCategory !== "monitors" && field.key === "ratingMaintenance") return null
                 return (
                   <RatingInput
                     key={field.key}
@@ -1397,6 +1458,46 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">RT Mínimo</label>
                   <Input className="border-border bg-background" placeholder="0.1mm" {...form.register("rtMin")} />
                 </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Plate</label>
+                  <Select value={form.watch("keyboardPlate") || ""} onValueChange={(v) => form.setValue("keyboardPlate", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="FR4">FR4</SelectItem>
+                      <SelectItem value="Carbono">Carbono</SelectItem>
+                      <SelectItem value="Alumínio">Alumínio</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hot Swap</label>
+                  <Select value={form.watch("hotSwap") || ""} onValueChange={(v) => form.setValue("hotSwap", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">{isEnglish ? "Yes" : "Sim"}</SelectItem>
+                      <SelectItem value="no">{isEnglish ? "No" : "Não"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Case</label>
+                  <Select value={form.watch("keyboardCase") || ""} onValueChange={(v) => form.setValue("keyboardCase", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder={isEnglish ? "Select" : "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Plástico">Plástico</SelectItem>
+                      <SelectItem value="Fibra de Carbono">Fibra de Carbono</SelectItem>
+                      <SelectItem value="Alumínio">Alumínio</SelectItem>
+                      <SelectItem value="Magnésio">Magnésio</SelectItem>
+                      <SelectItem value="Acrílico">Acrílico</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Features</label>
                   <Input className="border-border bg-background" placeholder="Rapid Trigger, Hall Effect, RGB..." {...form.register("features")} />
@@ -1404,7 +1505,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               </>
             )}
 
-            {(watchedCategory === "mousepad" || watchedCategory === "glasspad") && (
+            {watchedCategory === "mousepad" && (
               <>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Surface</label>
@@ -1520,6 +1621,108 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               </>
             )}
 
+            {watchedCategory === "glasspad" && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Perfil</label>
+                  <Select value={form.watch("profile") || ""} onValueChange={(v) => form.setValue("profile", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Speed">Speed</SelectItem>
+                      <SelectItem value="Control">Control</SelectItem>
+                      <SelectItem value="Híbrido">Híbrido</SelectItem>
+                      <SelectItem value="Híbrido + Speed">Híbrido + Speed</SelectItem>
+                      <SelectItem value="Híbrido + Control">Híbrido + Control</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Deslize</label>
+                  <Select value={form.watch("glide") || ""} onValueChange={(v) => form.setValue("glide", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Rápido">Rápido</SelectItem>
+                      <SelectItem value="Devagar">Devagar</SelectItem>
+                      <SelectItem value="Equilibrado">Equilibrado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Velocidade</label>
+                  <Select value={form.watch("padSpeed") || ""} onValueChange={(v) => form.setValue("padSpeed", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Alta">Alta</SelectItem>
+                      <SelectItem value="Média">Média</SelectItem>
+                      <SelectItem value="Baixa">Baixa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Poder de Parada</label>
+                  <Select value={form.watch("stoppingPower") || ""} onValueChange={(v) => form.setValue("stoppingPower", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Baixo">Baixo</SelectItem>
+                      <SelectItem value="Médio">Médio</SelectItem>
+                      <SelectItem value="Alto">Alto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Base</label>
+                  <Select value={form.watch("padType") || ""} onValueChange={(v) => form.setValue("padType", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Borracha">Borracha</SelectItem>
+                      <SelectItem value="Silicone">Silicone</SelectItem>
+                      <SelectItem value="Anti-slip Feets">Anti-slip Feets</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Espessura</label>
+                  <Select value={form.watch("thickness") || ""} onValueChange={(v) => form.setValue("thickness", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1mm">1mm</SelectItem>
+                      <SelectItem value="2mm">2mm</SelectItem>
+                      <SelectItem value="3mm">3mm</SelectItem>
+                      <SelectItem value="4mm">4mm</SelectItem>
+                      <SelectItem value="5mm">5mm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tamanho</label>
+                  <Select value={form.watch("size") || ""} onValueChange={(v) => form.setValue("size", v)}>
+                    <SelectTrigger className="border-border bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="S">S</SelectItem>
+                      <SelectItem value="M">M</SelectItem>
+                      <SelectItem value="L">L</SelectItem>
+                      <SelectItem value="XL">XL</SelectItem>
+                      <SelectItem value="XXL">XXL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
             {watchedCategory === "monitors" && (
               <>
                 <div className="space-y-1.5">
@@ -1603,6 +1806,20 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{isEnglish ? "Compatibility" : "Compatibilidade"}</label>
                   <Input className="border-border bg-background" placeholder="Windows, macOS, PS5" {...form.register("compatibility")} />
                 </div>
+                {watchedCategory === "headset" && (
+                  <div className="flex items-center gap-2 col-span-full">
+                    <input
+                      type="checkbox"
+                      id="hasBattery"
+                      checked={!!form.watch("hasBattery")}
+                      onChange={(e) => form.setValue("hasBattery", e.target.checked)}
+                      className="h-4 w-4 rounded border-border accent-primary"
+                    />
+                    <label htmlFor="hasBattery" className="text-sm text-muted-foreground cursor-pointer">
+                      {isEnglish ? "Has battery" : "Tem bateria"}
+                    </label>
+                  </div>
+                )}
               </>
             )}
           </div>
