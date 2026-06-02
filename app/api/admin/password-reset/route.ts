@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createSupabaseServerClient()
-    const redirectTo = new URL("/admin/login", request.url).toString()
+    const redirectTo = new URL("/auth/callback?type=recovery", request.url).toString()
 
     await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
