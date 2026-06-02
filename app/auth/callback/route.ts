@@ -6,13 +6,24 @@ import { isAdminUser, upsertUserProfileFromAuth } from "@/lib/server/repositorie
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
+  const tokenHash = searchParams.get("token_hash")
+  const type = searchParams.get("type")
   const next = searchParams.get("next") ?? "/forum"
+
+  const supabase = await createSupabaseServerClient()
+
+  if (tokenHash && type === "recovery") {
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" })
+    if (error) {
+      return NextResponse.redirect(`${origin}/login?error=recovery_error`)
+    }
+    return NextResponse.redirect(`${origin}/reset-password`)
+  }
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=missing_code`)
   }
 
-  const supabase = await createSupabaseServerClient()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=oauth_error`)

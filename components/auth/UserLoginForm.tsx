@@ -83,7 +83,12 @@ export function UserLoginForm() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-foreground" htmlFor="password">Senha</label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-foreground" htmlFor="password">Senha</label>
+            <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+              Esqueceu a senha?
+            </Link>
+          </div>
           <Input
             id="password"
             name="password"
