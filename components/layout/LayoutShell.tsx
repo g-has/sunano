@@ -9,8 +9,12 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAdminLogin = pathname === "/admin/login"
   const isAdmin = pathname.startsWith("/admin") && !isAdminLogin
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password"
 
-  if (isAdminLogin) {
+  if (isAdminLogin || isAuthPage) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         {children}

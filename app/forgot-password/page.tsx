@@ -1,7 +1,15 @@
-import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm"
 import Link from "next/link"
 
-export default function ForgotPasswordPage() {
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm"
+
+export default async function ForgotPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ expired?: string }>
+}) {
+  const params = await searchParams
+  const isExpired = params.expired === "1"
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
@@ -13,6 +21,12 @@ export default function ForgotPasswordPage() {
             Informe seu email e enviaremos um link para redefinir sua senha.
           </p>
         </div>
+
+        {isExpired && (
+          <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400">
+            Seu link de redefinição expirou ou já foi usado. Solicite um novo abaixo.
+          </div>
+        )}
 
         <div className="rounded-2xl border border-border bg-card p-8 shadow-xl shadow-black/30">
           <ForgotPasswordForm />

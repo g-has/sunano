@@ -1,6 +1,18 @@
+import { redirect } from "next/navigation"
+
+import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm"
 
-export default function ResetPasswordPage() {
+export default async function ResetPasswordPage() {
+  const supabase = await createSupabaseServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect("/forgot-password?expired=1")
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">

@@ -29,6 +29,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=oauth_error`)
   }
 
+  // PKCE recovery: Supabase envia code + type=recovery (em vez de token_hash)
+  if (type === "recovery") {
+    return NextResponse.redirect(`${origin}/reset-password`)
+  }
+
   const { data: authData } = await supabase.auth.getUser()
   if (authData.user) {
     // Garante o perfil do usuário a partir dos metadados do OAuth.

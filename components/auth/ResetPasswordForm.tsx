@@ -31,10 +31,10 @@ export function ResetPasswordForm() {
           name="password"
           type="password"
           autoComplete="new-password"
-          placeholder="Mínimo 6 caracteres"
+          placeholder="Mínimo 8 caracteres"
           className="border-border bg-muted/20"
           required
-          minLength={6}
+          minLength={8}
         />
       </div>
 
@@ -50,7 +50,7 @@ export function ResetPasswordForm() {
           placeholder="Repita a senha"
           className="border-border bg-muted/20"
           required
-          minLength={6}
+          minLength={8}
         />
       </div>
 

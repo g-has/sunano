@@ -1,22 +1,22 @@
 "use client"
 
+import { useState } from "react"
 import { useActionState } from "react"
 import { useFormStatus } from "react-dom"
 import Link from "next/link"
 
 import { loginUserAction } from "@/app/login/actions"
+import { forgotPasswordAction } from "@/app/forgot-password/actions"
 import { supabaseAuth } from "@/lib/client/supabase-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-const initialState = { error: null as string | null }
-
-const ERROR_MESSAGES: Record<string, string> = {
+const LOGIN_ERRORS: Record<string, string> = {
   missing_credentials: "Informe email e senha.",
   invalid_credentials: "Email ou senha incorretos.",
 }
 
-function SubmitButton() {
+function LoginSubmitButton() {
   const { pending } = useFormStatus()
   return (
     <Button className="w-full" disabled={pending} type="submit">
@@ -25,11 +25,87 @@ function SubmitButton() {
   )
 }
 
-export function UserLoginForm() {
-  const [state, formAction] = useActionState(loginUserAction, initialState)
+function ForgotSubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button className="w-full" disabled={pending} type="submit">
+      {pending ? "Enviando…" : "Enviar link de redefinição"}
+    </Button>
+  )
+}
 
-  const errorMessage = state.error
-    ? (ERROR_MESSAGES[state.error] ?? state.error)
+function ForgotMode({ onBack }: { onBack: () => void }) {
+  const [state, action] = useActionState(forgotPasswordAction, { error: null, success: false })
+
+  if (state.success) {
+    return (
+      <div className="space-y-5">
+        <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-4 text-sm text-green-600 dark:text-green-400">
+          Se o email estiver cadastrado, você receberá as instruções para redefinir sua senha em breve.
+        </div>
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-xs text-primary hover:underline"
+        >
+          ← Voltar ao login
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-sm font-medium text-foreground">Redefinição de senha</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Informe o email da sua conta e enviaremos um link para criar uma nova senha.
+        </p>
+      </div>
+
+      <form action={action} className="space-y-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-foreground" htmlFor="forgot-email">
+            Email
+          </label>
+          <Input
+            id="forgot-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="voce@exemplo.com"
+            className="border-border bg-muted/20"
+            required
+            autoFocus
+          />
+        </div>
+
+        {state.error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {state.error}
+          </div>
+        )}
+
+        <ForgotSubmitButton />
+      </form>
+
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-xs text-primary hover:underline"
+      >
+        ← Voltar ao login
+      </button>
+    </div>
+  )
+}
+
+export function UserLoginForm() {
+  const [mode, setMode] = useState<"login" | "forgot">("login")
+  const [loginState, loginAction] = useActionState(loginUserAction, { error: null })
+
+  const errorMessage = loginState.error
+    ? (LOGIN_ERRORS[loginState.error] ?? loginState.error)
     : null
 
   async function handleGoogleLogin() {
@@ -41,15 +117,17 @@ export function UserLoginForm() {
     })
   }
 
+  if (mode === "forgot") {
+    return <ForgotMode onBack={() => setMode("login")} />
+  }
+
   return (
     <div className="space-y-5">
-      {/* Google OAuth */}
       <button
         type="button"
         onClick={handleGoogleLogin}
         className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/40"
       >
-        {/* Google icon (inline SVG to avoid dependency) */}
         <svg className="size-4 shrink-0" viewBox="0 0 24 24" aria-hidden>
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -68,8 +146,7 @@ export function UserLoginForm() {
         </div>
       </div>
 
-      {/* Email/password */}
-      <form action={formAction} className="space-y-4">
+      <form action={loginAction} className="space-y-4">
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-foreground" htmlFor="email">Email</label>
           <Input
@@ -85,9 +162,13 @@ export function UserLoginForm() {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-foreground" htmlFor="password">Senha</label>
-            <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+            <button
+              type="button"
+              onClick={() => setMode("forgot")}
+              className="text-xs text-primary hover:underline"
+            >
               Esqueceu a senha?
-            </Link>
+            </button>
           </div>
           <Input
             id="password"
@@ -105,7 +186,7 @@ export function UserLoginForm() {
           </div>
         )}
 
-        <SubmitButton />
+        <LoginSubmitButton />
       </form>
 
       <p className="text-center text-xs text-muted-foreground">

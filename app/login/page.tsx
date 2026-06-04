@@ -3,10 +3,11 @@ import { UserLoginForm } from "@/components/auth/UserLoginForm"
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ password_updated?: string }>
+  searchParams: Promise<{ password_updated?: string; error?: string }>
 }) {
   const params = await searchParams
   const passwordUpdated = params.password_updated === "1"
+  const isRecoveryError = params.error === "recovery_error"
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
@@ -23,6 +24,15 @@ export default async function LoginPage({
         {passwordUpdated && (
           <div className="mb-4 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-600 dark:text-green-400">
             Senha atualizada com sucesso! Faça login com sua nova senha.
+          </div>
+        )}
+
+        {isRecoveryError && (
+          <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            Link de redefinição inválido ou expirado.{" "}
+            <a href="/forgot-password" className="underline">
+              Solicite um novo.
+            </a>
           </div>
         )}
 
