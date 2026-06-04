@@ -80,7 +80,20 @@ export const CARD_TAG_STYLES = {
   trimode:    { bg: "bg-indigo-500/15",  text: "text-indigo-300",  border: "border-indigo-500/30",  dot: "bg-indigo-400" },
   stable:     { bg: "bg-teal-500/15",   text: "text-teal-300",    border: "border-teal-500/30",    dot: "bg-teal-400" },
   unstable:   { bg: "bg-orange-500/15", text: "text-orange-300",  border: "border-orange-500/30",  dot: "bg-orange-400" },
-  "8_80":     { bg: "bg-blue-500/15",   text: "text-blue-300",    border: "border-blue-500/30",    dot: "bg-blue-400" },
+  "8_80":          { bg: "bg-blue-500/15",    text: "text-blue-300",    border: "border-blue-500/30",    dot: "bg-blue-400" },
+  poron:           { bg: "bg-gray-500/15",    text: "text-gray-300",    border: "border-gray-500/30",    dot: "bg-gray-400" },
+  borracha:        { bg: "bg-zinc-500/15",    text: "text-zinc-300",    border: "border-zinc-500/30",    dot: "bg-zinc-400" },
+  grosso:          { bg: "bg-amber-500/15",   text: "text-amber-300",   border: "border-amber-500/30",   dot: "bg-amber-400" },
+  fino:            { bg: "bg-purple-500/15",  text: "text-purple-300",  border: "border-purple-500/30",  dot: "bg-purple-400" },
+  rapido:          { bg: "bg-green-500/15",   text: "text-green-300",   border: "border-green-500/30",   dot: "bg-green-400" },
+  devagar:         { bg: "bg-slate-500/15",   text: "text-slate-300",   border: "border-slate-500/30",   dot: "bg-slate-400" },
+  hibrido:         { bg: "bg-indigo-500/15",  text: "text-indigo-300",  border: "border-indigo-500/30",  dot: "bg-indigo-400" },
+  aspero:          { bg: "bg-orange-500/15",  text: "text-orange-300",  border: "border-orange-500/30",  dot: "bg-orange-400" },
+  liso:            { bg: "bg-sky-500/15",     text: "text-sky-300",     border: "border-sky-500/30",     dot: "bg-sky-400" },
+  mug:             { bg: "bg-lime-500/15",    text: "text-lime-300",    border: "border-lime-500/30",    dot: "bg-lime-400" },
+  macio:           { bg: "bg-pink-500/15",    text: "text-pink-300",    border: "border-pink-500/30",    dot: "bg-pink-400" },
+  afetado_umidade: { bg: "bg-cyan-500/15",    text: "text-cyan-300",    border: "border-cyan-500/30",    dot: "bg-cyan-400" },
+  ultrapassado:    { bg: "bg-stone-500/15",   text: "text-stone-300",   border: "border-stone-500/30",   dot: "bg-stone-400" },
 } as const
 
 // Rating scale colors (0–6) — single source of truth shared by the peripheral

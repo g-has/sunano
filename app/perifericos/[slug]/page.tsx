@@ -60,6 +60,12 @@ const TAG_LABELS: Record<Tag, string> = {
   rapido: "Rápido",
   devagar: "Devagar",
   hibrido: "Híbrido",
+  aspero: "Áspero",
+  liso: "Liso",
+  mug: "Mug",
+  macio: "Macio",
+  afetado_umidade: "Afetado por Umidade",
+  ultrapassado: "Ultrapassado",
 }
 
 function formatTagLabel(tag: string, category?: string) {

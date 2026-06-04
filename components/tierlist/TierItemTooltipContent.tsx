@@ -56,6 +56,12 @@ const TAG_LABELS: Record<Tag, { en: string; pt: string }> = {
   rapido: { en: "Fast", pt: "Rápido" },
   devagar: { en: "Slow", pt: "Devagar" },
   hibrido: { en: "Hybrid", pt: "Híbrido" },
+  aspero: { en: "Rough", pt: "Áspero" },
+  liso: { en: "Smooth", pt: "Liso" },
+  mug: { en: "Mug", pt: "Mug" },
+  macio: { en: "Soft", pt: "Macio" },
+  afetado_umidade: { en: "Humidity Affected", pt: "Afetado por Umidade" },
+  ultrapassado: { en: "Outdated", pt: "Ultrapassado" },
 }
 
 export interface TierItemTooltipContentProps {
