@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  BarChart2,
   Eye,
   Gift,
   Home,
@@ -51,6 +52,7 @@ export function AdminSidebar() {
   const navItems: NavItem[] = [
     { href: "/admin", label: "Dashboard", icon: Home, permission: "dashboard_read" },
     { href: "/admin/tierlist", label: "Tierlist", icon: Trophy, permission: "peripherals_read" },
+    { href: "/ranking", label: "Ranking", icon: BarChart2, permission: "peripherals_read" },
     { href: "/admin/perifericos", label: isEnglish ? "Peripherals" : "Periféricos", icon: Mouse, permission: "peripherals_read" },
     { href: "/admin/blog", label: "Blog & Reviews", icon: NotebookPen, permission: "blog_read" },
     { href: "/admin/forum", label: isEnglish ? "Forum" : "Fórum", icon: MessageSquare, permission: "forum_read" },
