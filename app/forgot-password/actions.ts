@@ -1,10 +1,7 @@
 "use server"
 
-import { createHash } from "crypto"
-import { headers } from "next/headers"
-
-import { checkRateLimit } from "@/lib/server/rate-limit"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
+import { headers } from "next/headers"
 
 type State = { error: string | null; success: boolean }
 
@@ -18,49 +15,16 @@ export async function forgotPasswordAction(_: State, formData: FormData): Promis
   }
 
   const headersList = await headers()
-  const forwardedFor = headersList.get("x-forwarded-for")
-  const realIp = headersList.get("x-real-ip")
-  const userAgent = headersList.get("user-agent") || ""
-  const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "unknown"
-  const salt = process.env.RATE_LIMIT_SALT || "sunano-rate-limit"
+  const origin = headersList.get("origin") ?? ""
 
-  const ipIdentifier = createHash("sha256")
-    .update(`${salt}:fp_ip:${ip}:${userAgent}`)
-    .digest("hex")
-
-  // 5 tentativas por IP em 15 minutos
-  const ipLimit = await checkRateLimit({
-    action: "forgot_password",
-    identifier: ipIdentifier,
-    maxAttempts: 5,
-    windowSeconds: 900,
-  })
-
-  if (!ipLimit.allowed) {
-    return { error: "Muitas tentativas. Aguarde antes de tentar novamente.", success: false }
-  }
-
-  // 3 envios por endereço de email por hora — silencioso para não expor se o email existe
-  const emailIdentifier = createHash("sha256")
-    .update(`${salt}:fp_email:${email}`)
-    .digest("hex")
-
-  const emailLimit = await checkRateLimit({
-    action: "forgot_password_email",
-    identifier: emailIdentifier,
-    maxAttempts: 3,
-    windowSeconds: 3600,
-  })
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || headersList.get("origin") || ""
   const supabase = await createSupabaseServerClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?type=recovery`,
+  })
 
-  if (emailLimit.allowed) {
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${appUrl}/auth/callback?type=recovery`,
-    })
+  if (error) {
+    return { error: "Não foi possível enviar o email. Tente novamente.", success: false }
   }
 
-  // Sempre retorna sucesso para não expor se o email está cadastrado
   return { error: null, success: true }
 }
