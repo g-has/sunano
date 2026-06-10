@@ -42,6 +42,7 @@ type Peripheral = {
   category: Category
   tier: Tier | null
   price: number
+  ranking?: number
   tags: Tag[]
   specs: {
     mouseShape?: "symmetrical" | "ergonomic"
@@ -940,6 +941,50 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
               )}
             </div>
           </div>
+
+          {/* Ranking list */}
+          {(() => {
+            const ranked = initialData
+              .filter((p) => p.category === selectedCategory && typeof p.ranking === "number")
+              .sort((a, b) => (a.ranking as number) - (b.ranking as number))
+            if (ranked.length === 0) return null
+            return (
+              <div className="mb-8">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  {isEnglish ? "Ranking" : "Ranking"}
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {ranked.map((item) => {
+                    const href = `/perifericos/${buildPeripheralSlug(item.name, item.id)}`
+                    return (
+                      <Link
+                        key={item.id}
+                        href={href}
+                        className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 transition-all hover:bg-muted/40"
+                      >
+                        <span className="w-7 text-center text-sm font-black tabular-nums text-muted-foreground">
+                          #{item.ranking}
+                        </span>
+                        {item.image_url && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.image_url} alt={item.name} className="size-9 rounded-lg object-cover" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-foreground">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">{item.brand}</p>
+                        </div>
+                        {item.tier && (
+                          <span className="rounded-md bg-muted/50 px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
+                            {item.tier}
+                          </span>
+                        )}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Grid */}
           {filtered.length === 0 ? (

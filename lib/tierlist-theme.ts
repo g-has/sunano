@@ -94,6 +94,7 @@ export const CARD_TAG_STYLES = {
   macio:           { bg: "bg-pink-500/15",    text: "text-pink-300",    border: "border-pink-500/30",    dot: "bg-pink-400" },
   afetado_umidade: { bg: "bg-cyan-500/15",    text: "text-cyan-300",    border: "border-cyan-500/30",    dot: "bg-cyan-400" },
   ultrapassado:    { bg: "bg-stone-500/15",   text: "text-stone-300",   border: "border-stone-500/30",   dot: "bg-stone-400" },
+  magnetico:       { bg: "bg-violet-500/15",  text: "text-violet-300",  border: "border-violet-500/30",  dot: "bg-violet-400" },
 } as const
 
 // Rating scale colors (0–6) — single source of truth shared by the peripheral

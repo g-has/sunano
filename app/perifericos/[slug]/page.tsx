@@ -33,7 +33,7 @@ function formatCurrency(value: number) {
   }
 }
 
-type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80" | "poron" | "borracha" | "grosso" | "fino" | "rapido" | "devagar" | "hibrido" | "aspero" | "liso" | "mug" | "macio" | "afetado_umidade" | "ultrapassado"
+type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80" | "poron" | "borracha" | "grosso" | "fino" | "rapido" | "devagar" | "hibrido" | "aspero" | "liso" | "mug" | "macio" | "afetado_umidade" | "ultrapassado" | "magnetico"
 
 const TAG_LABELS: Record<Tag, string> = {
   competitive: "Competitivo",
@@ -66,6 +66,7 @@ const TAG_LABELS: Record<Tag, string> = {
   macio: "Macio",
   afetado_umidade: "Afetado por Umidade",
   ultrapassado: "Ultrapassado",
+  magnetico: "Magnético",
 }
 
 function formatTagLabel(tag: string, category?: string) {
@@ -165,6 +166,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   }
 
   const rankLabel = details.rankLabel || (data.tier ? mapTier(data.tier) : "Sob Revisão")
+  const ranking = details.ranking ? Number(details.ranking) : null
   const priceRange = details.priceRange
   const reviewUrl = details.reviewUrl
   const reviewNote = details.reviewNote
@@ -334,16 +336,24 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
               <div className="space-y-3">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {data.category && (
-                      <Badge variant="secondary" className="bg-muted/50 text-xs text-muted-foreground">
-                        {formatLabel(data.category)}
-                      </Badge>
-                    )}
-                    {data.tier && (
-                      <Badge className="bg-primary/15 text-xs text-primary">
-                        {data.tier}
-                      </Badge>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {data.category && (
+                        <Badge variant="secondary" className="bg-muted/50 text-xs text-muted-foreground">
+                          {formatLabel(data.category)}
+                        </Badge>
+                      )}
+                      {data.tier && (
+                        <Badge className="bg-primary/15 text-xs text-primary">
+                          {data.tier}
+                        </Badge>
+                      )}
+                    </div>
+                    {ranking && (
+                      <div className="flex shrink-0 flex-col items-center leading-none select-none">
+                        <span className="font-display text-xs font-bold uppercase tracking-widest text-muted-foreground">Rank</span>
+                        <span className="font-display text-6xl font-black tracking-tight text-foreground leading-none">#{ranking}</span>
+                      </div>
                     )}
                   </div>
 

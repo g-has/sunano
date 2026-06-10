@@ -28,6 +28,8 @@ export default async function PerifericosPage() {
         })()
       : undefined
 
+    const ranking = rawDetails.ranking ? Number(rawDetails.ranking) : undefined
+
     return {
       id: p.id,
       name: p.name,
@@ -36,6 +38,7 @@ export default async function PerifericosPage() {
       category: p.category as "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp",
       tier: p.tier ? mapTier(p.tier) : null,
       price: p.price,
+      ranking,
       tags: (p.tags || []) as ("competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80")[],
       specs: {
         ...(rawSpecs as {

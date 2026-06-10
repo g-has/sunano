@@ -58,6 +58,7 @@ const peripheralSchema = z.object({
     .number({ message: "Preço inválido" })
     .positive("Preço deve ser maior que zero"),
   rankLabel: z.string().optional(),
+  ranking: z.coerce.number().int().positive().optional(),
   priceRange: z.string().optional(),
   reviewUrl: z.string().optional(),
   reviewNote: z.string().optional(),
@@ -508,6 +509,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   const [originalUsdPrice, setOriginalUsdPrice] = useState<number | null>(null)
   const [linkedStore, setLinkedStore] = useState<LinkedProduct | null>(null)
   const [linkedBazaar, setLinkedBazaar] = useState<LinkedProduct | null>(null)
+  const [rankedPeripherals, setRankedPeripherals] = useState<{ id: string; name: string; tier: string; ranking: number }[]>([])
 
   const form = useForm<PeripheralFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -518,7 +520,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       category: "mouse",
       tier: "__none__",
       price: 0,
-      rankLabel: "", priceRange: "", reviewUrl: "", reviewNote: "", guideUrl: "", wikiUrl: "",
+      rankLabel: "", ranking: undefined, priceRange: "", reviewUrl: "", reviewNote: "", guideUrl: "", wikiUrl: "",
       notesLong: "", summary: "", highlights: "", pros: "", cons: "", gallery: "",
       buyLinks: "", compatibility: "", notes: "", comparisons: "",
       weight: "", latency: "", switchType: "", coating: "", shape: "",
@@ -568,6 +570,30 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usdToBrl, originalUsdPrice])
 
+  useEffect(() => {
+    if (!watchedCategory) return
+    fetch(`/api/admin/peripherals?category=${watchedCategory}`)
+      .then((r) => r.json())
+      .then((json) => {
+        const list = (json.data ?? json ?? []) as { id: string; name: string; tier?: string; specs?: Record<string, any> }[]
+        const all = list.map((p) => ({
+          id: p.id,
+          name: p.name,
+          tier: p.tier ?? "",
+          ranking: Number(p.specs?.details?.ranking) || 0,
+        }))
+        all.sort((a, b) => {
+          if (a.ranking > 0 && b.ranking > 0) return a.ranking - b.ranking
+          if (a.ranking > 0) return -1
+          if (b.ranking > 0) return 1
+          return a.name.localeCompare(b.name)
+        })
+        setRankedPeripherals(all)
+      })
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedCategory])
+
   async function fetchUsdToBrl() {
     try {
       const res = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=BRL")
@@ -591,6 +617,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           tier: data.tier ? mapTier(data.tier) : "__none__",
           price: displayedPrice,
           rankLabel: data.specs?.details?.rankLabel ?? "",
+          ranking: data.specs?.details?.ranking ? Number(data.specs.details.ranking) : undefined,
           priceRange: data.specs?.details?.priceRange ?? "",
           reviewUrl: data.specs?.details?.reviewUrl ?? "",
           reviewNote: data.specs?.details?.reviewNote ?? "",
@@ -711,7 +738,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
         panelType: data.panelType || undefined,
         details: {
-          rankLabel: data.rankLabel || undefined, priceRange: data.priceRange || undefined,
+          rankLabel: data.rankLabel || undefined, ranking: data.ranking || undefined, priceRange: data.priceRange || undefined,
           reviewUrl: data.reviewUrl || undefined, reviewNote: data.reviewNote || undefined,
           guideUrl: data.guideUrl || undefined, wikiUrl: data.wikiUrl || undefined,
           notesLong: data.notesLong || undefined,
@@ -1852,6 +1879,28 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">{isEnglish ? "Rank label" : "Label de rank"}</label>
                 <Input className="border-border bg-background" placeholder="GOAT, Top S, Solid A" {...form.register("rankLabel")} />
+              </div>
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-sm font-medium text-foreground">{isEnglish ? "Ranking (position #)" : "Ranking (posição #)"}</label>
+                <Input className="border-border bg-background" type="number" min={1} placeholder="1" {...form.register("ranking", { valueAsNumber: true })} />
+                {rankedPeripherals.length > 0 && (
+                  <div className="mt-2 max-h-56 overflow-y-auto rounded-lg border border-border bg-muted/30 divide-y divide-border">
+                    <p className="sticky top-0 z-10 bg-muted/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground backdrop-blur">
+                      {isEnglish ? "All" : "Todos"} {watchedCategory} — {rankedPeripherals.filter(p => p.ranking > 0).length} {isEnglish ? "ranked" : "com ranking"}
+                    </p>
+                    {rankedPeripherals.map((p) => (
+                      <div key={p.id} className={`flex items-center gap-2 px-3 py-2 text-xs ${p.id === peripheralId ? "bg-primary/10" : ""}`}>
+                        {p.ranking > 0
+                          ? <span className="w-7 shrink-0 text-center font-bold text-foreground">#{p.ranking}</span>
+                          : <span className="w-7 shrink-0 text-center text-muted-foreground/40">—</span>
+                        }
+                        {p.tier && <span className="shrink-0 rounded px-1 py-0.5 text-[10px] font-bold bg-muted text-muted-foreground">{p.tier}</span>}
+                        <span className={`truncate ${p.id === peripheralId ? "font-semibold text-primary" : "text-foreground"}`}>{p.name}</span>
+                        {p.id === peripheralId && <span className="ml-auto shrink-0 text-[10px] text-primary font-semibold">← {isEnglish ? "this" : "este"}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">{isEnglish ? "Price range" : "Faixa de preço"}</label>
