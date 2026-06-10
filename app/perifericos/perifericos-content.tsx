@@ -787,9 +787,8 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 md:px-6 lg:px-8">
-      {/* Public hero banner */}
-      {!showAdminActions && (
-        <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-card/60 px-6 pb-8 pt-10">
+      {/* Hero banner */}
+      <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-card/60 px-6 pb-8 pt-10">
           {/* Top glow */}
           <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-primary/[0.05] to-transparent" />
 
@@ -875,7 +874,6 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
             })}
           </div>
         </div>
-      )}
 
       {/* Admin actions */}
       {showAdminActions && (
