@@ -191,6 +191,8 @@ interface TierlistGridProps {
   category: string
 }
 
+const COMING_SOON_CATEGORIES = ["iem", "headset", "feet", "chairs", "monitors", "switches", "dac_amp"]
+
 export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   const { locale } = useLocale()
   const isEnglish = locale === "en-US"
@@ -198,6 +200,7 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   const modeConfig = MODE_CONFIGS[ratingMode]
   const orderKey = ORDER_KEY_BY_MODE[ratingMode]
   const allowLegacyFallback = ratingMode === "overall"
+  const isComingSoon = COMING_SOON_CATEGORIES.includes(category)
 
   const tierRows: TierRow[] = [
     {
@@ -313,6 +316,22 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
     if (ratingMode === "soundTyping" && category !== "switches") setRatingMode("overall")
     if (ratingMode === "mechanical" && category !== "keyboard") setRatingMode("overall")
   }, [category, ratingMode])
+
+  if (isComingSoon) {
+    return (
+      <section className="space-y-4">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card/50 p-12 text-center">
+          <div className="mb-4 text-5xl">🚀</div>
+          <h2 className="text-2xl font-bold text-foreground">{isEnglish ? "Coming Soon" : "Em Breve"}</h2>
+          <p className="mt-2 text-muted-foreground">
+            {isEnglish
+              ? "This tierlist category is under development and will be available soon."
+              : "Esta categoria de tierlist está em desenvolvimento e em breve estará disponível."}
+          </p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="space-y-4">
