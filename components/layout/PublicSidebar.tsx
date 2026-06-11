@@ -19,6 +19,7 @@ import {
   Trophy,
   X,
 } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { AuthUser } from "@/components/auth/auth-user"
 import { Button } from "@/components/ui/button"
@@ -78,6 +79,16 @@ export function PublicSidebar() {
   const { publicCollapsed: isCollapsed, isMobileOpen, setMobileOpen } = useSidebar()
   const pathname = usePathname()
   const { count: cartCount, setOpen: openCart } = useCart()
+
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    fetch("/api/admin/profile")
+      .then((res) => { if (mounted) setIsAdmin(res.ok) })
+      .catch(() => { if (mounted) setIsAdmin(false) })
+    return () => { mounted = false }
+  }, [])
 
   const close = () => setMobileOpen(false)
   const isActive = (href: string) =>
@@ -236,15 +247,17 @@ export function PublicSidebar() {
           </div>
         </nav>
 
-        {/* Changelog */}
-        <div className="border-t border-border px-3 py-3">
-          <NavLink
-            item={{ href: "/changelog", label: "Changelog", icon: Clock3 }}
-            isActive={isActive("/changelog")}
-            collapsed={isCollapsed}
-            onClick={close}
-          />
-        </div>
+        {/* Changelog — visível apenas para admins */}
+        {isAdmin && (
+          <div className="border-t border-border px-3 py-3">
+            <NavLink
+              item={{ href: "/changelog", label: "Changelog", icon: Clock3 }}
+              isActive={isActive("/changelog")}
+              collapsed={isCollapsed}
+              onClick={close}
+            />
+          </div>
+        )}
 
         {/* User */}
         <div className="border-t border-border px-3 py-2">
