@@ -15,6 +15,15 @@ export async function GET(request: NextRequest) {
   if (tokenHash && type === "recovery") {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" })
     if (error) {
+      // O token de recuperação é de uso único: ao reabrir o link ele já foi
+      // consumido. Se a primeira abertura já criou a sessão de recuperação,
+      // seguimos para o reset em vez de mostrar erro.
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        return NextResponse.redirect(`${origin}/reset-password`)
+      }
       return NextResponse.redirect(`${origin}/login?error=recovery_error`)
     }
     return NextResponse.redirect(`${origin}/reset-password`)
@@ -26,6 +35,16 @@ export async function GET(request: NextRequest) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
+    // PKCE recovery reaberto: o code também é de uso único. Se a sessão de
+    // recuperação já foi criada na primeira abertura, segue para o reset.
+    if (type === "recovery") {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        return NextResponse.redirect(`${origin}/reset-password`)
+      }
+    }
     return NextResponse.redirect(`${origin}/login?error=oauth_error`)
   }
 

@@ -1,10 +1,11 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { useFormStatus } from "react-dom"
 import { resetPasswordAction } from "@/app/reset-password/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { STRONG_PASSWORD_HINT, isLocalhostHost } from "@/lib/password-policy"
 
 const initialState = { error: null as string | null }
 
@@ -19,6 +20,13 @@ function SubmitButton() {
 
 export function ResetPasswordForm() {
   const [state, formAction] = useActionState(resetPasswordAction, initialState)
+  const [relaxed, setRelaxed] = useState(false)
+
+  useEffect(() => {
+    setRelaxed(isLocalhostHost(window.location.host))
+  }, [])
+
+  const minLength = relaxed ? 6 : 8
 
   return (
     <form action={formAction} className="space-y-4">
@@ -31,11 +39,14 @@ export function ResetPasswordForm() {
           name="password"
           type="password"
           autoComplete="new-password"
-          placeholder="Mínimo 8 caracteres"
+          placeholder={relaxed ? `Mínimo ${minLength} caracteres` : "Senha forte"}
           className="border-border bg-muted/20"
           required
-          minLength={8}
+          minLength={minLength}
         />
+        {!relaxed && (
+          <p className="text-xs text-muted-foreground">{STRONG_PASSWORD_HINT}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -50,7 +61,7 @@ export function ResetPasswordForm() {
           placeholder="Repita a senha"
           className="border-border bg-muted/20"
           required
-          minLength={8}
+          minLength={minLength}
         />
       </div>
 

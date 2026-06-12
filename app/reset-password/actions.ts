@@ -1,8 +1,10 @@
 "use server"
 
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
+import { isLocalhostHost, validatePassword } from "@/lib/password-policy"
 
 type State = { error: string | null }
 
@@ -10,8 +12,12 @@ export async function resetPasswordAction(_: State, formData: FormData): Promise
   const password = String(formData.get("password") || "")
   const confirm = String(formData.get("confirm") || "")
 
-  if (!password || password.length < 8) {
-    return { error: "A senha deve ter no mínimo 8 caracteres." }
+  const headersList = await headers()
+  const relaxed = isLocalhostHost(headersList.get("host"))
+
+  const passwordError = validatePassword(password, relaxed)
+  if (passwordError) {
+    return { error: passwordError }
   }
 
   if (password !== confirm) {
