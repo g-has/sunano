@@ -9,6 +9,18 @@ function isMaintenanceEnabled() {
   return value === "true"
 }
 
+// Rotas públicas de autenticação que continuam acessíveis mesmo em manutenção,
+// para que usuários comuns possam entrar / redefinir senha.
+function isPublicAuthRoute(pathname: string) {
+  return (
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname.startsWith("/auth/")
+  )
+}
+
 function copyCookies(source: NextResponse, destination: NextResponse) {
   source.cookies.getAll().forEach((cookie) => {
     destination.cookies.set(cookie.name, cookie.value, cookie)
@@ -72,7 +84,7 @@ export async function proxy(request: NextRequest) {
   const { response, user, profile } = await updateSession(request)
 
   if (maintenanceMode && !profile) {
-    if (isLoginRoute) {
+    if (isLoginRoute || isPublicAuthRoute(pathname)) {
       return response
     }
 
