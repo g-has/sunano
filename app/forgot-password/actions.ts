@@ -15,7 +15,10 @@ export async function forgotPasswordAction(_: State, formData: FormData): Promis
   }
 
   const headersList = await headers()
-  const origin = headersList.get("origin") ?? ""
+  // `origin` nem sempre é enviado; reconstrói a partir do host quando faltar.
+  const host = headersList.get("host") ?? ""
+  const proto = headersList.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https")
+  const origin = headersList.get("origin") || (host ? `${proto}://${host}` : "")
 
   const supabase = await createSupabaseServerClient()
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -23,6 +26,16 @@ export async function forgotPasswordAction(_: State, formData: FormData): Promis
   })
 
   if (error) {
+    // Loga o erro real no servidor para diagnóstico (não expõe ao cliente).
+    console.error("[forgot-password] resetPasswordForEmail falhou:", error.status, error.message)
+
+    if (error.status === 429 || /rate limit|too many/i.test(error.message)) {
+      return {
+        error: "Muitas tentativas. Aguarde alguns minutos antes de pedir um novo link.",
+        success: false,
+      }
+    }
+
     return { error: "Não foi possível enviar o email. Tente novamente.", success: false }
   }
 
