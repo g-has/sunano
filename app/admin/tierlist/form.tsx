@@ -1849,77 +1849,20 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         {/* SECTION 7: Wiki / Conteúdo */}
         <FormSection title={t.admin.tierlistForm.sectionWikiContent} icon={<FileText className="size-4" />} defaultOpen={false}>
           <div className="space-y-4">
-            <div className="space-y-1.5 rounded-lg border border-border bg-muted/20 p-3">
-              <label className="text-sm font-medium text-foreground">
-                {"URL da wiki externa (opcional)"}
-              </label>
-              <Input
-                className="border-border bg-background"
-                placeholder="https://wiki.exemplo.com/produto"
-                {...form.register("wikiUrl")}
-              />
-              <p className="text-[11px] text-muted-foreground">
-                "Quando preenchido, a página pública mostra apenas um botão para a wiki externa, no lugar do conteúdo editorial abaixo."
-              </p>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{"Resumo"}</label>
-                <Input className="border-border bg-background" placeholder={"Descrição em uma linha"} {...form.register("summary")} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{"Label de rank"}</label>
-                <Input className="border-border bg-background" placeholder="GOAT, Top S, Solid A" {...form.register("rankLabel")} />
-              </div>
-              <div className="space-y-1.5 md:col-span-2">
-                <div className="flex gap-3">
-                  <div className="flex-1 space-y-1.5">
-                    <label className="text-sm font-medium text-foreground">{"Ranking (posição #)"}</label>
-                    <Input className="border-border bg-background" type="number" min={1} placeholder="1" {...form.register("ranking", { valueAsNumber: true })} />
-                  </div>
-                  <div className="flex-1 space-y-1.5">
-                    <label className="text-sm font-medium text-foreground">{"Pontuação"}</label>
-                    <Input className="border-border bg-background" type="number" min={0} step={0.25} placeholder="788.5" {...form.register("score", { valueAsNumber: true })} />
-                  </div>
-                </div>
-                {rankedPeripherals.filter(p => p.ranking > 0).length > 0 && (
-                  <div className="mt-2 max-h-56 overflow-y-auto rounded-lg border border-border bg-muted/30 divide-y divide-border">
-                    <p className="sticky top-0 z-10 bg-muted/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground backdrop-blur">
-                      {rankedPeripherals.filter(p => p.ranking > 0).length} {"com ranking"} — {watchedCategory}
-                    </p>
-                    {rankedPeripherals.filter(p => p.ranking > 0).map((p) => (
-                      <div key={p.id} className={`flex items-center gap-2 px-3 py-2 text-xs ${p.id === peripheralId ? "bg-primary/10" : ""}`}>
-                        <span className="w-6 shrink-0 text-center font-bold text-muted-foreground/60">#{p.ranking}</span>
-                        <span className={`flex-1 truncate ${p.id === peripheralId ? "font-semibold text-primary" : "text-foreground"}`}>{p.name}</span>
-                        {p.score != null && (
-                          <span className="shrink-0 tabular-nums text-muted-foreground">{p.score}</span>
-                        )}
-                        {p.id === peripheralId && <span className="shrink-0 text-[10px] text-primary font-semibold">←</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <label className="text-sm font-medium text-foreground">{"Pontuação"}</label>
+                <Input className="border-border bg-background" type="number" min={0} step={0.25} placeholder="788.5" {...form.register("score", { valueAsNumber: true })} />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">{"Faixa de preço"}</label>
                 <Input className="border-border bg-background" placeholder="R$1050–1130" {...form.register("priceRange")} />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{"Compatibilidade"}</label>
-                <Input className="border-border bg-background" placeholder="Windows, macOS, PS5" {...form.register("compatibility")} />
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{"URL do Review"}</label>
-                <Input className="border-border bg-background" placeholder="https://youtube.com/..." {...form.register("reviewUrl")} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{"URL do Guia"}</label>
-                <Input className="border-border bg-background" placeholder="https://..." {...form.register("guideUrl")} />
-              </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">{"URL do Review"}</label>
+              <Input className="border-border bg-background" placeholder="https://youtube.com/..." {...form.register("reviewUrl")} />
             </div>
 
             <div className="space-y-1.5">
@@ -1929,8 +1872,6 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { field: "highlights", label: "Destaques" },
-                { field: "comparisons", label: "Comparações" },
                 { field: "pros", label: "Pros" },
                 { field: "cons", label: "Cons" },
               ].map(({ field, label }) => (
@@ -1947,20 +1888,6 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
               ))}
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"URLs da Galeria"}</label>
-              <Textarea className="border-border bg-background resize-none" placeholder={"Uma URL de imagem por linha"} rows={4} {...form.register("gallery")} />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"Notas (estendidas)"}</label>
-              <Textarea className="border-border bg-background resize-none" placeholder={"Notas principais e contexto"} rows={5} {...form.register("notesLong")} />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"Notas extras"}</label>
-              <Textarea className="border-border bg-background resize-none" placeholder={"Observações adicionais"} rows={3} {...form.register("notes")} />
-            </div>
           </div>
         </FormSection>
 

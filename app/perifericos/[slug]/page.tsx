@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ExternalLink, Package, ShoppingBag } from "lucide-react"
+import { Package, ShoppingBag } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -153,8 +153,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   const pros = Array.isArray(details.pros) ? details.pros : splitLines(details.pros)
   const cons = Array.isArray(details.cons) ? details.cons : splitLines(details.cons)
   const buyLinks = Array.isArray(details.buyLinks) ? details.buyLinks : parseLinkLines(details.buyLinks)
-  const comparisons = Array.isArray(details.comparisons) ? details.comparisons : splitLines(details.comparisons)
-  const highlights = Array.isArray(details.highlights) ? details.highlights : splitLines(details.highlights)
 
   const ratings = {
     overall: normalizeRating(details?.ratings?.overall ?? details.ratingOverall),
@@ -166,15 +164,11 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
     value: normalizeRating(details?.ratings?.value ?? details.ratingValue),
   }
 
-  const rankLabel = details.rankLabel || (data.tier ? mapTier(data.tier) : "Sob Revisão")
-  const ranking = details.ranking ? Number(details.ranking) : null
   const score = details.score != null ? Number(details.score) : null
   const priceRange = details.priceRange
   const reviewUrl = details.reviewUrl
   const reviewNote = details.reviewNote
-  const guideUrl = details.guideUrl
   const notesLong = details.notesLong
-  const wikiUrl = typeof details.wikiUrl === "string" && details.wikiUrl.trim() ? details.wikiUrl.trim() : null
 
   const linkedProducts = await listProductsByPeripheral(data.id)
 
@@ -276,12 +270,12 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 {tierStyle ? (
                   <div className={cn("rounded-2xl bg-gradient-to-br px-4 py-3 text-center", tierStyle.accent, tierStyle.textColor)}>
                     <p className="text-[10px] font-semibold uppercase tracking-widest opacity-60 mb-1">Classificação</p>
-                    <p className="text-3xl font-bold tracking-tight leading-none">{rankLabel}</p>
+                    <p className="text-3xl font-bold tracking-tight leading-none">{data.tier ? mapTier(data.tier) : "Sob Revisão"}</p>
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-center">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Classificação</p>
-                    <p className="text-sm font-semibold text-foreground">{rankLabel}</p>
+                    <p className="text-sm font-semibold text-foreground">{data.tier ? mapTier(data.tier) : "Sob Revisão"}</p>
                   </div>
                 )}
 
@@ -323,17 +317,15 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </CardContent>
                 </Card>
 
-                {!wikiUrl && (
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Notas</CardTitle>
-                      <CardDescription className="text-xs">Contexto e observacoes principais.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="max-h-56 overflow-auto text-sm text-muted-foreground whitespace-pre-wrap">
-                      {notesLong || "Sem notas cadastradas."}
-                    </CardContent>
-                  </Card>
-                )}
+                <Card className="border-border bg-card">
+                  <CardHeader>
+                    <CardTitle className="text-sm">Notas</CardTitle>
+                    <CardDescription className="text-xs">Contexto e observacoes principais.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="max-h-56 overflow-auto text-sm text-muted-foreground whitespace-pre-wrap">
+                    {notesLong || "Sem notas cadastradas."}
+                  </CardContent>
+                </Card>
               </div>
 
               <div className="space-y-3">
@@ -351,14 +343,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                         </Badge>
                       )}
                     </div>
-                    {ranking && (
-                      <div className="flex shrink-0 items-center gap-3 leading-none select-none">
-                        <div className="flex flex-col items-center">
-                          <span className="font-display text-xs font-bold uppercase tracking-widest text-muted-foreground">Rank</span>
-                          <span className="font-display text-5xl font-black tracking-tight text-foreground leading-none">#{ranking}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
@@ -409,37 +393,8 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                     </div>
                   )}
 
-                  {!wikiUrl && details.summary && (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {details.summary}
-                    </p>
-                  )}
                 </div>
 
-                {wikiUrl && (
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Wiki externa</CardTitle>
-                      <CardDescription className="text-xs">
-                        Este periférico usa uma wiki externa em vez do conteúdo editorial.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <a
-                        href={wikiUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-3 text-sm font-medium text-foreground transition hover:bg-muted/40"
-                      >
-                        <span className="flex items-center gap-2">
-                          <ExternalLink className="size-4 text-primary" />
-                          Acessar wiki externa
-                        </span>
-                        <span className="text-primary">→</span>
-                      </a>
-                    </CardContent>
-                  </Card>
-                )}
 
                 <div className={cn("grid gap-4", showGrip ? "md:grid-cols-2" : "grid-cols-1")}>
                   <Card className="border-border bg-card">
@@ -505,36 +460,14 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Guia</CardTitle>
-                      <CardDescription className="text-xs">Links e materiais extras.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm text-muted-foreground">
-                      {guideUrl ? (
-                        <a
-                          href={guideUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted/40"
-                        >
-                          <span>Acessar guia</span>
-                          <span className="text-primary">→</span>
-                        </a>
-                      ) : (
-                        <p>Nenhum guia cadastrado.</p>
-                      )}
-                    </CardContent>
-                  </Card>
                 </div>
 
-                {!wikiUrl && (
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Comentarios e recomendacoes</CardTitle>
-                      <CardDescription className="text-xs">Resumo geral do periférico.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="max-h-64 overflow-auto space-y-3 text-sm text-muted-foreground">
+                <Card className="border-border bg-card">
+                  <CardHeader>
+                    <CardTitle className="text-sm">Comentarios e recomendacoes</CardTitle>
+                    <CardDescription className="text-xs">Resumo geral do periférico.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="max-h-64 overflow-auto space-y-3 text-sm text-muted-foreground">
                       {priceRange && (
                         <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
                           <span>Faixa de preco</span>
@@ -569,47 +502,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                       </div>
                     </CardContent>
                   </Card>
-                )}
-
-                {!wikiUrl && (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Card className="border-border bg-card">
-                      <CardHeader>
-                        <CardTitle className="text-sm">Software</CardTitle>
-                        <CardDescription className="text-xs">Plataformas, softwares e requisitos.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">
-                        {details.compatibility ? details.compatibility : "Informacao de compatibilidade nao cadastrada."}
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-border bg-card">
-                      <CardHeader>
-                        <CardTitle className="text-sm">Comentarios</CardTitle>
-                        <CardDescription className="text-xs">Detalhes extras da equipe.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">
-                        {details.notes ? details.notes : "Sem observacoes adicionais."}
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-
-                {!wikiUrl && highlights.length > 0 && (
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Destaques</CardTitle>
-                      <CardDescription className="text-xs">Resumo rapido do que importa.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="max-h-48 overflow-auto space-y-2 text-sm text-muted-foreground">
-                      <ul className="list-disc space-y-2 pl-4">
-                        {highlights.map((item: string) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
 
                 {(linkedStore || linkedBazaar) && (
                   <Card className="border-border bg-card">
@@ -697,21 +589,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </Card>
                 )}
 
-                {!wikiUrl && comparisons.length > 0 && (
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Comparacoes</CardTitle>
-                      <CardDescription className="text-xs">Alternativas diretas para avaliar.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="max-h-48 overflow-auto space-y-2 text-sm text-muted-foreground">
-                      <ul className="list-disc space-y-2 pl-4">
-                        {comparisons.map((item: string) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
 
                 <Card className="border-border bg-card">
                   <CardHeader>
