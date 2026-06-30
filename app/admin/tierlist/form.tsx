@@ -1535,16 +1535,37 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Plate</label>
-                  <Select value={form.watch("keyboardPlate") || ""} onValueChange={(v) => form.setValue("keyboardPlate", v)}>
-                    <SelectTrigger className="border-border bg-background">
-                      <SelectValue placeholder={"Selecione"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="FR4">FR4</SelectItem>
-                      <SelectItem value="Carbono">Carbono</SelectItem>
-                      <SelectItem value="Alumínio">Alumínio</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" type="button" className="w-full justify-between border-border bg-background h-9 px-3 font-normal">
+                        <span className="line-clamp-1 text-sm">
+                          {form.watch("keyboardPlate") || "Selecione"}
+                        </span>
+                        <ChevronDown className="size-4 text-muted-foreground shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-48">
+                      {(["FR4", "Carbono", "Alumínio", "Polipropileno", "PC"]).map((opt) => {
+                        const current = form.watch("keyboardPlate") || ""
+                        const selected = current.split("/").map((s) => s.trim()).includes(opt)
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={opt}
+                            checked={selected}
+                            onCheckedChange={(checked) => {
+                              const currArr = current.split("/").map((s) => s.trim()).filter(Boolean)
+                              const next = checked
+                                ? Array.from(new Set([...currArr, opt]))
+                                : currArr.filter((c) => c !== opt)
+                              form.setValue("keyboardPlate", next.join(" / "))
+                            }}
+                          >
+                            {opt}
+                          </DropdownMenuCheckboxItem>
+                        )
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hot Swap</label>
@@ -1560,18 +1581,37 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Case</label>
-                  <Select value={form.watch("keyboardCase") || ""} onValueChange={(v) => form.setValue("keyboardCase", v)}>
-                    <SelectTrigger className="border-border bg-background">
-                      <SelectValue placeholder={"Selecione"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Plástico">Plástico</SelectItem>
-                      <SelectItem value="Fibra de Carbono">Fibra de Carbono</SelectItem>
-                      <SelectItem value="Alumínio">Alumínio</SelectItem>
-                      <SelectItem value="Magnésio">Magnésio</SelectItem>
-                      <SelectItem value="Acrílico">Acrílico</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" type="button" className="w-full justify-between border-border bg-background h-9 px-3 font-normal">
+                        <span className="line-clamp-1 text-sm">
+                          {form.watch("keyboardCase") || "Selecione"}
+                        </span>
+                        <ChevronDown className="size-4 text-muted-foreground shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-48">
+                      {(["Plástico", "Fibra de Carbono", "Alumínio", "Magnésio", "Acrílico", "Madeira"]).map((opt) => {
+                        const current = form.watch("keyboardCase") || ""
+                        const selected = current.split("/").map((s) => s.trim()).includes(opt)
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={opt}
+                            checked={selected}
+                            onCheckedChange={(checked) => {
+                              const currArr = current.split("/").map((s) => s.trim()).filter(Boolean)
+                              const next = checked
+                                ? Array.from(new Set([...currArr, opt]))
+                                : currArr.filter((c) => c !== opt)
+                              form.setValue("keyboardCase", next.join(" / "))
+                            }}
+                          >
+                            {opt}
+                          </DropdownMenuCheckboxItem>
+                        )
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Features</label>
