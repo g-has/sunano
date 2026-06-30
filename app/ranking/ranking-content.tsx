@@ -11,8 +11,7 @@ export type RankedPeripheral = {
   id: string
   name: string
   category: string
-  ranking: number
-  score: number | null
+  score: number
 }
 
 const CATEGORIES: { key: string; label: string }[] = [
@@ -27,16 +26,9 @@ const CATEGORIES: { key: string; label: string }[] = [
 ]
 
 function BarChart({ items }: { items: RankedPeripheral[] }) {
-  const hasScores = items.some((p) => p.score != null)
+  const sorted = [...items].sort((a, b) => b.score - a.score)
 
-  // Sort: by score desc if available, else by ranking position asc
-  const sorted = [...items].sort((a, b) =>
-    hasScores
-      ? (b.score ?? 0) - (a.score ?? 0)
-      : a.ranking - b.ranking
-  )
-
-  const maxScore = hasScores ? Math.max(...sorted.map((p) => p.score ?? 0)) : 0
+  const maxScore = Math.max(...sorted.map((p) => p.score))
   const total = sorted.length
 
   if (total === 0) {
@@ -50,11 +42,8 @@ function BarChart({ items }: { items: RankedPeripheral[] }) {
   return (
     <div className="flex flex-col gap-0.5">
       {sorted.map((item, index) => {
-        const barPct = hasScores
-          ? Math.round(((item.score ?? 0) / maxScore) * 100)
-          : Math.round(100 - (index / Math.max(total - 1, 1)) * 70)
-
-        const displayValue = hasScores ? (item.score ?? "") : `#${item.ranking}`
+        const barPct = Math.round((item.score / maxScore) * 100)
+        const displayValue = item.score
         const href = `/perifericos/${buildPeripheralSlug(item.name, item.id)}`
 
         return (
@@ -76,7 +65,7 @@ function BarChart({ items }: { items: RankedPeripheral[] }) {
                   : "text-muted-foreground/60"
               )}
             >
-              #{item.ranking}
+              #{index + 1}
             </span>
 
             {/* Name */}
