@@ -18,14 +18,15 @@ export async function POST(request: NextRequest) {
 
   const form = await request.formData()
   const file = form.get("file") as File | null
+  const kind = form.get("kind") as string | null
 
   if (!file) {
     return NextResponse.json({ error: "Nenhum arquivo enviado." }, { status: 400 })
   }
 
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+  const allowed = kind === "gallery" ? ["image/jpeg"] : ["image/jpeg", "image/png", "image/webp", "image/gif"]
   if (!allowed.includes(file.type)) {
-    return NextResponse.json({ error: "Tipo de arquivo não permitido." }, { status: 400 })
+    return NextResponse.json({ error: kind === "gallery" ? "Apenas arquivos JPEG são permitidos." : "Tipo de arquivo não permitido." }, { status: 400 })
   }
 
   const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, "-")

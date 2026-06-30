@@ -512,6 +512,9 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   const [linkedStore, setLinkedStore] = useState<LinkedProduct | null>(null)
   const [linkedBazaar, setLinkedBazaar] = useState<LinkedProduct | null>(null)
   const [rankedPeripherals, setRankedPeripherals] = useState<{ id: string; name: string; tier: string; ranking: number; score: number | null }[]>([])
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([])
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([])
+  const [existingGalleryUrls, setExistingGalleryUrls] = useState<string[]>([])
 
   const form = useForm<PeripheralFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -632,7 +635,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           highlights: Array.isArray(data.specs?.details?.highlights) ? data.specs.details.highlights.join("\n") : data.specs?.details?.highlights ?? "",
           pros: Array.isArray(data.specs?.details?.pros) ? data.specs.details.pros.join("\n") : data.specs?.details?.pros ?? "",
           cons: Array.isArray(data.specs?.details?.cons) ? data.specs.details.cons.join("\n") : data.specs?.details?.cons ?? "",
-          gallery: Array.isArray(data.specs?.details?.gallery) ? data.specs.details.gallery.join("\n") : data.specs?.details?.gallery ?? "",
+          gallery: "",
           buyLinks: Array.isArray(data.specs?.details?.buyLinks)
             ? data.specs.details.buyLinks.map((l: { label: string; url: string }) => `${l.label} | ${l.url}`).join("\n")
             : data.specs?.details?.buyLinks ?? "",
@@ -664,6 +667,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         })
         setSelectedTag(data.tags ?? [])
         if (data.image_url) setImagePreview(data.image_url)
+        const galleryArr = Array.isArray(data.specs?.details?.gallery) ? data.specs.details.gallery : []
+        setExistingGalleryUrls(galleryArr.filter(Boolean))
       }
 
       try {
@@ -711,6 +716,26 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         imageUrl = uploadData.publicUrl
       }
 
+      const uploadedGalleryUrls: string[] = []
+      if (galleryFiles.length > 0) {
+        setUploading(true)
+        for (const file of galleryFiles) {
+          const gForm = new FormData()
+          gForm.set("file", file)
+          gForm.set("kind", "gallery")
+          const gRes = await fetch("/api/admin/peripherals/upload-image", {
+            method: "POST",
+            body: gForm,
+          })
+          const gData = (await gRes.json().catch(() => null)) as { publicUrl?: string; error?: string } | null
+          if (!gRes.ok || !gData?.publicUrl) {
+            throw new Error(gData?.error ?? "Falha ao fazer upload de imagem da galeria")
+          }
+          uploadedGalleryUrls.push(gData.publicUrl)
+        }
+      }
+      const finalGallery = [...existingGalleryUrls, ...uploadedGalleryUrls]
+
       const splitLines = (value?: string) =>
         value ? value.split("\n").map((l) => l.trim()).filter(Boolean) : []
 
@@ -747,7 +772,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           guideUrl: data.guideUrl || undefined, wikiUrl: data.wikiUrl || undefined,
           notesLong: data.notesLong || undefined,
           summary: data.summary || undefined, highlights: splitLines(data.highlights),
-          pros: splitLines(data.pros), cons: splitLines(data.cons), gallery: splitLines(data.gallery),
+          pros: splitLines(data.pros), cons: splitLines(data.cons), gallery: finalGallery,
           buyLinks: parseBuyLinks(data.buyLinks), compatibility: data.compatibility || undefined,
           notes: data.notes || undefined, comparisons: splitLines(data.comparisons),
           weight: data.weight || undefined, latency: data.latency || undefined,
@@ -901,6 +926,28 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
     } finally {
       setRemovingBg(false)
     }
+  }
+
+  const handleGallerySelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    e.target.value = ""
+    const jpegFiles = files.filter((f) => f.type === "image/jpeg")
+    if (jpegFiles.length !== files.length) {
+      toast.error("Apenas arquivos JPEG são permitidos na galeria")
+    }
+    if (jpegFiles.length === 0) return
+    const previews = await Promise.all(jpegFiles.map(fileToDataUrl))
+    setGalleryFiles((prev) => [...prev, ...jpegFiles])
+    setGalleryPreviews((prev) => [...prev, ...previews])
+  }
+
+  const removeNewGalleryImage = (index: number) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index))
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const removeExistingGalleryImage = (index: number) => {
+    setExistingGalleryUrls((prev) => prev.filter((_, i) => i !== index))
   }
 
   const toggleTag = (tag: Tag) =>
@@ -1886,6 +1933,46 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
                   <p className="text-[10px] text-muted-foreground">{"Cada linha vira um item separado"}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">{"URLs da Galeria"}</label>
+              <p className="text-[10px] text-muted-foreground/60">{"Apenas arquivos JPEG. Múltiplos arquivos permitidos."}</p>
+              {(existingGalleryUrls.length > 0 || galleryPreviews.length > 0) && (
+                <div className="flex flex-wrap gap-2">
+                  {existingGalleryUrls.map((url, i) => (
+                    <div key={`eg-${i}`} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-border">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeExistingGalleryImage(i)}
+                        className="absolute top-0.5 right-0.5 size-5 flex items-center justify-center rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {galleryPreviews.map((preview, i) => (
+                    <div key={`ng-${i}`} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-dashed border-primary/50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={preview} alt={`Nova ${i + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeNewGalleryImage(i)}
+                        className="absolute top-0.5 right-0.5 size-5 flex items-center justify-center rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <label className="flex w-fit items-center gap-2 cursor-pointer rounded-lg border border-dashed border-border p-3 hover:border-primary/40 hover:bg-muted/10 transition">
+                <input accept="image/jpeg,.jpg,.jpeg" className="hidden" multiple onChange={handleGallerySelect} type="file" />
+                <Upload className="size-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{"Adicionar fotos (JPEG)"}</span>
+              </label>
             </div>
 
           </div>
