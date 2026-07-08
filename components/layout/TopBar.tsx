@@ -81,7 +81,16 @@ function getPageDefaults(pathname: string): PageDefaults {
 export function TopBar() {
   const { locale, setLocale } = useLocale()
   const { theme, setTheme } = useTheme()
-  const { publicCollapsed, adminCollapsed, togglePublic, toggleAdmin } = useSidebar()
+  const {
+    publicCollapsed,
+    adminCollapsed,
+    togglePublic,
+    toggleAdmin,
+    isMobileOpen,
+    isAdminMobileOpen,
+    setMobileOpen,
+    setAdminMobileOpen,
+  } = useSidebar()
   const pathname = usePathname()
 
   const isLight = theme === "light"
@@ -89,6 +98,17 @@ export function TopBar() {
   const isAdmin = pathname?.startsWith("/admin")
   const isCollapsed = isAdmin ? adminCollapsed : publicCollapsed
   const toggleCollapsed = isAdmin ? toggleAdmin : togglePublic
+
+  // On desktop this collapses/expands the sidebar; on mobile it opens/closes the
+  // drawer. Each action is inert at the other breakpoint, so we fire both.
+  const handleSidebarToggle = () => {
+    toggleCollapsed()
+    if (isAdmin) {
+      setAdminMobileOpen(!isAdminMobileOpen)
+    } else {
+      setMobileOpen(!isMobileOpen)
+    }
+  }
 
   const defaults = getPageDefaults(pathname ?? "/")
   const override = usePageHeaderState()
@@ -108,7 +128,7 @@ export function TopBar() {
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
-            onClick={toggleCollapsed}
+            onClick={handleSidebarToggle}
             className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
             aria-label={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
           >

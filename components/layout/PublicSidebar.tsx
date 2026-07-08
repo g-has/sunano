@@ -8,7 +8,6 @@ import {
   BookOpen,
   Clock3,
   Home,
-  Menu,
   MessageCircle,
   Mouse,
   Newspaper,
@@ -17,12 +16,10 @@ import {
   ShoppingBag,
   ShoppingCart,
   Trophy,
-  X,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { AuthUser } from "@/components/auth/auth-user"
-import { Button } from "@/components/ui/button"
 import { SunanoLogo } from "@/components/ui/SunanoLogo"
 import { useSidebar } from "@/components/providers/sidebar-context"
 import { useCart } from "@/components/providers/cart-context"
@@ -290,15 +287,6 @@ export function PublicSidebar() {
           </div>
         )}
       </aside>
-
-      {/* Mobile toggle */}
-      <Button
-        className="fixed bottom-4 right-4 z-50 flex size-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-lg hover:bg-muted/40 md:hidden"
-        onClick={() => setMobileOpen(!isMobileOpen)}
-        size="icon"
-      >
-        {isMobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-      </Button>
     </>
   )
 }

@@ -8,7 +8,6 @@ import {
   Eye,
   Gift,
   Home,
-  Menu,
   MessageSquare,
   Mouse,
   Newspaper,
@@ -18,12 +17,10 @@ import {
   Trophy,
   Users,
   Wrench,
-  X,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { AuthUser } from "@/components/auth/auth-user"
-import { Button } from "@/components/ui/button"
 import { SunanoLogo } from "@/components/ui/SunanoLogo"
 import { useSidebar } from "@/components/providers/sidebar-context"
 import { useT } from "@/lib/use-t"
@@ -250,15 +247,6 @@ export function AdminSidebar() {
           <AuthUser isCollapsed={isCollapsed} />
         </div>
       </aside>
-
-      {/* Mobile toggle */}
-      <Button
-        className="fixed bottom-4 right-4 z-50 flex size-12 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-lg hover:bg-muted/40 md:hidden"
-        onClick={() => setAdminMobileOpen(!isAdminMobileOpen)}
-        size="icon"
-      >
-        {isAdminMobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-      </Button>
     </>
   )
 }

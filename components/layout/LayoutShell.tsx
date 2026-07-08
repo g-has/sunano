@@ -30,8 +30,9 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex">
-        {/* Sidebar — fixed on mobile (self-managed), relative+sticky on desktop */}
-        <div className="hidden md:flex md:shrink-0 md:sticky top-0 md:h-screen">
+        {/* Sidebar — fixed drawer on mobile (self-managed), relative+sticky on desktop.
+            Must NOT be hidden on mobile, otherwise the drawer/overlay/toggle never render. */}
+        <div className="md:flex md:shrink-0 md:sticky md:top-0 md:h-screen">
           {isAdmin ? <AdminSidebar /> : <PublicSidebar />}
         </div>
 
