@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Package, ShoppingBag } from "lucide-react"
+import { Package, ShoppingBag, Trophy } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getPeripheralByIdOrSlug } from "@/lib/server/repositories/peripherals-repository"
+import { getPeripheralByIdOrSlug, listAllPeripherals } from "@/lib/server/repositories/peripherals-repository"
 import { listProductsByPeripheral } from "@/lib/server/repositories/store-repository"
 import { listPublishedPostsByPeripheral } from "@/lib/server/repositories/blog-repository"
 import { cn } from "@/lib/utils"
@@ -12,6 +12,7 @@ import { mapTier } from "@/lib/tier-utils"
 import { CARD_TAG_STYLES, CARD_TIER_STYLES, RATING_LEVEL_COLORS, TIER_THEMES } from "@/lib/tierlist-theme"
 import { BackButton } from "@/components/ui/back-button"
 import { GripArchitectureImage } from "@/components/ui/grip-architecture-image"
+import { PeripheralGallery } from "@/components/peripherals/PeripheralGallery"
 
 interface PerifericoPageProps {
   params: Promise<{ slug: string }>
@@ -126,6 +127,46 @@ function RatingRow({ label, rating }: { label: string; rating: number }) {
   )
 }
 
+function getYoutubeEmbedId(url?: string | null) {
+  if (!url) return null
+  try {
+    const parsed = new URL(url)
+    const host = parsed.hostname.replace(/^www\./, "")
+    if (host === "youtu.be") {
+      return parsed.pathname.slice(1) || null
+    }
+    if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+      if (parsed.pathname === "/watch") {
+        return parsed.searchParams.get("v")
+      }
+      const match = parsed.pathname.match(/^\/(embed|shorts)\/([^/?]+)/)
+      if (match) return match[2]
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+function linkifyText(text: string) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g)
+  return parts.map((part, index) =>
+    index % 2 === 1 ? (
+      <a
+        key={index}
+        href={part}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="text-primary underline underline-offset-2 hover:text-primary/80"
+      >
+        {part}
+      </a>
+    ) : (
+      <span key={index}>{part}</span>
+    ),
+  )
+}
+
 function formatSpecValue(value: unknown) {
   if (value === null || typeof value === "undefined" || value === "") return "-"
   if (typeof value === "string") {
@@ -168,8 +209,8 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   const priceRange = details.priceRange
   const reviewUrl = details.reviewUrl
   const reviewNote = details.reviewNote
+  const youtubeId = getYoutubeEmbedId(reviewUrl)
   const notesLong = details.notesLong
-  const summary = details.summary
   const softwareInfo = details.softwareInfo
   const teamComments = details.teamComments
 
@@ -263,6 +304,20 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
   const relatedPosts = await listPublishedPostsByPeripheral(data.id)
 
+  const allPeripherals = await listAllPeripherals()
+  const rankedInCategory = allPeripherals
+    .filter((p) => p.category === data.category)
+    .map((p) => {
+      const pDetails = ((p.specs as Record<string, unknown>)?.details ?? {}) as Record<string, unknown>
+      const pScore = pDetails.score != null ? Number(pDetails.score) : null
+      return { id: p.id, score: pScore }
+    })
+    .filter((p): p is { id: string; score: number } => typeof p.score === "number" && p.score > 0)
+    .sort((a, b) => b.score - a.score)
+
+  const rankIndex = rankedInCategory.findIndex((p) => p.id === data.id)
+  const rankBadge = rankIndex >= 0 ? { position: rankIndex + 1, total: rankedInCategory.length } : null
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-4 md:px-6 lg:px-8">
       <div className="mb-3">
@@ -282,27 +337,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </div>
                 )}
 
-                <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-muted/40">
-                  {data.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img alt={data.name} className="h-full w-full object-cover" src={data.image_url} />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-muted-foreground">
-                      {data.brand?.slice(0, 2)?.toUpperCase()}
-                    </div>
-                  )}
-                </div>
-
-                {gallery.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {gallery.map((image: string) => (
-                      <div key={image} className="aspect-square overflow-hidden rounded-xl border border-border bg-muted/30">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img alt={data.name} className="h-full w-full object-cover" src={image} />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <PeripheralGallery images={[data.image_url, ...gallery]} alt={data.name} />
 
                 <Card className="border-border bg-card">
                   <CardHeader className="space-y-1">
@@ -322,8 +357,7 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
                 <Card className="border-border bg-card">
                   <CardHeader>
-                    <CardTitle className="text-sm">Notas</CardTitle>
-                    <CardDescription className="text-xs">Contexto e observacoes principais.</CardDescription>
+                    <CardTitle className="text-sm">Comentários sobre as notas</CardTitle>
                   </CardHeader>
                   <CardContent className="max-h-56 overflow-auto text-sm text-muted-foreground whitespace-pre-wrap">
                     {notesLong || "Sem notas cadastradas."}
@@ -346,6 +380,16 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                         </Badge>
                       )}
                     </div>
+
+                    {rankBadge && (
+                      <Link
+                        href="/ranking"
+                        className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/20"
+                      >
+                        <Trophy className="size-3.5" />
+                        {`#${rankBadge.position} de ${rankBadge.total} no Ranking`}
+                      </Link>
+                    )}
                   </div>
 
                   <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
@@ -398,10 +442,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
                 </div>
 
-                {summary && (
-                  <p className="mt-1 text-sm text-muted-foreground">{summary}</p>
-                )}
-
                 <div className={cn("grid gap-4", showGrip ? "md:grid-cols-2" : "grid-cols-1")}>
                   <Card className="border-border bg-card">
                     <CardHeader>
@@ -444,11 +484,23 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
 
                 <Card className="border-border bg-card">
                   <CardHeader>
-                    <CardTitle className="text-sm">Reviews e analises</CardTitle>
-                    <CardDescription className="text-xs">Artigos e conteudos relacionados.</CardDescription>
+                    <CardTitle className="text-sm">Review no Youtube</CardTitle>
                   </CardHeader>
-                  <CardContent className="max-h-56 overflow-auto space-y-3">
-                    {reviewUrl && (
+                  <CardContent className="space-y-3">
+                    {youtubeId ? (
+                      <div className="space-y-2">
+                        <div className="aspect-video overflow-hidden rounded-xl border border-border bg-muted/40">
+                          <iframe
+                            src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+                            title="Review no Youtube"
+                            className="h-full w-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          />
+                        </div>
+                        {reviewNote && <p className="text-xs text-muted-foreground">{reviewNote}</p>}
+                      </div>
+                    ) : reviewUrl ? (
                       <Link
                         href={reviewUrl}
                         target="_blank"
@@ -464,35 +516,38 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                         </div>
                         <span className="text-primary">→</span>
                       </Link>
+                    ) : null}
+                    {relatedPosts && relatedPosts.length > 0 && (
+                      <div className="max-h-56 overflow-auto space-y-3">
+                        {relatedPosts.map((post: any) => (
+                          <Link
+                            key={post.id}
+                            href={`/blog/${post.slug}`}
+                            className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3 text-sm text-foreground transition hover:bg-muted/40"
+                          >
+                            <div className="size-12 overflow-hidden rounded-lg border border-border bg-muted/40">
+                              {post.cover_thumbnail_url || post.cover_image_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  alt={post.title}
+                                  className="h-full w-full object-cover"
+                                  src={post.cover_thumbnail_url || post.cover_image_url}
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                                  Blog
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-foreground">{post.title}</p>
+                              <p className="text-xs text-muted-foreground">Ver review</p>
+                            </div>
+                            <span className="text-primary">→</span>
+                          </Link>
+                        ))}
+                      </div>
                     )}
-                    {relatedPosts && relatedPosts.length > 0 &&
-                      relatedPosts.map((post: any) => (
-                        <Link
-                          key={post.id}
-                          href={`/blog/${post.slug}`}
-                          className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3 text-sm text-foreground transition hover:bg-muted/40"
-                        >
-                          <div className="size-12 overflow-hidden rounded-lg border border-border bg-muted/40">
-                            {post.cover_thumbnail_url || post.cover_image_url ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                alt={post.title}
-                                className="h-full w-full object-cover"
-                                src={post.cover_thumbnail_url || post.cover_image_url}
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                                Blog
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-foreground">{post.title}</p>
-                            <p className="text-xs text-muted-foreground">Ver review</p>
-                          </div>
-                          <span className="text-primary">→</span>
-                        </Link>
-                      ))}
                     {!reviewUrl && (!relatedPosts || relatedPosts.length === 0) && (
                       <p className="text-sm text-muted-foreground">
                         Nenhum review publicado para este periferico.
@@ -545,11 +600,10 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 <div className="grid gap-4 md:grid-cols-2">
                   <Card className="border-border bg-card">
                     <CardHeader>
-                      <CardTitle className="text-sm">Software</CardTitle>
-                      <CardDescription className="text-xs">Plataformas, softwares e requisitos.</CardDescription>
+                      <CardTitle className="text-sm">Software do Periférico</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {softwareInfo || "Informacao de compatibilidade nao cadastrada."}
+                      {softwareInfo ? linkifyText(softwareInfo) : "Informacao de compatibilidade nao cadastrada."}
                     </CardContent>
                   </Card>
 
