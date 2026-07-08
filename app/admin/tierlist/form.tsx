@@ -1950,17 +1950,12 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         <FormSection title={t.admin.tierlistForm.sectionWikiContent} icon={<FileText className="size-4" />} defaultOpen={false}>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"Descrição"}</label>
-              <Textarea className="border-border bg-background resize-none" placeholder={"Resumo breve do produto exibido acima das especificações"} rows={2} {...form.register("summary")} />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"URL do Review"}</label>
+              <label className="text-sm font-medium text-foreground">{"Review Completo"}</label>
               <Input className="border-border bg-background" placeholder="https://youtube.com/..." {...form.register("reviewUrl")} />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"Nota do review"}</label>
+              <label className="text-sm font-medium text-foreground">{"Comentarios sobre as notas"}</label>
               <Textarea className="border-border bg-background resize-none" placeholder={"Observação curta sobre o review"} rows={2} {...form.register("reviewNote")} />
             </div>
 
@@ -1970,7 +1965,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"Comentarios da equipe"}</label>
+              <label className="text-sm font-medium text-foreground">{"Consideracoes sobre o periferico"}</label>
               <Textarea className="border-border bg-background resize-none" placeholder={"Detalhes extras e observações internas da equipe"} rows={3} {...form.register("teamComments")} />
             </div>
 
