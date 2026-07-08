@@ -1955,8 +1955,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"Comentarios sobre as notas"}</label>
-              <Textarea className="border-border bg-background resize-none" placeholder={"Observação curta sobre o review"} rows={2} {...form.register("reviewNote")} />
+              <label className="text-sm font-medium text-foreground">{"Legenda do review"}</label>
+              <Textarea className="border-border bg-background resize-none" placeholder={"Observação curta exibida junto ao vídeo do review"} rows={2} {...form.register("reviewNote")} />
             </div>
 
             <div className="space-y-1.5">
@@ -1970,8 +1970,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{"Notas"}</label>
-              <Textarea className="border-border bg-background resize-none" placeholder={"Contexto e observações principais exibidas no card \"Notas\""} rows={3} {...form.register("notesLong")} />
+              <label className="text-sm font-medium text-foreground">{"Comentários sobre as notas"}</label>
+              <Textarea className="border-border bg-background resize-none" placeholder={"Contexto e observações principais exibidas no card \"Comentários sobre as notas\""} rows={3} {...form.register("notesLong")} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
