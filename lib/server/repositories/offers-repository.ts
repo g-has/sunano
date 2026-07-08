@@ -17,7 +17,7 @@ export type OfferVoteSummary = {
 /** Conta votos positivos por oferta e marca quais o visitante atual já votou. */
 export async function getOfferVoteSummary(
   offerIds: string[],
-  voterHash: string
+  voterHash: string | null
 ): Promise<OfferVoteSummary> {
   const summary: OfferVoteSummary = { workingCounts: {}, userVoted: new Set() }
   if (offerIds.length === 0) return summary
@@ -41,7 +41,7 @@ export async function getOfferVoteSummary(
     if (vote.is_working) {
       summary.workingCounts[vote.offer_id] = (summary.workingCounts[vote.offer_id] ?? 0) + 1
     }
-    if (vote.voter_hash === voterHash) {
+    if (voterHash && vote.voter_hash === voterHash) {
       summary.userVoted.add(vote.offer_id)
     }
   }

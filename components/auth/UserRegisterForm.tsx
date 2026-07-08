@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useActionState } from "react"
 import { useFormStatus } from "react-dom"
 import Link from "next/link"
@@ -10,11 +10,11 @@ import { DiscordAuthButton } from "@/components/auth/DiscordAuthButton"
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { STRONG_PASSWORD_HINT, isLocalhostHost } from "@/lib/password-policy"
 import { cn } from "@/lib/utils"
 
 const REGISTER_ERRORS: Record<string, string> = {
   missing_fields: "Preencha email, senha e nome de exibição.",
-  password_too_short: "A senha precisa ter ao menos 6 caracteres.",
   password_mismatch: "As senhas não coincidem.",
   email_in_use: "Já existe uma conta com este email.",
   signup_failed: "Não foi possível concluir o cadastro. Tente novamente.",
@@ -52,7 +52,13 @@ export function UserRegisterForm() {
   const [state, action] = useActionState(registerUserAction, initialState)
   const [showPurchase, setShowPurchase] = useState(false)
   const [lgpdConsent, setLgpdConsent] = useState(false)
+  const [relaxed, setRelaxed] = useState(false)
 
+  useEffect(() => {
+    setRelaxed(isLocalhostHost(window.location.host))
+  }, [])
+
+  const minLength = relaxed ? 6 : 8
   const errorMessage = state.error ? (REGISTER_ERRORS[state.error] ?? state.error) : null
 
   if (state.needsConfirmation) {
@@ -99,14 +105,24 @@ export function UserRegisterForm() {
           placeholder="voce@exemplo.com"
           required
         />
-        <Field
-          id="password"
-          label="Senha"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Mínimo 6 caracteres"
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-foreground" htmlFor="password">
+            Senha
+          </label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            placeholder={relaxed ? `Mínimo ${minLength} caracteres` : "Senha forte"}
+            className="border-border bg-muted/20"
+            required
+            minLength={minLength}
+          />
+          {!relaxed && (
+            <p className="text-xs text-muted-foreground">{STRONG_PASSWORD_HINT}</p>
+          )}
+        </div>
         <Field
           id="confirm_password"
           label="Confirmar senha"
@@ -114,6 +130,7 @@ export function UserRegisterForm() {
           autoComplete="new-password"
           placeholder="Repita a senha"
           required
+          minLength={minLength}
         />
 
         {/* Consentimento LGPD — obrigatório */}

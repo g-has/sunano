@@ -3,6 +3,7 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
+import { isLocalhostHost, validatePassword } from "@/lib/password-policy"
 import {
   upsertUserProfileOnSignup,
   recordLgpdConsent,
@@ -39,8 +40,12 @@ export async function registerUserAction(
   if (!email || !password || !displayName) {
     return { error: "missing_fields" }
   }
-  if (password.length < 6) {
-    return { error: "password_too_short" }
+
+  const headersList = await headers()
+  const relaxed = isLocalhostHost(headersList.get("host"))
+  const passwordError = validatePassword(password, relaxed)
+  if (passwordError) {
+    return { error: passwordError }
   }
   if (password !== confirmPassword) {
     return { error: "password_mismatch" }
@@ -60,7 +65,6 @@ export async function registerUserAction(
     state: optional(formData.get("state")),
   }
 
-  const headersList = await headers()
   const ipAddress =
     headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     headersList.get("x-real-ip") ??

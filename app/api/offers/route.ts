@@ -1,14 +1,15 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-import { getClientIdentifier } from "@/lib/server/rate-limit"
+import { getRequestUser } from "@/lib/server/auth/current-user"
 import { getTelegramOffers } from "@/lib/server/integrations/telegram-offers"
 import { getOfferVoteSummary } from "@/lib/server/repositories/offers-repository"
 
 /**
  * Lista as ofertas vindas do Telegram já combinadas com os votos da tabela
- * `offers_votes`. A consulta de votos vive no `offers-repository`.
+ * `offers_votes`. A consulta de votos vive no `offers-repository`. A leitura
+ * é pública (visitante anônimo); só o voto em si exige login.
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const result = await getTelegramOffers(30)
     const offers = result.offers ?? []
@@ -18,8 +19,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, offers: [], warning: result.warning, source: result.source })
     }
 
-    const identifier = getClientIdentifier(request)
-    const { workingCounts, userVoted } = await getOfferVoteSummary(offerIds, identifier)
+    const user = await getRequestUser(request)
+    const { workingCounts, userVoted } = await getOfferVoteSummary(offerIds, user?.id ?? null)
 
     const offersWithVotes = offers.map((offer) => ({
       ...offer,

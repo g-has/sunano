@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import * as z from "zod"
 
+import { getRequestUser } from "@/lib/server/auth/current-user"
 import { checkRateLimit, getClientIdentifier } from "@/lib/server/rate-limit"
 import { registerOfferVote } from "@/lib/server/repositories/offers-repository"
 
@@ -9,8 +10,13 @@ const voteSchema = z.object({
   is_working: z.boolean().optional(),
 })
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const user = await getRequestUser(request)
+    if (!user) {
+      return NextResponse.json({ error: "Você precisa estar logado para votar." }, { status: 401 })
+    }
+
     const parsed = voteSchema.safeParse(await request.json())
     if (!parsed.success) {
       return NextResponse.json(
@@ -36,7 +42,7 @@ export async function POST(request: Request) {
 
     await registerOfferVote({
       offerId: parsed.data.offerId,
-      voterHash: identifier,
+      voterHash: user.id,
       isWorking: parsed.data.is_working ?? true,
     })
 
