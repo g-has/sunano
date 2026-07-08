@@ -7,7 +7,7 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
   Check, Eye, EyeOff, ExternalLink,
-  Lock, LockOpen, Pin, PinOff, X,
+  Lock, LockOpen, Pin, PinOff, Trash2, X,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -59,6 +59,7 @@ export default function EditPostClient({
 
   const [saving, setSaving] = useState(false)
   const [toggling, setToggling] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle")
   const [error, setError] = useState<string | null>(null)
 
@@ -155,6 +156,31 @@ export default function EditPostClient({
       toast.error("Erro ao atualizar post", { description: message })
     } finally {
       setToggling(null)
+    }
+  }
+
+  async function handleDelete() {
+    if (!canWrite) return
+    if (
+      !confirm(
+        `Excluir definitivamente o tópico "${initialPost.title}"? Todos os comentários e votos também serão apagados. Essa ação não pode ser desfeita.`
+      )
+    ) {
+      return
+    }
+    try {
+      setDeleting(true)
+      const res = await fetch(`/api/forum/posts/${initialPost.slug}`, { method: "DELETE" })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) throw new Error(data?.error ?? "Erro ao excluir")
+      toast.success("Tópico excluído")
+      router.push("/admin/forum")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao excluir"
+      setError(message)
+      toast.error("Erro ao excluir tópico", { description: message })
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -256,6 +282,17 @@ export default function EditPostClient({
               >
                 {flags.is_locked ? <LockOpen className="size-3.5" /> : <Lock className="size-3.5" />}
                 {flags.is_locked ? "Desbloquear" : "Bloquear"}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={deleting}
+                onClick={handleDelete}
+                className="h-8 gap-1.5 border-destructive/40 text-destructive text-xs hover:bg-destructive/10 ml-auto"
+              >
+                <Trash2 className="size-3.5" />
+                {deleting ? "Excluindo…" : "Excluir tópico"}
               </Button>
             </div>
           )}

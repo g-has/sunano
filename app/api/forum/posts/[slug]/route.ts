@@ -4,6 +4,7 @@ import * as z from "zod"
 import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import {
+  deleteForumPostBySlug,
   getForumPostBySlug,
   updateForumPost,
 } from "@/lib/server/repositories/forum-repository"
@@ -54,6 +55,24 @@ export async function PATCH(
   }
 
   const result = await updateForumPost(slug, parsed.data)
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status })
+  }
+  return NextResponse.json({ ok: true })
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  context: { params: Promise<{ slug: string }> }
+) {
+  const { slug } = await context.params
+
+  const auth = await getAuthorizedProfile()
+  if (!auth.profile || !hasAdminPermission(auth.profile, "forum_write")) {
+    return NextResponse.json({ error: "Sem permissão." }, { status: 403 })
+  }
+
+  const result = await deleteForumPostBySlug(slug)
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status })
   }

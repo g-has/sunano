@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Eye, EyeOff, Lock, LockOpen, MessageSquare, Pencil, Pin, PinOff, Search } from "lucide-react"
 
 import {
+  deleteForumPost,
   listForumPostsForModeration,
   setForumCommentHidden,
   setForumPostFlag,
@@ -11,6 +12,7 @@ import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DeletePostButton } from "./DeletePostButton"
 
 const PAGE_SIZE = 20
 
@@ -45,6 +47,14 @@ async function toggleCommentHidden(commentId: string, hidden: boolean) {
   const auth = await getAuthorizedProfile()
   if (!auth.profile || !hasAdminPermission(auth.profile, "forum_write")) return
   await setForumCommentHidden(commentId, hidden)
+  revalidatePath("/admin/forum")
+}
+
+async function deletePost(postId: string) {
+  "use server"
+  const auth = await getAuthorizedProfile()
+  if (!auth.profile || !hasAdminPermission(auth.profile, "forum_write")) return
+  await deleteForumPost(postId)
   revalidatePath("/admin/forum")
 }
 
@@ -246,6 +256,7 @@ export default async function AdminForumPage({
                         {post.is_locked ? "Desbloquear" : "Bloquear"}
                       </Button>
                     </form>
+                    <DeletePostButton action={deletePost.bind(null, post.id)} postTitle={post.title} />
                   </>
                 )}
                 </div>

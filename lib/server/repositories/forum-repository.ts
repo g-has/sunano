@@ -620,3 +620,26 @@ export async function setForumCommentHidden(commentId: string, hidden: boolean):
   const db = createSupabaseAdminClient()
   await (db.from("forum_comments") as any).update({ is_hidden: hidden }).eq("id", commentId)
 }
+
+/** Exclui definitivamente um post do fórum (comentários e votos são removidos em cascata). */
+export async function deleteForumPost(postId: string): Promise<RepositoryResult> {
+  const db = createSupabaseAdminClient()
+  const { error } = await db.from("forum_posts").delete().eq("id", postId)
+  if (error) {
+    console.error("[forum-repository] deleteForumPost:", error)
+    return { ok: false, error: error.message, status: 400 }
+  }
+  return { ok: true }
+}
+
+/** Exclui definitivamente um post do fórum a partir do slug. */
+export async function deleteForumPostBySlug(slug: string): Promise<RepositoryResult> {
+  const db = createSupabaseAdminClient()
+  const { data: existing } = await db
+    .from("forum_posts")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle()
+  if (!existing) return { ok: false, error: "Post não encontrado.", status: 404 }
+  return deleteForumPost((existing as any).id)
+}
