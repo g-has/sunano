@@ -8,7 +8,7 @@ export function SunanoIcon({ className }: SunanoIconProps) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/images/mascot/sunano-logo.jpg"
+      src="/images/mascot/sunano-logo2.jpeg"
       alt="Sunano"
       className={cn("size-9 shrink-0 rounded-full border border-border object-cover", className)}
     />

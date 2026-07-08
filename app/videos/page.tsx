@@ -43,7 +43,7 @@ export default async function VideosPage() {
                 <div className="flex items-center gap-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="/images/mascot/sunano-logo.jpg"
+                    src="/images/mascot/sunano-logo2.jpeg"
                     alt={channel.title}
                     className="size-12 rounded-full border border-border object-cover"
                   />
