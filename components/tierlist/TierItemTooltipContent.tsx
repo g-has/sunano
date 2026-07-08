@@ -99,9 +99,9 @@ function RatingRow({ label, value }: { label: string; value: number }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium text-slate-300">{label}</span>
+        <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
         <span className={cn("text-[11px] font-bold tabular-nums", levelColor.text)}>
-          {filled}<span className="text-slate-600">/6</span>
+          {filled}<span className="text-muted-foreground">/6</span>
         </span>
       </div>
       <div className="flex h-1.5 gap-0.5">
@@ -110,7 +110,7 @@ function RatingRow({ label, value }: { label: string; value: number }) {
             key={i}
             className={cn(
               "flex-1 rounded-sm transition-colors",
-              i < filled ? levelColor.bar : "bg-white/[0.06]",
+              i < filled ? levelColor.bar : "bg-muted",
             )}
           />
         ))}
@@ -175,9 +175,9 @@ export function TierItemTooltipContent({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-slate-100">{name}</p>
-          <p className="mt-0.5 truncate text-xs text-slate-400">{brand}</p>
-          <p className="mt-0.5 text-[10px] capitalize text-slate-600">{categoryLabel}</p>
+          <p className="truncate text-sm font-bold text-foreground">{name}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{brand}</p>
+          <p className="mt-0.5 text-[10px] capitalize text-muted-foreground">{categoryLabel}</p>
         </div>
       </div>
 
@@ -196,7 +196,7 @@ export function TierItemTooltipContent({
           <span className="text-sm font-bold text-emerald-400">{displayPrice}</span>
         )}
         {priceBand && (
-          <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase text-slate-400">
+          <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase text-muted-foreground">
             {priceBand}
           </span>
         )}
@@ -233,7 +233,7 @@ export function TierItemTooltipContent({
               ))}
             </div>
           ) : (
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-muted-foreground">
               {en ? "No ratings yet" : "Sem avaliações ainda"}
             </p>
           )}
@@ -247,10 +247,10 @@ export function TierItemTooltipContent({
             {specs.slice(0, 4).map((spec) => (
               <div
                 key={spec.label}
-                className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2.5 py-2"
+                className="rounded-md border border-border bg-muted px-2.5 py-2"
               >
-                <p className="text-[9px] font-medium text-slate-500">{spec.label}</p>
-                <p className="text-xs font-semibold text-slate-100">{spec.value}</p>
+                <p className="text-[9px] font-medium text-muted-foreground">{spec.label}</p>
+                <p className="text-xs font-semibold text-foreground">{spec.value}</p>
               </div>
             ))}
           </div>

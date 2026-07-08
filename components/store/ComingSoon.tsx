@@ -31,7 +31,7 @@ export function ComingSoon({ icon: Icon, title, description, accent = "emerald" 
     <div className="mx-auto max-w-2xl px-4 py-16">
       <Link
         href="/"
-        className="mb-8 flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-300"
+        className="mb-8 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" />
         Voltar ao início
@@ -46,7 +46,7 @@ export function ComingSoon({ icon: Icon, title, description, accent = "emerald" 
       >
         <Icon className={cn("size-12", style.icon)} />
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-black tracking-tight text-slate-50">{title}</h1>
+          <h1 className="text-2xl font-black tracking-tight text-foreground">{title}</h1>
           <span
             className={cn(
               "inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider",
@@ -56,7 +56,7 @@ export function ComingSoon({ icon: Icon, title, description, accent = "emerald" 
             Coming soon
           </span>
         </div>
-        <p className="max-w-sm text-sm text-slate-500">{description}</p>
+        <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
       </div>
     </div>
   )

@@ -55,8 +55,8 @@ export function ProductCard(props: ProductCardProps) {
   return (
     <Link href={href} className="group block">
       <div className={cn(
-        "relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0e17]/80 transition-all duration-200",
-        "hover:border-white/[0.18] hover:shadow-lg hover:shadow-black/40",
+        "relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-200",
+        "hover:border-foreground/20 hover:shadow-lg hover:shadow-black/10",
         outOfStock && "opacity-60"
       )}>
         {/* Bazaar ribbon */}
@@ -76,7 +76,7 @@ export function ProductCard(props: ProductCardProps) {
         )}
 
         {/* Image */}
-        <div className="relative aspect-square overflow-hidden bg-white/[0.03]">
+        <div className="relative aspect-square overflow-hidden bg-muted">
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -86,7 +86,7 @@ export function ProductCard(props: ProductCardProps) {
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <Package className="size-12 text-slate-700" />
+              <Package className="size-12 text-muted-foreground" />
             </div>
           )}
         </div>
@@ -104,11 +104,11 @@ export function ProductCard(props: ProductCardProps) {
           )}
 
           <div>
-            <h3 className="line-clamp-2 text-sm font-bold leading-snug text-slate-100 group-hover:text-white">
+            <h3 className="line-clamp-2 text-sm font-bold leading-snug text-foreground/90 group-hover:text-foreground">
               {props.name}
             </h3>
             {props.category && (
-              <p className="mt-0.5 text-[10px] capitalize text-slate-600">{props.category}</p>
+              <p className="mt-0.5 text-[10px] capitalize text-muted-foreground">{props.category}</p>
             )}
           </div>
 
@@ -124,8 +124,8 @@ export function ProductCard(props: ProductCardProps) {
               onClick={handleAddToCart}
               disabled={outOfStock}
               className={cn(
-                "flex items-center gap-1.5 rounded-lg border border-white/[0.10] bg-white/[0.05] px-3 py-2 text-xs font-semibold text-slate-300 transition-all",
-                "hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300",
+                "flex items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-2 text-xs font-semibold text-muted-foreground transition-all",
+                "hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-600",
                 outOfStock && "cursor-not-allowed"
               )}
             >

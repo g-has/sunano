@@ -46,8 +46,8 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
       <TooltipTrigger asChild>
         <div
           className={cn(
-            "group relative cursor-pointer overflow-hidden rounded-lg border border-white/[0.10] bg-[#0a0e17]/90 transition-all duration-200",
-            "hover:border-white/[0.22] hover:shadow-md hover:shadow-black/40",
+            "group relative cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-all duration-200",
+            "hover:border-foreground/20 hover:shadow-md hover:shadow-black/20",
             isGoat && "shadow-[0_0_14px_rgba(240,97,97,0.18)]",
           )}
         >
@@ -57,7 +57,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
           />
 
           {/* Image area */}
-          <div className="relative ml-[3px] h-12 overflow-hidden bg-black/60">
+          <div className="relative ml-[3px] h-12 overflow-hidden bg-muted">
             {isGoat && (
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-red-500/10 to-transparent" />
             )}
@@ -83,9 +83,9 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
 
           {/* Info */}
           <div className="ml-[3px] px-1.5 pb-1.5 pt-1">
-            <p className="line-clamp-2 text-[10px] font-bold leading-tight text-slate-100">{item.name}</p>
+            <p className="line-clamp-2 text-[10px] font-bold leading-tight text-foreground">{item.name}</p>
             <div className="mt-0.5 flex items-center justify-between gap-1">
-              <p className="truncate text-[8px] text-slate-500">{item.brand}</p>
+              <p className="truncate text-[8px] text-muted-foreground">{item.brand}</p>
               {/* {tagStyle && (
                 <div className={cn("size-1.5 shrink-0 rounded-full", tagStyle.dot)} />
               )} */}
@@ -95,7 +95,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
       </TooltipTrigger>
 
       <TooltipContent
-        className="rounded-xl border border-white/[0.12] bg-[#0a0e17]/95 p-4 shadow-2xl backdrop-blur-md"
+        className="rounded-xl border border-border bg-popover p-4 shadow-2xl backdrop-blur-md"
         sideOffset={12}
         side="bottom"
         align="center"

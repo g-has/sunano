@@ -63,14 +63,14 @@ function SectionHeader({
     <div className="mb-4 flex items-end justify-between gap-3">
       <div>
         <div className="flex items-center gap-2.5">
-          <Icon className="size-5 text-slate-300" />
-          <h2 className="text-xl font-bold tracking-tight text-slate-100 md:text-2xl">{title}</h2>
+          <Icon className="size-5 text-muted-foreground" />
+          <h2 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">{title}</h2>
         </div>
-        {subtitle && <p className="mt-0.5 text-xs text-slate-500 md:text-sm">{subtitle}</p>}
+        {subtitle && <p className="mt-0.5 text-xs text-muted-foreground md:text-sm">{subtitle}</p>}
       </div>
       <Link
         href={href}
-        className="group flex shrink-0 items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-xs font-medium text-slate-400 transition-all hover:border-white/[0.18] hover:bg-white/[0.05] hover:text-slate-100"
+        className="group flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-foreground/20 hover:bg-muted hover:text-foreground"
       >
         {linkLabel}
         <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
@@ -140,12 +140,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ============ TOP DO TIER ============ */}
+      {/* ============ TOP TIER ============ */}
       {peripherals.length > 0 && (
         <section>
           <SectionHeader
             icon={Crown}
-            title="Top do Tier"
+            title="Top Tier"
             subtitle="Os melhores periféricos avaliados"
             href="/tierlist"
             linkLabel="Tierlist completa"
@@ -158,7 +158,7 @@ export default async function HomePage() {
                 <Link
                   key={p.id}
                   href="/tierlist"
-                  className="group relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0e17]/80 p-3 transition-all hover:-translate-y-0.5 hover:border-white/[0.18] hover:bg-[#0d121e]"
+                  className="group relative overflow-hidden rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-accent"
                 >
                   {/* Tier accent bar */}
                   {tierStyle && (
@@ -166,7 +166,7 @@ export default async function HomePage() {
                   )}
 
                   <div className="flex flex-col gap-3 pl-1.5">
-                    <div className="relative h-20 overflow-hidden rounded-md bg-black/30">
+                    <div className="relative h-20 overflow-hidden rounded-md bg-muted">
                       {p.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -175,7 +175,7 @@ export default async function HomePage() {
                           className="absolute inset-0 size-full object-contain p-2 transition-transform group-hover:scale-105"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-slate-600">
+                        <div className="flex h-full items-center justify-center text-muted-foreground">
                           <Package className="size-6" />
                         </div>
                       )}
@@ -193,11 +193,11 @@ export default async function HomePage() {
                     </div>
 
                     <div className="space-y-0.5">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
                         {CATEGORY_LABELS[p.category] ?? p.category}
                       </p>
-                      <p className="line-clamp-1 text-sm font-semibold text-slate-100">{p.name}</p>
-                      <p className="line-clamp-1 text-xs text-slate-500">{p.brand}</p>
+                      <p className="line-clamp-1 text-sm font-semibold text-foreground">{p.name}</p>
+                      <p className="line-clamp-1 text-xs text-muted-foreground">{p.brand}</p>
                     </div>
                   </div>
                 </Link>
@@ -222,9 +222,9 @@ export default async function HomePage() {
               <Link
                 key={post.id}
                 href={`/blog/${post.slug}`}
-                className="group overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0e17]/80 transition-all hover:-translate-y-0.5 hover:border-white/[0.18]"
+                className="group overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-foreground/20"
               >
-                <div className="relative aspect-[16/10] overflow-hidden bg-black/30">
+                <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                   {(post.cover_thumbnail_url || post.cover_image_url) && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -235,13 +235,13 @@ export default async function HomePage() {
                   )}
                 </div>
                 <div className="space-y-2 p-4">
-                  <p className="line-clamp-2 text-sm font-semibold text-slate-100 group-hover:text-white">
+                  <p className="line-clamp-2 text-sm font-semibold text-foreground/90 group-hover:text-foreground">
                     {post.title}
                   </p>
                   {post.excerpt && (
-                    <p className="line-clamp-2 text-xs text-slate-500">{post.excerpt}</p>
+                    <p className="line-clamp-2 text-xs text-muted-foreground">{post.excerpt}</p>
                   )}
-                  <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-600">
+                  <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground">
                     <span>{formatTimeAgo(post.created_at)}</span>
                     {post.read_time_minutes && (
                       <>
@@ -275,10 +275,10 @@ export default async function HomePage() {
                   key={product.id}
                   href={isBazar ? `/bazar/${product.slug}` : `/loja/${product.slug}`}
                   className={cn(
-                    "group relative overflow-hidden rounded-xl border bg-[#0a0e17]/80 transition-all hover:-translate-y-0.5",
+                    "group relative overflow-hidden rounded-xl border bg-card transition-all hover:-translate-y-0.5",
                     isBazar
                       ? "border-amber-500/20 hover:border-amber-500/40"
-                      : "border-white/[0.08] hover:border-emerald-500/30"
+                      : "border-border hover:border-emerald-500/30"
                   )}
                 >
                   {isBazar && (
@@ -286,7 +286,7 @@ export default async function HomePage() {
                       Usado
                     </div>
                   )}
-                  <div className="relative aspect-square bg-black/30">
+                  <div className="relative aspect-square bg-muted">
                     {product.images?.[0] && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -297,7 +297,7 @@ export default async function HomePage() {
                     )}
                   </div>
                   <div className="space-y-1 p-3">
-                    <p className="line-clamp-1 text-xs font-semibold text-slate-100">{product.name}</p>
+                    <p className="line-clamp-1 text-xs font-semibold text-foreground">{product.name}</p>
                     <p
                       className={cn(
                         "text-sm font-bold",
@@ -361,17 +361,17 @@ export default async function HomePage() {
                 <Link
                   key={post.id}
                   href={`/forum/${post.slug}`}
-                  className="group block rounded-xl border border-white/[0.08] bg-[#0a0e17]/80 p-3 transition-all hover:border-white/[0.18] hover:bg-[#0d121e]"
+                  className="group block rounded-xl border border-border bg-card p-3 transition-all hover:border-foreground/20 hover:bg-accent"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-slate-500 group-hover:bg-primary/10 group-hover:text-primary">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary">
                       <MessageCircle className="size-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="line-clamp-1 text-sm font-semibold text-slate-100 group-hover:text-white">
+                      <p className="line-clamp-1 text-sm font-semibold text-foreground/90 group-hover:text-foreground">
                         {post.title}
                       </p>
-                      <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500">
+                      <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                         <span>{post.author_name}</span>
                         <span>·</span>
                         <span>{formatTimeAgo(post.created_at)}</span>
@@ -401,9 +401,9 @@ export default async function HomePage() {
                   href={video.watchUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="group flex gap-3 rounded-xl border border-white/[0.08] bg-[#0a0e17]/80 p-2 transition-all hover:border-white/[0.18] hover:bg-[#0d121e]"
+                  className="group flex gap-3 rounded-xl border border-border bg-card p-2 transition-all hover:border-foreground/20 hover:bg-accent"
                 >
-                  <div className="relative aspect-video w-32 shrink-0 overflow-hidden rounded-md bg-black/30">
+                  <div className="relative aspect-video w-32 shrink-0 overflow-hidden rounded-md bg-muted">
                     {video.thumbnailUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -417,11 +417,11 @@ export default async function HomePage() {
                     </div>
                   </div>
                   <div className="min-w-0 flex-1 py-1 pr-2">
-                    <p className="line-clamp-2 text-sm font-medium text-slate-100 group-hover:text-white">
+                    <p className="line-clamp-2 text-sm font-medium text-foreground/90 group-hover:text-foreground">
                       {video.title}
                     </p>
                     {video.publishedAt && (
-                      <p className="mt-1 text-[11px] text-slate-500">
+                      <p className="mt-1 text-[11px] text-muted-foreground">
                         {formatTimeAgo(video.publishedAt)}
                       </p>
                     )}
@@ -454,13 +454,13 @@ export default async function HomePage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-center gap-3 rounded-xl border border-white/[0.08] bg-[#0a0e17]/80 p-4 transition-all hover:-translate-y-0.5 hover:border-white/[0.18] hover:bg-[#0d121e]"
+                className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:bg-accent"
               >
-                <Icon className="size-5 text-slate-400 group-hover:text-slate-200" />
-                <span className="text-sm font-semibold text-slate-200 group-hover:text-white">
+                <Icon className="size-5 text-muted-foreground group-hover:text-foreground" />
+                <span className="text-sm font-semibold text-foreground/90 group-hover:text-foreground">
                   {item.label}
                 </span>
-                <ArrowRight className="ml-auto size-4 text-slate-600 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-300" />
+                <ArrowRight className="ml-auto size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
               </Link>
             )
           })}

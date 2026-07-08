@@ -1159,7 +1159,7 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
             setDeleteDialog((prev) => ({ ...prev, open }))
           }}
         >
-          <DialogContent className="border border-white/[0.12] bg-[#0a0e17]/95">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>
                 {t.peripherals.delete.title}

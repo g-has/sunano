@@ -480,7 +480,7 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
           <div className="border-t border-border bg-muted/10">
             <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
               <div className="flex items-center gap-3">
-                <span className="text-xl font-black text-slate-100">-</span>
+                <span className="text-xl font-black text-foreground">-</span>
                 <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
                   {t.tierlist.underReview}
                 </span>

@@ -13,7 +13,7 @@ export function CartButton() {
   return (
     <button
       onClick={() => setOpen(true)}
-      className="relative flex items-center gap-2 rounded-lg border border-white/[0.10] bg-[#0a0e17]/90 px-3 py-2 text-sm font-medium text-slate-300 transition-all hover:border-white/[0.22] hover:text-slate-100"
+      className="relative flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:border-foreground/20 hover:text-foreground"
     >
       <ShoppingCart className="size-4" />
       <span className="hidden sm:inline">Carrinho</span>
@@ -80,12 +80,12 @@ export function CartDrawer() {
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-white/[0.10] bg-[#0a0e17] shadow-2xl">
+      <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-border bg-popover shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/[0.10] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <ShoppingCart className="size-5 text-slate-300" />
-            <h2 className="text-base font-bold text-slate-100">Carrinho</h2>
+            <ShoppingCart className="size-5 text-muted-foreground" />
+            <h2 className="text-base font-bold text-foreground">Carrinho</h2>
             {count > 0 && (
               <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">
                 {count} {count === 1 ? "item" : "itens"}
@@ -94,7 +94,7 @@ export function CartDrawer() {
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-white/[0.06] hover:text-slate-300"
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <X className="size-4" />
           </button>
@@ -104,23 +104,23 @@ export function CartDrawer() {
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {items.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-              <ShoppingCart className="size-10 text-slate-700" />
-              <p className="text-sm text-slate-500">Seu carrinho está vazio</p>
+              <ShoppingCart className="size-10 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Seu carrinho está vazio</p>
             </div>
           ) : (
             <div className="space-y-3">
               {items.map((item) => (
                 <div
                   key={item.productId}
-                  className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3"
                 >
                   {/* Image */}
-                  <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-white/[0.04]">
+                  <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
                     {item.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.image} alt={item.name} className="h-full w-full object-contain p-1" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-[10px] font-bold text-slate-600">
+                      <div className="flex h-full items-center justify-center text-[10px] font-bold text-muted-foreground">
                         {item.name.slice(0, 2).toUpperCase()}
                       </div>
                     )}
@@ -128,7 +128,7 @@ export function CartDrawer() {
 
                   {/* Info */}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-200">{item.name}</p>
+                    <p className="truncate text-sm font-semibold text-foreground">{item.name}</p>
                     <p className="mt-0.5 text-xs font-bold text-emerald-400">{formatBRL(item.priceCents)}</p>
                     {item.type === "bazaar" && (
                       <span className="mt-1 inline-flex items-center rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-amber-300">
@@ -141,18 +141,18 @@ export function CartDrawer() {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => decrement(item.productId)}
-                      className="flex size-6 items-center justify-center rounded-md border border-white/[0.10] text-slate-400 hover:border-white/[0.22] hover:text-slate-200"
+                      className="flex size-6 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-foreground/20 hover:text-foreground"
                     >
                       <Minus className="size-3" />
                     </button>
-                    <span className="w-5 text-center text-sm font-bold text-slate-200">
+                    <span className="w-5 text-center text-sm font-bold text-foreground">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => increment(item.productId)}
                       disabled={item.quantity >= item.stock}
                       className={cn(
-                        "flex size-6 items-center justify-center rounded-md border border-white/[0.10] text-slate-400 hover:border-white/[0.22] hover:text-slate-200",
+                        "flex size-6 items-center justify-center rounded-md border border-border text-muted-foreground hover:border-foreground/20 hover:text-foreground",
                         item.quantity >= item.stock && "cursor-not-allowed opacity-40"
                       )}
                     >
@@ -160,7 +160,7 @@ export function CartDrawer() {
                     </button>
                     <button
                       onClick={() => remove(item.productId)}
-                      className="ml-1 flex size-6 items-center justify-center rounded-md text-slate-600 hover:text-red-400"
+                      className="ml-1 flex size-6 items-center justify-center rounded-md text-muted-foreground hover:text-red-400"
                     >
                       <Trash2 className="size-3" />
                     </button>
@@ -173,17 +173,17 @@ export function CartDrawer() {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-white/[0.10] px-5 py-4 space-y-3">
+          <div className="border-t border-border px-5 py-4 space-y-3">
             {error && (
               <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">{error}</p>
             )}
 
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-400">Total</span>
-              <span className="text-lg font-black text-slate-100">{formatBRL(total)}</span>
+              <span className="text-sm text-muted-foreground">Total</span>
+              <span className="text-lg font-black text-foreground">{formatBRL(total)}</span>
             </div>
 
-            <p className="text-[10px] text-slate-600">
+            <p className="text-[10px] text-muted-foreground">
               Pagamento via cartão de crédito ou PIX · Processado pela Stripe
             </p>
 
@@ -204,7 +204,7 @@ export function CartDrawer() {
 
             <button
               onClick={clear}
-              className="w-full text-center text-xs text-slate-600 hover:text-slate-400"
+              className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
             >
               Limpar carrinho
             </button>

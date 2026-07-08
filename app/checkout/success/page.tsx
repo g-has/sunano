@@ -26,14 +26,14 @@ function SuccessContent() {
       </div>
 
       <div className="space-y-2">
-        <h1 className="text-3xl font-black text-slate-50">Pagamento confirmado!</h1>
-        <p className="text-slate-400 max-w-sm">
+        <h1 className="text-3xl font-black text-foreground">Pagamento confirmado!</h1>
+        <p className="text-muted-foreground max-w-sm">
           Seu pedido foi recebido com sucesso. Você receberá um e-mail de confirmação em breve.
         </p>
       </div>
 
       {sessionId && (
-        <p className="rounded-lg bg-white/[0.04] px-4 py-2 font-mono text-xs text-slate-500">
+        <p className="rounded-lg bg-muted px-4 py-2 font-mono text-xs text-muted-foreground">
           ID: {sessionId}
         </p>
       )}
@@ -46,7 +46,7 @@ function SuccessContent() {
           </Button>
         </Link>
         <Link href="/">
-          <Button variant="ghost" className="text-slate-400">
+          <Button variant="ghost" className="text-muted-foreground">
             Voltar ao início
           </Button>
         </Link>
