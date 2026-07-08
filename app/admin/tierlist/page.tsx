@@ -128,6 +128,37 @@ const ORDER_KEY_BY_MODE: Record<RatingMode, string> = {
   pcb: "adminTierOrder_pcb",
 }
 
+// Modes not listed here share the `tier` column directly (the "default" mode for their
+// category group: performance/Geral for most categories, magnetic for keyboards). Every
+// other mode keeps its own tier assignment in `specs` so moving an item between tiers in
+// one mode never affects the others.
+const TIER_KEY_BY_MODE: Partial<Record<RatingMode, string>> = {
+  value: "adminTier_value",
+  recommended: "adminTier_recommended",
+  oled: "adminTier_oled",
+  soundTyping: "adminTier_soundTyping",
+  mechanical: "adminTier_mechanical",
+  pcb: "adminTier_pcb",
+}
+
+const TIER_VALUES: Tier[] = ["GOAT", "SS", "S", "A", "B", "C", "L"]
+
+function getModeTier(item: Peripheral, tierKey: string | null): TierValue {
+  if (tierKey === null) return item.tier
+  const value = item.specs?.[tierKey]
+  return typeof value === "string" && (TIER_VALUES as string[]).includes(value) ? (value as Tier) : null
+}
+
+function withModeTier(item: Peripheral, tier: TierValue, tierKey: string | null): Peripheral {
+  if (tierKey === null) return { ...item, tier }
+  if (tier === null) {
+    const specs = { ...item.specs }
+    delete specs[tierKey]
+    return { ...item, specs }
+  }
+  return { ...item, specs: { ...item.specs, [tierKey]: tier } }
+}
+
 type ModeConfig = {
   // Optional filter — only OLED mode narrows the item set.
   filterItem?: (item: Peripheral) => boolean
@@ -210,9 +241,9 @@ function sortByTierOrderThenName(items: Peripheral[], orderKey: string, allowLeg
   })
 }
 
-function normalizeTierOrder(items: Peripheral[], tier: TierValue, orderKey: string): Peripheral[] {
-  if (tier === null) return items.map((item) => clearTierOrder(item, orderKey))
-  return items.map((item, index) => withTierOrder({ ...item, tier }, index + 1, orderKey))
+function normalizeTierOrder(items: Peripheral[], tier: TierValue, orderKey: string, tierKey: string | null): Peripheral[] {
+  if (tier === null) return items.map((item) => clearTierOrder(withModeTier(item, null, tierKey), orderKey))
+  return items.map((item, index) => withTierOrder(withModeTier(item, tier, tierKey), index + 1, orderKey))
 }
 
 function getRecommendedScore(item: Peripheral) {
@@ -589,6 +620,7 @@ export default function AdminPeripheralsPage() {
 
   const orderKey = ORDER_KEY_BY_MODE[ratingMode]
   const allowLegacyFallback = ratingMode === "performance"
+  const tierKey = TIER_KEY_BY_MODE[ratingMode] ?? null
 
   const scheduleHoverUpdate = useCallback((nextId: string | null) => {
     if (pendingHoverIdRef.current === nextId) return
@@ -608,17 +640,18 @@ export default function AdminPeripheralsPage() {
     destinationTier: TierValue,
     orderKey: string,
     allowLegacyFallback: boolean,
+    tierKey: string | null,
     insertAfter: boolean,
     targetItemId?: string,
   ) => {
     const draggedItem = allItems.find((item) => item.id === draggedId)
     if (!draggedItem) return allItems
 
-    const sourceTier = draggedItem.tier
+    const sourceTier = getModeTier(draggedItem, tierKey)
     const updates = new Map<string, Peripheral>()
 
     const destinationBase = sortByTierOrderThenName(
-      allItems.filter((item) => item.tier === destinationTier && item.id !== draggedId),
+      allItems.filter((item) => getModeTier(item, tierKey) === destinationTier && item.id !== draggedId),
       orderKey,
       allowLegacyFallback,
     )
@@ -637,20 +670,20 @@ export default function AdminPeripheralsPage() {
     destinationItems.splice(
       destinationInsertIndex < 0 ? destinationItems.length : destinationInsertIndex,
       0,
-      { ...draggedItem, tier: destinationTier },
+      withModeTier(draggedItem, destinationTier, tierKey),
     )
 
-    for (const item of normalizeTierOrder(destinationItems, destinationTier, orderKey)) {
+    for (const item of normalizeTierOrder(destinationItems, destinationTier, orderKey, tierKey)) {
       updates.set(item.id, item)
     }
 
     if (sourceTier !== destinationTier) {
       const sourceItems = sortByTierOrderThenName(
-        allItems.filter((item) => item.tier === sourceTier && item.id !== draggedId),
+        allItems.filter((item) => getModeTier(item, tierKey) === sourceTier && item.id !== draggedId),
         orderKey,
         allowLegacyFallback,
       )
-      for (const item of normalizeTierOrder(sourceItems, sourceTier, orderKey)) {
+      for (const item of normalizeTierOrder(sourceItems, sourceTier, orderKey, tierKey)) {
         updates.set(item.id, item)
       }
     }
@@ -681,6 +714,7 @@ export default function AdminPeripheralsPage() {
     nextItems: Peripheral[],
     orderKey: string,
     allowLegacyFallback: boolean,
+    tierKey: string | null,
   ) => {
     const previousById = new Map(previousItems.map((item) => [item.id, item]))
     const changedItems = nextItems.filter((nextItem) => {
@@ -688,7 +722,7 @@ export default function AdminPeripheralsPage() {
       if (!previousItem) return false
 
       return (
-        previousItem.tier !== nextItem.tier ||
+        getModeTier(previousItem, tierKey) !== getModeTier(nextItem, tierKey) ||
         getTierOrder(previousItem, orderKey, allowLegacyFallback) !== getTierOrder(nextItem, orderKey, allowLegacyFallback)
       )
     })
@@ -700,14 +734,15 @@ export default function AdminPeripheralsPage() {
         const previousItem = previousById.get(item.id)
         const payload: Record<string, unknown> = {}
 
-        if (previousItem?.tier !== item.tier) payload.tier = item.tier
-        if (
+        const tierChanged = getModeTier(previousItem as Peripheral, tierKey) !== getModeTier(item, tierKey)
+        const orderChanged =
           getTierOrder(previousItem as Peripheral, orderKey, allowLegacyFallback) !==
-            getTierOrder(item, orderKey, allowLegacyFallback) ||
-          previousItem?.tier !== item.tier
-        ) {
-          payload.specs = item.specs
-        }
+          getTierOrder(item, orderKey, allowLegacyFallback)
+
+        // Only the "default" mode (tierKey === null) writes the shared `tier` column —
+        // every other mode keeps its tier assignment scoped to its own `specs` key.
+        if (tierKey === null && tierChanged) payload.tier = item.tier
+        if (orderChanged || tierChanged) payload.specs = item.specs
 
         if (Object.keys(payload).length === 0) return
 
@@ -802,7 +837,7 @@ export default function AdminPeripheralsPage() {
     }
 
     const targetItem = peripherals.find((item) => item.id === targetItemId)
-    if (!targetItem || targetItem.tier !== draggedItem.tier) {
+    if (!targetItem || getModeTier(targetItem, tierKey) !== getModeTier(draggedItem, tierKey)) {
       scheduleHoverUpdate(null)
       return
     }
@@ -841,16 +876,17 @@ export default function AdminPeripheralsPage() {
       const nextPeripherals = applyTierReorder(
         previousPeripherals,
         draggedItem.id,
-        targetItem.tier,
+        getModeTier(targetItem, tierKey),
         orderKey,
         allowLegacyFallback,
+        tierKey,
         insertAfter,
         targetItem.id,
       )
       setPeripherals(nextPeripherals)
 
       try {
-        await persistReorderedItems(previousPeripherals, nextPeripherals, orderKey, allowLegacyFallback)
+        await persistReorderedItems(previousPeripherals, nextPeripherals, orderKey, allowLegacyFallback, tierKey)
         toast.success(t.admin.tierlistPage.orderUpdated, {
           description: draggedItem.name,
         })
@@ -865,7 +901,7 @@ export default function AdminPeripheralsPage() {
     }
 
     if (overId === "unassigned-pool") {
-      if (draggedItem.tier === null) return
+      if (getModeTier(draggedItem, tierKey) === null) return
 
       const nextPeripherals = applyTierReorder(
         previousPeripherals,
@@ -873,13 +909,14 @@ export default function AdminPeripheralsPage() {
         null,
         orderKey,
         allowLegacyFallback,
+        tierKey,
         false,
       )
 
       setPeripherals(nextPeripherals)
 
       try {
-        await persistReorderedItems(previousPeripherals, nextPeripherals, orderKey, allowLegacyFallback)
+        await persistReorderedItems(previousPeripherals, nextPeripherals, orderKey, allowLegacyFallback, tierKey)
         toast.success(t.admin.tierlistPage.tierRemoved, {
           description: draggedItem.name,
         })
@@ -895,7 +932,7 @@ export default function AdminPeripheralsPage() {
 
     const newTier = overId as Tier
 
-    if (draggedItem.tier === newTier) {
+    if (getModeTier(draggedItem, tierKey) === newTier) {
       return
     }
 
@@ -905,13 +942,14 @@ export default function AdminPeripheralsPage() {
       newTier,
       orderKey,
       allowLegacyFallback,
+      tierKey,
       false,
     )
 
     setPeripherals(nextPeripherals)
 
     try {
-      await persistReorderedItems(previousPeripherals, nextPeripherals, orderKey, allowLegacyFallback)
+      await persistReorderedItems(previousPeripherals, nextPeripherals, orderKey, allowLegacyFallback, tierKey)
       toast.success(t.admin.tierlistPage.movedToTier(newTier), {
         description: draggedItem.name,
       })
@@ -974,18 +1012,19 @@ export default function AdminPeripheralsPage() {
     const targetItem = peripherals.find((item) => item.id === hoveredItemId)
     if (!draggedItem || !targetItem) return peripherals
     if (draggedItem.id === targetItem.id) return peripherals
-    if (draggedItem.tier !== targetItem.tier) return peripherals
+    if (getModeTier(draggedItem, tierKey) !== getModeTier(targetItem, tierKey)) return peripherals
 
     return applyTierReorder(
       peripherals,
       draggedItem.id,
-      targetItem.tier,
+      getModeTier(targetItem, tierKey),
       orderKey,
       allowLegacyFallback,
+      tierKey,
       hoveredInsertAfterRef.current,
       targetItem.id,
     )
-  }, [activeId, hoveredItemId, peripherals, applyTierReorder, orderKey, allowLegacyFallback])
+  }, [activeId, hoveredItemId, peripherals, applyTierReorder, orderKey, allowLegacyFallback, tierKey])
 
   const filtered = useMemo(() => {
     return visualPeripherals.filter((item) => {
@@ -1025,22 +1064,31 @@ export default function AdminPeripheralsPage() {
       (value) => value !== "all",
     ).length + (query.trim() ? 1 : 0)
   }, [query, selectedBrand, selectedPriceBand, selectedMouseShape, selectedKeyboardLayout])
-  const unassignedItems = filtered.filter((item) => item.tier === null)
-  const activeItem = activeId ? peripherals.find((p) => p.id === activeId) ?? null : null
+  const unassignedItems = filtered
+    .filter((item) => getModeTier(item, tierKey) === null)
+    .map((item) => ({ ...item, tier: null }))
+  const activeItem = activeId
+    ? (() => {
+        const raw = peripherals.find((p) => p.id === activeId)
+        return raw ? { ...raw, tier: getModeTier(raw, tierKey) } : null
+      })()
+    : null
   const modeConfig = MODE_CONFIGS[ratingMode]
   const modeDescription = t.admin.tierlistPage.modeDescriptions[ratingMode]
 
   const itemsByTier = useMemo(
     () =>
       TIER_ROWS.map((tier) => {
-        let tierItems = filtered.filter((item) => item.tier === tier.key)
+        let tierItems = filtered.filter((item) => getModeTier(item, tierKey) === tier.key)
         if (modeConfig.filterItem) tierItems = tierItems.filter(modeConfig.filterItem)
         return {
           ...tier,
-          items: sortWithTierOrder(tierItems, orderKey, allowLegacyFallback, modeConfig.fallbackSort),
+          items: sortWithTierOrder(tierItems, orderKey, allowLegacyFallback, modeConfig.fallbackSort).map(
+            (item) => ({ ...item, tier: tier.key }),
+          ),
         }
       }),
-    [filtered, modeConfig, orderKey, allowLegacyFallback]
+    [filtered, modeConfig, orderKey, allowLegacyFallback, tierKey]
   )
 
   const handleCategoryChange = (category: Category) => {

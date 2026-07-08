@@ -34,6 +34,12 @@ interface Peripheral {
     adminTierOrder_mechanical?: number
     adminTierOrder_magnetic?: number
     adminTierOrder_pcb?: number
+    adminTier_value?: TierValue
+    adminTier_recommended?: TierValue
+    adminTier_oled?: TierValue
+    adminTier_soundTyping?: TierValue
+    adminTier_mechanical?: TierValue
+    adminTier_pcb?: TierValue
     mouseShape?: "symmetrical" | "ergonomic"
     keyboardLayout?: string
     connectivity?: "wired" | "wireless"
@@ -54,6 +60,26 @@ const ORDER_KEY_BY_MODE: Record<RatingMode, string> = {
   mechanical: "adminTierOrder_mechanical",
   magnetic: "adminTierOrder_magnetic",
   pcb: "adminTierOrder_pcb",
+}
+
+// Modes not listed here share the `tier` column directly (the "default" mode for their
+// category group: overall/Geral for most categories, magnetic for keyboards). Every other
+// mode reads its own tier assignment from `specs`, matching the admin editor.
+const TIER_KEY_BY_MODE: Partial<Record<RatingMode, string>> = {
+  value: "adminTier_value",
+  recommended: "adminTier_recommended",
+  oled: "adminTier_oled",
+  soundTyping: "adminTier_soundTyping",
+  mechanical: "adminTier_mechanical",
+  pcb: "adminTier_pcb",
+}
+
+const TIER_VALUES: Tier[] = ["GOAT", "SS", "S", "A", "B", "C", "L"]
+
+function getModeTier(item: Peripheral, tierKey: string | null): TierValue {
+  if (tierKey === null) return item.tier
+  const value = item.specs?.[tierKey as keyof Peripheral["specs"]]
+  return typeof value === "string" && (TIER_VALUES as string[]).includes(value) ? (value as Tier) : null
 }
 
 function getTierOrder(item: Peripheral, orderKey: string, allowLegacyFallback: boolean): number | null {
@@ -215,6 +241,7 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   const modeConfig = MODE_CONFIGS[ratingMode]
   const orderKey = ORDER_KEY_BY_MODE[ratingMode]
   const allowLegacyFallback = ratingMode === "overall"
+  const tierKey = TIER_KEY_BY_MODE[ratingMode] ?? null
   const isComingSoon = COMING_SOON_CATEGORIES.includes(category)
 
   const tierRows: TierRow[] = [
@@ -291,21 +318,26 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
   const itemsByTier = useMemo(
     () =>
       tierRows.map((tier) => {
-        let tierItems = filtered.filter((item) => item.tier === tier.key)
+        let tierItems = filtered.filter((item) => getModeTier(item, tierKey) === tier.key)
         if (modeConfig.filterItem) tierItems = tierItems.filter(modeConfig.filterItem)
         return {
           ...tier,
-          items: sortWithTierOrder(tierItems, orderKey, allowLegacyFallback, modeConfig.fallbackSort),
+          items: sortWithTierOrder(tierItems, orderKey, allowLegacyFallback, modeConfig.fallbackSort).map(
+            (item) => ({ ...item, tier: tier.key }),
+          ),
         }
       }),
-    [filtered, modeConfig, tierRows, orderKey, allowLegacyFallback]
+    [filtered, modeConfig, tierRows, orderKey, allowLegacyFallback, tierKey]
   )
 
   const untieredItems = useMemo(() => {
-    let items = filtered.filter((item) => item.tier === null)
+    let items = filtered.filter((item) => getModeTier(item, tierKey) === null)
     if (modeConfig.filterItem) items = items.filter(modeConfig.filterItem)
-    return sortWithTierOrder(items, orderKey, allowLegacyFallback, modeConfig.fallbackSort)
-  }, [filtered, modeConfig, orderKey, allowLegacyFallback])
+    return sortWithTierOrder(items, orderKey, allowLegacyFallback, modeConfig.fallbackSort).map((item) => ({
+      ...item,
+      tier: null,
+    }))
+  }, [filtered, modeConfig, orderKey, allowLegacyFallback, tierKey])
 
   const hasItems = filtered.length > 0
 

@@ -38,6 +38,12 @@ type Peripheral = {
     adminRecommendedBand?: string
     adminSoundProfile?: string
     adminTypingFeel?: string
+    adminTier_value?: TierValue
+    adminTier_recommended?: TierValue
+    adminTier_oled?: TierValue
+    adminTier_soundTyping?: TierValue
+    adminTier_mechanical?: TierValue
+    adminTier_pcb?: TierValue
   }
 }
 

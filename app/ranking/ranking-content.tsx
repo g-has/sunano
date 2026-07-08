@@ -93,7 +93,7 @@ function BarChart({ items }: { items: RankedPeripheral[] }) {
 }
 
 export function RankingContent({ peripherals }: { peripherals: RankedPeripheral[] }) {
-  usePageHeader("Ranking", "Classificação dos periféricos por pontuação")
+  usePageHeader("Ranking", "Pontuação (Performance e Estabilidade)")
 
   const categoriesWithData = CATEGORIES.filter((cat) =>
     peripherals.some((p) => p.category === cat.key)
@@ -108,7 +108,7 @@ export function RankingContent({ peripherals }: { peripherals: RankedPeripheral[
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       {/* Category tabs */}
-      <div className="mb-6 flex flex-wrap gap-1.5">
+      <div className="mb-1.5 flex flex-wrap gap-1.5">
         {categoriesWithData.map((cat) => (
           <button
             key={cat.key}
@@ -124,6 +124,9 @@ export function RankingContent({ peripherals }: { peripherals: RankedPeripheral[
           </button>
         ))}
       </div>
+      <p className="mb-6 px-1 text-xs font-medium text-muted-foreground">
+        Quanto maior, melhor
+      </p>
 
       {/* Legend */}
       <div className="mb-3 flex items-center gap-3 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">

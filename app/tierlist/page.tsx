@@ -39,6 +39,12 @@ export default async function TierlistPage() {
         profile?: string
         adminValueBand?: string
         adminRecommendedBand?: string
+        adminTier_value?: "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L" | null
+        adminTier_recommended?: "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L" | null
+        adminTier_oled?: "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L" | null
+        adminTier_soundTyping?: "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L" | null
+        adminTier_mechanical?: "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L" | null
+        adminTier_pcb?: "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L" | null
       },
     }
   })

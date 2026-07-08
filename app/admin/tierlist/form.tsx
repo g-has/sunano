@@ -61,7 +61,6 @@ const peripheralSchema = z.object({
   rankLabel: z.string().optional(),
   ranking: z.coerce.number().int().positive().optional(),
   score: z.coerce.number().min(0).optional(),
-  priceRange: z.string().optional(),
   reviewUrl: z.string().optional(),
   reviewNote: z.string().optional(),
   guideUrl: z.string().optional(),
@@ -527,7 +526,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       category: "mouse",
       tier: "__none__",
       price: 0,
-      rankLabel: "", ranking: undefined, score: undefined, priceRange: "", reviewUrl: "", reviewNote: "", guideUrl: "", wikiUrl: "",
+      rankLabel: "", ranking: undefined, score: undefined, reviewUrl: "", reviewNote: "", guideUrl: "", wikiUrl: "",
       notesLong: "", summary: "", highlights: "", pros: "", cons: "", gallery: "",
       softwareInfo: "", teamComments: "",
       buyLinks: "", compatibility: "", notes: "", comparisons: "",
@@ -628,7 +627,6 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           rankLabel: data.specs?.details?.rankLabel ?? "",
           ranking: data.specs?.details?.ranking ? Number(data.specs.details.ranking) : undefined,
           score: data.specs?.details?.score != null ? Number(data.specs.details.score) : undefined,
-          priceRange: data.specs?.details?.priceRange ?? "",
           reviewUrl: data.specs?.details?.reviewUrl ?? "",
           reviewNote: data.specs?.details?.reviewNote ?? "",
           guideUrl: data.specs?.details?.guideUrl ?? "",
@@ -772,7 +770,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
         panelType: data.panelType || undefined,
         details: {
-          rankLabel: data.rankLabel || undefined, ranking: data.ranking || undefined, score: data.score ?? undefined, priceRange: data.priceRange || undefined,
+          rankLabel: data.rankLabel || undefined, ranking: data.ranking || undefined, score: data.score ?? undefined,
           reviewUrl: data.reviewUrl || undefined, reviewNote: data.reviewNote || undefined,
           guideUrl: data.guideUrl || undefined, wikiUrl: data.wikiUrl || undefined,
           notesLong: data.notesLong || undefined,
@@ -1311,6 +1309,11 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         {/* SECTION 6: Specs por categoria */}
         <FormSection title={t.admin.tierlistForm.sectionTechnicalSpecs} icon={<FileText className="size-4" />} defaultOpen>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{"Pontuação"}</label>
+              <Input className="border-border bg-background" type="number" min={0} step={0.25} placeholder="788.5" {...form.register("score", { valueAsNumber: true })} />
+            </div>
+
             {watchedCategory === "mouse" && (
               <>
                 <div className="space-y-1.5">
@@ -1946,17 +1949,6 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">{"Descrição"}</label>
               <Textarea className="border-border bg-background resize-none" placeholder={"Resumo breve do produto exibido acima das especificações"} rows={2} {...form.register("summary")} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{"Pontuação"}</label>
-                <Input className="border-border bg-background" type="number" min={0} step={0.25} placeholder="788.5" {...form.register("score", { valueAsNumber: true })} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{"Faixa de preço"}</label>
-                <Input className="border-border bg-background" placeholder="R$1050–1130" {...form.register("priceRange")} />
-              </div>
             </div>
 
             <div className="space-y-1.5">
