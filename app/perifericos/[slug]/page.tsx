@@ -206,7 +206,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   }
 
   const score = details.score != null ? Number(details.score) : null
-  const priceRange = details.priceRange
   const reviewUrl = details.reviewUrl
   const reviewNote = details.reviewNote
   const youtubeId = getYoutubeEmbedId(reviewUrl)
@@ -557,40 +556,30 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 </Card>
 
                 <Card className="border-border bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-sm">Comentarios e recomendacoes</CardTitle>
-                    <CardDescription className="text-xs">Resumo geral do periférico.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="max-h-64 overflow-auto space-y-3 text-sm text-muted-foreground">
-                      {priceRange && (
-                        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
-                          <span>Faixa de preco</span>
-                          <span className="font-semibold text-foreground">{priceRange}</span>
-                        </div>
-                      )}
+                  <CardContent className="max-h-80 overflow-auto space-y-3 pt-6 text-base text-muted-foreground">
                       <div className="grid gap-3 md:grid-cols-2">
                         <div>
-                          <p className="text-xs font-semibold text-emerald-400">Pontos positivos</p>
+                          <p className="text-lg font-semibold text-emerald-400">Pontos positivos</p>
                           {pros.length > 0 ? (
-                            <ul className="list-disc space-y-1 pl-4">
+                            <ul className="list-disc space-y-1 pl-4 text-base">
                               {pros.map((item: string) => (
                                 <li key={item}>{item}</li>
                               ))}
                             </ul>
                           ) : (
-                            <p>Sem pontos fortes cadastrados.</p>
+                            <p className="text-base">Sem pontos fortes cadastrados.</p>
                           )}
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-rose-400">Pontos negativos</p>
+                          <p className="text-lg font-semibold text-rose-400">Pontos negativos</p>
                           {cons.length > 0 ? (
-                            <ul className="list-disc space-y-1 pl-4">
+                            <ul className="list-disc space-y-1 pl-4 text-base">
                               {cons.map((item: string) => (
                                 <li key={item}>{item}</li>
                               ))}
                             </ul>
                           ) : (
-                            <p>Sem pontos fracos cadastrados.</p>
+                            <p className="text-base">Sem pontos fracos cadastrados.</p>
                           )}
                         </div>
                       </div>
