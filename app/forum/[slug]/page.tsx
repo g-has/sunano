@@ -115,7 +115,14 @@ export default function ForumPostPage() {
 
   useEffect(() => {
     // A sessão vem do cliente de autenticação; o perfil vem de /api/auth/me.
+    // Em alguns navegadores mobile (webviews como o do Telegram) o evento
+    // inicial do onAuthStateChange pode nunca disparar, travando a UI de
+    // votos/comentários num skeleton eterno. Depois de alguns segundos,
+    // assume-se deslogado — se o evento chegar depois, o estado é atualizado.
+    const timeout = setTimeout(() => setAuthLoading(false), 4000)
+
     const { data: { subscription } } = supabaseAuth.auth.onAuthStateChange(async (_event, session) => {
+      clearTimeout(timeout)
       if (session?.user) {
         let displayName = session.user.email?.split("@")[0] || "Usuário"
         let avatarUrl: string | null = null
@@ -136,7 +143,10 @@ export default function ForumPostPage() {
       }
       setAuthLoading(false)
     })
-    return () => subscription.unsubscribe()
+    return () => {
+      clearTimeout(timeout)
+      subscription.unsubscribe()
+    }
   }, [])
 
   const loadPost = useCallback(async () => {

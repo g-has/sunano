@@ -408,9 +408,10 @@ export function ComparePageClient() {
           <BoxLoader />
         </div>
       ) : (
+        <div className="-mx-4 overflow-x-auto px-4 pb-1 snap-x snap-mandatory md:mx-0 md:overflow-visible md:px-0 md:pb-0 md:snap-none">
         <div
           className="grid gap-4"
-          style={{ gridTemplateColumns: `repeat(${Math.min(items.length + (items.length < MAX_ITEMS ? 1 : 0), MAX_ITEMS + 1)}, 1fr)` }}
+          style={{ gridTemplateColumns: `repeat(${Math.min(items.length + (items.length < MAX_ITEMS ? 1 : 0), MAX_ITEMS + 1)}, minmax(190px, 1fr))` }}
         >
           {items.map((item) => {
             const wins = winsMap[item.id] ?? 0
@@ -421,7 +422,7 @@ export function ComparePageClient() {
               <div
                 key={item.id}
                 className={cn(
-                  "group relative flex flex-col rounded-2xl border bg-gradient-to-b from-card to-card/60 p-5 pt-7 text-center transition-all duration-300",
+                  "group relative flex snap-start flex-col rounded-2xl border bg-gradient-to-b from-card to-card/60 p-5 pt-7 text-center transition-all duration-300",
                   isWinner && !isSwapping
                     ? "border-primary/40 shadow-[0_0_0_1px_rgba(var(--primary-rgb,250_204_21),0.15),0_20px_50px_-15px_rgba(0,0,0,0.5)]"
                     : "border-border hover:border-border/80",
@@ -538,7 +539,7 @@ export function ComparePageClient() {
             <button
               onClick={openAdd}
               className={cn(
-                "group flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed transition-all duration-200",
+                "group flex min-h-[260px] snap-start flex-col items-center justify-center gap-3 rounded-2xl border border-dashed transition-all duration-200",
                 activeSearch === "add"
                   ? "border-primary/60 bg-primary/5 text-primary"
                   : "border-border/70 text-muted-foreground hover:border-primary/40 hover:bg-primary/[0.03] hover:text-primary"
@@ -557,6 +558,7 @@ export function ComparePageClient() {
               </span>
             </button>
           )}
+        </div>
         </div>
       )}
 
@@ -716,7 +718,7 @@ export function ComparePageClient() {
                 </span>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-border bg-card/40 backdrop-blur-sm">
+              <div className="overflow-x-auto overflow-y-hidden rounded-2xl border border-border bg-card/40 backdrop-blur-sm">
                 {differentRows.map((row, idx) => {
                   const bestId = row.getBest?.(items) ?? null
                   const values = items.map((i) => row.getValue(i))
@@ -728,9 +730,9 @@ export function ComparePageClient() {
                         "grid items-stretch transition-colors hover:bg-muted/[0.03]",
                         idx < differentRows.length - 1 && "border-b border-border/50"
                       )}
-                      style={{ gridTemplateColumns: `170px repeat(${items.length}, 1fr)` }}
+                      style={{ gridTemplateColumns: `170px repeat(${items.length}, minmax(130px, 1fr))` }}
                     >
-                      <div className="flex items-center border-r border-border/50 bg-muted/[0.04] px-5 py-4">
+                      <div className="sticky left-0 z-10 flex items-center border-r border-border/50 bg-card px-5 py-4">
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">{row.label}</span>
                       </div>
 

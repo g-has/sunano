@@ -379,13 +379,13 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
           <p className="text-xs font-medium text-muted-foreground">{t.tierlist.viewingBy}</p>
           <p className="mt-0.5 text-sm font-semibold text-foreground">{localizedModeDescription}</p>
         </div>
-        <div className="flex rounded-lg border border-border bg-muted/30 p-1">
+        <div className="flex flex-wrap justify-center gap-1 rounded-lg border border-border bg-muted/30 p-1">
           {ratingModes.map((mode) => (
             <button
               key={mode.key}
               onClick={() => setRatingMode(mode.key)}
               className={cn(
-                "rounded-md px-4 py-2 text-sm font-medium transition-all",
+                "rounded-md px-3 py-2 text-sm font-medium transition-all sm:px-4",
                 ratingMode === mode.key
                   ? `bg-primary/20 text-primary ${mode.color}`
                   : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",

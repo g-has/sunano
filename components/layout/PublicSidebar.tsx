@@ -119,7 +119,7 @@ export function PublicSidebar() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-screen w-60 shrink-0 flex-col border-border transition-all duration-300 md:relative md:inset-auto md:h-full md:w-60 md:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex h-screen w-60 shrink-0 flex-col border-border bg-background transition-all duration-300 md:relative md:inset-auto md:h-full md:w-60 md:translate-x-0",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
