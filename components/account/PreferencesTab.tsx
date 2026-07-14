@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { LogOut, Palette, Trash2 } from "lucide-react"
+import { LogOut, Moon, Palette, Sun, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -32,7 +32,8 @@ import { LANGUAGE_OPTIONS, type LocaleCode } from "@/lib/i18n"
 
 export function PreferencesTab() {
   const router = useRouter()
-  const { theme, setTheme, themes } = useTheme()
+  const { theme, setTheme } = useTheme()
+  const isLight = theme === "light"
   const { locale, setLocale } = useLocale()
   const [savingPrefs, setSavingPrefs] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
@@ -107,18 +108,18 @@ export function PreferencesTab() {
         <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tema</label>
-            <Select value={theme} onValueChange={onThemeChange}>
-              <SelectTrigger className="w-full border-border bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {themes.map((t) => (
-                  <SelectItem key={t.key} value={t.key}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <button
+              type="button"
+              onClick={() => onThemeChange(isLight ? "dark" : "light")}
+              className="flex h-8 items-center gap-2 rounded-lg border border-border bg-card/70 px-3 text-sm font-medium text-foreground transition-all hover:bg-muted/40"
+              aria-label={isLight ? "Ativar modo escuro" : "Ativar modo claro"}
+            >
+              {isLight ? (
+                <Moon className="size-[15px] text-primary" />
+              ) : (
+                <Sun className="size-[15px] text-primary" />
+              )}
+            </button>
           </div>
 
           <div className="space-y-1.5">

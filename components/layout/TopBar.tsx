@@ -163,8 +163,8 @@ export function TopBar() {
           <button
             className="flex h-8 items-center gap-2 rounded-lg border border-border bg-card/70 px-3 text-sm font-medium text-foreground transition-all hover:bg-muted/40"
             type="button"
-            onClick={() => setTheme(isLight ? "midnight" : "light")}
-            aria-label={isLight ? "Ativar modo night" : "Ativar modo dia"}
+            onClick={() => setTheme(isLight ? "dark" : "light")}
+            aria-label={isLight ? "Ativar modo escuro" : "Ativar modo claro"}
           >
             {isLight ? (
               <Moon className="size-[15px] text-primary" />

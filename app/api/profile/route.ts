@@ -9,7 +9,7 @@ import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 export const dynamic = "force-dynamic"
 
-const VALID_THEMES = ["midnight", "dark", "light", "emerald", "amber", "rose"] as const
+const VALID_THEMES = ["dark", "light"] as const
 const VALID_LOCALES = ["pt-BR", "en-US"] as const
 
 const profileSchema = z.object({

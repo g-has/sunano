@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 
-type ThemeKey = "midnight" | "emerald" | "amber" | "rose" | "light" | "dark"
+type ThemeKey = "light" | "dark"
 
 type ThemeOption = {
   key: ThemeKey
@@ -20,20 +20,16 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 const THEME_STORAGE_KEY = "sunano-theme"
 
 const THEME_OPTIONS: ThemeOption[] = [
-  { key: "midnight", label: "Midnight" },
-  { key: "dark", label: "Dark (Pure Black)" },
-  { key: "light", label: "Light (Pure White)" },
-  { key: "emerald", label: "Emerald" },
-  { key: "amber", label: "Amber" },
-  { key: "rose", label: "Rose" },
+  { key: "dark", label: "Escuro" },
+  { key: "light", label: "Claro" },
 ]
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeKey>("midnight")
+  const [theme, setThemeState] = useState<ThemeKey>("dark")
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? localStorage.getItem(THEME_STORAGE_KEY) : null
-    const nextTheme = (stored as ThemeKey) || "midnight"
+    const nextTheme = THEME_OPTIONS.some((t) => t.key === stored) ? (stored as ThemeKey) : "dark"
     setThemeState(nextTheme)
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", nextTheme)

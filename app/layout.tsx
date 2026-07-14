@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className="bg-background" data-theme="midnight" suppressHydrationWarning>
+    <html lang="pt-BR" className="bg-background" data-theme="dark" suppressHydrationWarning>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans`}>
         <ThemeProvider>
           <LocaleProvider>
