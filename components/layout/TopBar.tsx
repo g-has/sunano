@@ -53,6 +53,7 @@ const PAGE_DEFAULTS: Record<string, PageDefaults> = {
   "/":                  { title: "Home", description: "Tudo que você precisa saber." },
   "/noticias":          { title: "Notícias", description: "Últimas novidades do mundo dos periféricos." },
   "/perifericos":       { title: "Periféricos", description: "Wiki pesquisável com filtros por categoria, marca e preço." },
+  "/tierlist":          { title: "Tierlist", description: "Ranking dos melhores periféricos por categoria." },
   "/blog":              { title: "Reviews", description: "Reviews completos e análises detalhadas." },
   "/offers":            { title: "Ofertas", description: "Promoções e descontos selecionados do Telegram." },
   "/forum":             { title: "Fórum", description: "Discussões e perguntas da comunidade." },

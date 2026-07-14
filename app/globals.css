@@ -109,8 +109,10 @@
   --font-display: 'Space Grotesk', 'Space Grotesk Fallback', system-ui, sans-serif;
 }
 
-* {
-  @apply border-border;
+@layer base {
+  * {
+    @apply border-border;
+  }
 }
 
 body {

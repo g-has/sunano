@@ -227,59 +227,59 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
   const formatTrimode = (v?: string) =>
     v === "yes" ? "Sim" : v === "no" ? "Não" : v
 
-  const specsBase = [{ label: "Preco base", value: formatCurrency(data.price) }]
+  const specsBase = [{ label: "Preco base", value: formatCurrency(data.price), group: "specs" as const }]
 
-  const specsTable: { label: string; value: unknown }[] = (() => {
+  const specsTable: { label: string; value: unknown; group: "specs" | "performance" }[] = (() => {
     switch (data.category) {
       case "mouse":
         return [...specsBase,
-          { label: "Sensor", value: specs.driver ?? details.sensor },
-          { label: "Peso", value: details.weight ?? specs.weight },
-          { label: "Latencia", value: details.latency ?? specs.latency },
-          { label: "Switch", value: details.switchType ?? specs.switchType },
-          { label: "Shape", value: details.shape ?? specs.mouseShape },
-          { label: "Coating", value: details.coating ?? specs.coating },
+          { label: "Sensor", value: specs.driver ?? details.sensor, group: "specs" },
+          { label: "Peso", value: details.weight ?? specs.weight, group: "specs" },
+          { label: "Switch", value: details.switchType ?? specs.switchType, group: "specs" },
+          { label: "Shape", value: details.shape ?? specs.mouseShape, group: "specs" },
+          { label: "Coating", value: details.coating ?? specs.coating, group: "specs" },
+          { label: "Latencia", value: details.latency ?? specs.latency, group: "performance" },
         ]
       case "keyboard":
         return [...specsBase,
-          { label: "Layout", value: specs.keyboardLayout },
-          { label: "Tipo", value: formatKeyboardType(specs.keyboardType) },
-          { label: "Conectividade", value: formatConnectivity(specs.connectivity) },
-          { label: "Switch", value: details.switchType ?? specs.switchType },
-          { label: "Peso", value: details.weight ?? specs.weight },
-          { label: "Latencia", value: details.latency ?? specs.latency },
-          { label: "Deadzone", value: details.deadzone },
-          { label: "RT Minimo", value: details.rtMin },
-          { label: "Features", value: details.features },
+          { label: "Layout", value: specs.keyboardLayout, group: "specs" },
+          { label: "Tipo", value: formatKeyboardType(specs.keyboardType), group: "specs" },
+          { label: "Conectividade", value: formatConnectivity(specs.connectivity), group: "specs" },
+          { label: "Switch", value: details.switchType ?? specs.switchType, group: "specs" },
+          { label: "Peso", value: details.weight ?? specs.weight, group: "specs" },
+          { label: "Latencia", value: details.latency ?? specs.latency, group: "performance" },
+          { label: "Deadzone", value: details.deadzone, group: "performance" },
+          { label: "RT Minimo", value: details.rtMin, group: "performance" },
+          { label: "Features", value: details.features, group: "performance" },
         ]
       case "mousepad":
       case "glasspad":
         return [...specsBase,
-          { label: "Superficie", value: specs.surface ?? details.surface },
-          { label: "Tipo", value: specs.padType ?? details.padType },
-          { label: "Tamanho", value: specs.size ?? details.size },
-          { label: "Profile", value: specs.profile ?? details.profile },
+          { label: "Superficie", value: specs.surface ?? details.surface, group: "specs" },
+          { label: "Tipo", value: specs.padType ?? details.padType, group: "specs" },
+          { label: "Tamanho", value: specs.size ?? details.size, group: "specs" },
+          { label: "Profile", value: specs.profile ?? details.profile, group: "specs" },
         ]
       case "monitors":
         return [...specsBase,
-          { label: "Taxa de atualizacao", value: specs.refreshRate ? `${specs.refreshRate}Hz` : undefined },
-          { label: "Painel", value: specs.panelType },
+          { label: "Painel", value: specs.panelType, group: "specs" },
+          { label: "Taxa de atualizacao", value: specs.refreshRate ? `${specs.refreshRate}Hz` : undefined, group: "performance" },
         ]
       case "headset":
       case "iem":
         return [...specsBase,
-          { label: "Conectividade", value: formatConnectivity(specs.connectivity) },
-          { label: "Compatibilidade", value: details.compatibility },
+          { label: "Conectividade", value: formatConnectivity(specs.connectivity), group: "specs" },
+          { label: "Compatibilidade", value: details.compatibility, group: "specs" },
         ]
       case "dac_amp":
         return [...specsBase,
-          { label: "Conectividade", value: formatConnectivity(specs.connectivity) },
-          { label: "Trimode", value: formatTrimode(specs.trimode) },
+          { label: "Conectividade", value: formatConnectivity(specs.connectivity), group: "specs" },
+          { label: "Trimode", value: formatTrimode(specs.trimode), group: "specs" },
         ]
       case "switches":
         return [...specsBase,
-          { label: "Tipo", value: formatKeyboardType(specs.keyboardType) },
-          { label: "Switch", value: details.switchType ?? specs.switchType },
+          { label: "Tipo", value: formatKeyboardType(specs.keyboardType), group: "specs" },
+          { label: "Switch", value: details.switchType ?? specs.switchType, group: "specs" },
         ]
       default:
         // feet, chairs — só preço base
@@ -291,6 +291,9 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
     .map((spec) => ({ ...spec, display: formatSpecValue(spec.value) }))
     .filter((spec) => spec.display !== "-")
     .slice(0, 3)
+
+  const specsRows = specsTable.filter((row) => row.group === "specs")
+  const performanceRows = specsTable.filter((row) => row.group === "performance")
 
   const showGrip = data.category === "mouse"
   const gripInfo = [
@@ -451,20 +454,39 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                 </div>
 
                 <div className={cn("grid gap-4", showGrip ? "md:grid-cols-2" : "grid-cols-1")}>
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-sm">Especs</CardTitle>
-                      <CardDescription className="text-xs">Principais dados do produto.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm text-muted-foreground">
-                      {specsTable.map((row) => (
-                        <div key={row.label} className="flex items-center justify-between">
-                          <span>{row.label}</span>
-                          <span className="font-semibold text-foreground">{formatSpecValue(row.value)}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
+                  <div className={cn("grid gap-2", performanceRows.length > 0 ? "sm:grid-cols-2" : "grid-cols-1")}>
+                    <Card className="border-border bg-card">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Especificações</CardTitle>
+                        <CardDescription className="text-xs">Principais dados do produto.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm text-muted-foreground">
+                        {specsRows.map((row) => (
+                          <div key={row.label} className="flex items-center justify-between">
+                            <span>{row.label}</span>
+                            <span className="font-semibold text-foreground">{formatSpecValue(row.value)}</span>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+
+                    {performanceRows.length > 0 && (
+                      <Card className="border-border bg-card">
+                        <CardHeader>
+                          <CardTitle className="text-sm">Performance</CardTitle>
+                          <CardDescription className="text-xs">Métricas de resposta.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-sm text-muted-foreground">
+                          {performanceRows.map((row) => (
+                            <div key={row.label} className="flex items-center justify-between">
+                              <span>{row.label}</span>
+                              <span className="font-semibold text-foreground">{formatSpecValue(row.value)}</span>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
 
                   {showGrip && (
                     <Card className="border-border bg-card">

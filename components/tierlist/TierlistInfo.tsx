@@ -24,7 +24,7 @@ export function TierlistInfo() {
         title: t.tierlist.about.title,
         icon: Info,
         content: (
-          <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <div className="space-y-3 text-sm leading-relaxed text-primary">
             <p>{t.tierlist.about.p1}</p>
             <p>{t.tierlist.about.p2}</p>
           </div>
@@ -35,9 +35,9 @@ export function TierlistInfo() {
         title: t.tierlist.categoriesTab.title,
         icon: Tag,
         content: (
-          <div className="space-y-3 text-sm text-muted-foreground">
+          <div className="space-y-3 text-sm text-primary">
             <p>{t.tierlist.categoriesTab.primaryTags}</p>
-              <ul className="space-y-1.5 text-muted-foreground">
+              <ul className="space-y-1.5 text-primary">
               <li>{t.tierlist.categoriesTab.competitive}</li>
               <li>{t.tierlist.categoriesTab.bomba}</li>
               <li>{t.tierlist.categoriesTab.value}</li>
@@ -50,7 +50,7 @@ export function TierlistInfo() {
         title: t.tierlist.tiers.title,
         icon: Star,
         content: (
-          <div className="space-y-2 text-sm text-muted-foreground">
+          <div className="space-y-2 text-sm text-primary">
             <p>{t.tierlist.tiers.goatSS}</p>
             <p>{t.tierlist.tiers.sa}</p>
             <p>{t.tierlist.tiers.bcl}</p>
@@ -62,9 +62,9 @@ export function TierlistInfo() {
         title: t.tierlist.criteria.title,
         icon: ListChecks,
         content: (
-          <div className="space-y-2 text-sm text-muted-foreground">
+          <div className="space-y-2 text-sm text-primary">
             <p>{t.tierlist.criteria.intro}</p>
-            <ul className="space-y-1.5 text-muted-foreground">
+            <ul className="space-y-1.5 text-primary">
               <li>{t.tierlist.criteria.item1}</li>
               <li>{t.tierlist.criteria.item2}</li>
               <li>{t.tierlist.criteria.item3}</li>
@@ -78,8 +78,8 @@ export function TierlistInfo() {
         title: t.tierlist.latestUpdate.title,
         icon: Clock,
         content: (
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p className="text-primary">{t.tierlist.latestUpdate.month}</p>
+            <div className="space-y-2 text-sm text-primary">
+              <p>{t.tierlist.latestUpdate.month}</p>
               <p>{t.tierlist.latestUpdate.description}</p>
             </div>
         ),
@@ -110,7 +110,7 @@ export function TierlistInfo() {
               className={cn(
                 "flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-all",
                 isActive
-                  ? "border-primary text-primary"
+                  ? "border-primary bg-primary/10 font-semibold text-primary"
                   : "border-transparent text-muted-foreground hover:bg-muted/30 hover:text-foreground"
               )}
             >
