@@ -75,7 +75,10 @@ export function PeripheralGallery({ images, alt }: { images: (string | null | un
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl border-border bg-background p-3 sm:max-w-3xl">
+        {/* sem `max-w-3xl` sem prefixo: o tailwind-merge o trataria como conflito e
+            descartaria o `max-w-[calc(100%-2rem)]` do DialogContent, colando o modal
+            nas bordas da tela no mobile */}
+        <DialogContent className="border-border bg-background p-3 sm:max-w-3xl">
           <VisuallyHidden.Root asChild>
             <DialogTitle>{alt}</DialogTitle>
           </VisuallyHidden.Root>
@@ -89,7 +92,7 @@ export function PeripheralGallery({ images, alt }: { images: (string | null | un
                   type="button"
                   onClick={showPrev}
                   aria-label="Foto anterior"
-                  className="absolute left-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
+                  className="absolute left-2 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
                 >
                   <ChevronLeft className="size-5" />
                 </button>
@@ -97,7 +100,7 @@ export function PeripheralGallery({ images, alt }: { images: (string | null | un
                   type="button"
                   onClick={showNext}
                   aria-label="Próxima foto"
-                  className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
+                  className="absolute right-2 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
                 >
                   <ChevronRight className="size-5" />
                 </button>
@@ -117,7 +120,7 @@ export function PeripheralGallery({ images, alt }: { images: (string | null | un
                     type="button"
                     onClick={() => setActiveIndex(index)}
                     className={cn(
-                      "size-10 shrink-0 overflow-hidden rounded-md border-2 transition",
+                      "size-11 shrink-0 overflow-hidden rounded-md border-2 transition",
                       index === activeIndex ? "border-primary" : "border-transparent opacity-60 hover:opacity-100",
                     )}
                   >

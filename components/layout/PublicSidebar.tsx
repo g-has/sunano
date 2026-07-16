@@ -32,9 +32,9 @@ type NavItem = {
 }
 
 function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
-  if (collapsed) return <div className="my-2 h-px bg-border/50" />
+  if (collapsed) return <div className="my-2 h-px bg-border" />
   return (
-    <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+    <p className="mb-1.5 mt-5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
       {label}
     </p>
   )
@@ -61,7 +61,7 @@ function NavLink({
         collapsed && "justify-center",
         isActive
           ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+          : "text-foreground/75 hover:bg-muted hover:text-foreground"
       )}
     >
       <Icon className="size-[18px] shrink-0" />
@@ -119,7 +119,9 @@ export function PublicSidebar() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-screen w-60 shrink-0 flex-col border-border bg-background transition-all duration-300 md:relative md:inset-auto md:h-full md:w-60 md:translate-x-0",
+          // h-dvh e não h-screen: 100vh é o viewport *sem* a barra de URL do navegador
+          // mobile, o que empurra o rodapé (Changelog, links legais) para fora da tela.
+          "fixed inset-y-0 left-0 z-40 flex h-dvh w-60 shrink-0 flex-col border-border bg-background transition-all duration-300 md:relative md:inset-auto md:h-full md:w-60 md:translate-x-0",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -192,8 +194,8 @@ export function PublicSidebar() {
                 "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                 isCollapsed && "justify-center",
                 isActive("/loja")
-                  ? "bg-emerald-600/80 text-white shadow-sm shadow-emerald-900/40"
-                  : "border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
+                  ? "bg-emerald-600 text-white shadow-sm shadow-emerald-900/40"
+                  : "border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:border-emerald-500/60 hover:bg-emerald-500/20 hover:text-emerald-200"
               )}
             >
               <ShoppingBag className="size-[18px] shrink-0" />
@@ -223,8 +225,8 @@ export function PublicSidebar() {
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                 isCollapsed && "justify-center",
                 isActive("/bazar")
-                  ? "bg-amber-600/80 text-white shadow-sm shadow-amber-900/40"
-                  : "border border-amber-500/20 bg-amber-500/5 text-amber-400 hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-300"
+                  ? "bg-amber-600 text-white shadow-sm shadow-amber-900/40"
+                  : "border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:border-amber-500/60 hover:bg-amber-500/20 hover:text-amber-200"
               )}
             >
               <Recycle className="size-[18px] shrink-0" />
@@ -232,7 +234,7 @@ export function PublicSidebar() {
               {!isCollapsed && (
                 <span className={cn(
                   "rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
-                  isActive("/bazar") ? "bg-white/20 text-white" : "bg-amber-500/20 text-amber-400"
+                  isActive("/bazar") ? "bg-white/25 text-white" : "bg-amber-500/25 text-amber-200"
                 )}>
                   {t.nav.used}
                 </span>
@@ -272,21 +274,21 @@ export function PublicSidebar() {
 
         {/* Links legais — ocultos quando colapsado */}
         {!isCollapsed && (
-          <div className="border-t border-border/50 px-3 py-2">
+          <div className="border-t border-border px-3 py-2">
             <div className="flex flex-wrap gap-x-3 gap-y-1">
               <Link
                 href="/privacidade"
-                className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
               >
                 Privacidade
               </Link>
               <Link
                 href="/termos"
-                className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
               >
                 Termos
               </Link>
-              <span className="text-[10px] text-muted-foreground/30">LGPD</span>
+              <span className="text-[11px] text-muted-foreground">LGPD</span>
             </div>
           </div>
         )}

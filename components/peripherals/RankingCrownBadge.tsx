@@ -81,7 +81,7 @@ export function RankingCrownBadge({ position }: RankingCrownBadgeProps) {
       <div className="-rotate-2 leading-none transition group-hover:rotate-0">
         <p
           className={cn(
-            "font-handwritten text-2xl font-semibold tracking-wide md:text-3xl",
+            "font-handwritten text-xl font-semibold tracking-wide sm:text-2xl md:text-3xl",
             position === 1 && "-translate-x-6",
             style.label
           )}
@@ -89,8 +89,8 @@ export function RankingCrownBadge({ position }: RankingCrownBadgeProps) {
           Ranking
         </p>
         {/* font-size lives here so the crown's em-based offsets track the number
-            across the text-7xl -> text-9xl breakpoint */}
-        <div className="relative -mt-3 inline-block text-7xl md:text-9xl">
+            across the text-5xl -> text-9xl breakpoints */}
+        <div className="relative -mt-2 inline-block text-5xl sm:-mt-3 sm:text-7xl md:text-9xl">
           <p className={cn("font-handwritten font-bold", style.number)}>
             #
             {/* the crown anchors to this span so it centres on the digits

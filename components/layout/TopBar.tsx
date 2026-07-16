@@ -143,7 +143,8 @@ export function TopBar() {
             type="button"
             onClick={handleSidebarToggle}
             className={cn(
-              "flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground",
+              // 44px no mobile: é o único acesso à gaveta de navegação por lá.
+              "flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground md:size-8",
               !isAdmin && "md:hidden"
             )}
             aria-label={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}

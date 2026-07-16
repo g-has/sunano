@@ -152,7 +152,7 @@ export function AdminSidebar() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-screen shrink-0 flex-col bg-background transition-all duration-300 md:relative md:inset-auto md:h-full md:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex h-dvh shrink-0 flex-col bg-background transition-all duration-300 md:relative md:inset-auto md:h-full md:translate-x-0",
           isAdminMobileOpen ? "translate-x-0" : "-translate-x-full",
           isCollapsed ? "md:w-16" : "md:w-64"
         )}
