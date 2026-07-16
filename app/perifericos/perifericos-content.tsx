@@ -920,7 +920,16 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
                         href={href}
                         className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 transition-all hover:bg-muted/40"
                       >
-                        <span className="w-7 text-center text-sm font-black tabular-nums text-muted-foreground">
+                        <span
+                          className={cn(
+                            "w-7 text-center text-lg font-black tabular-nums",
+                            index === 0
+                              ? "text-yellow-400"
+                              : index === 1
+                              ? "text-zinc-300"
+                              : "text-amber-600"
+                          )}
+                        >
                           #{index + 1}
                         </span>
                         {item.image_url && (
