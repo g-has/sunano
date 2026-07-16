@@ -41,6 +41,7 @@ import {
 } from "@/lib/tierlist-theme"
 import { TierItemTooltipContent, type Ratings, type RatingKey } from "@/components/tierlist/TierItemTooltipContent"
 import { FilterBar } from "@/components/tierlist/FilterBar"
+import { TierlistMetaCard } from "@/components/admin/TierlistMetaCard"
 
 type RatingMode = "oled" | "performance" | "value" | "recommended" | "soundTyping" | "mechanical" | "magnetic" | "pcb"
 
@@ -1122,6 +1123,8 @@ export default function AdminPeripheralsPage() {
 
   return (
     <div className="space-y-4">
+      <TierlistMetaCard />
+
       <div className="flex justify-end">
         <Link href="/admin/tierlist/new">
           <Button className="gap-2">

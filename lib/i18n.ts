@@ -150,9 +150,21 @@ type Translations = {
   }
   tierlist: {
     info: string
-    about: { title: string; p1: string; p2: string }
-    categoriesTab: { title: string; primaryTags: string; competitive: string; bomba: string; value: string }
-    tiers: { title: string; goatSS: string; sa: string; bcl: string }
+    about: { title: string; p1: string; p2: string; p3: string }
+    categoriesTab: { title: string; p1: string; p2: string }
+    tagsTab: { title: string; p1: string; p2: string }
+    tiers: {
+      title: string
+      intro: string
+      goat: string
+      ss: string
+      s: string
+      a: string
+      b: string
+      c: string
+      l: string
+      u: string
+    }
     criteria: { title: string; intro: string; item1: string; item2: string; item3: string; item4: string }
     latestUpdate: { title: string; month: string; description: string }
     viewingBy: string
@@ -715,29 +727,39 @@ export const translations: Record<LocaleCode, Translations> = {
       info: "Informações da Tierlist",
       about: {
         title: "Sobre",
-        p1: "Periféricos são pessoais. Esta tierlist prioriza performance prática, valor e consistência no uso real.",
-        p2: "Os itens são agrupados por tier e organizados por modo: Geral, Custo-benefício e Recomendado.",
+        p1: "A análise e ranqueamento dos periféricos é feita através de muitas horas de teste em uso e são baseados na minha opinião através disso",
+        p2: "Talvez sua opinião seja diferente da minha e tudo bem, não tem problema se tu discordar do rank dado em alguns, temos opiniões distintas e respeito totalmente a sua opinião",
+        p3: "Os periféricos são agrupados por Tier (Rank) e organizados por Categorias com foco em específicas áreas com determinado contexto",
       },
       categoriesTab: {
         title: "Categorias",
-        primaryTags: "Tags principais:",
-        competitive: "Competitivo: foco em performance máxima",
-        bomba: "Bomba: equilíbrio para uso geral",
-        value: "Valor: melhores opções de custo-benefício",
+        p1: "Categorias são formas diferentes de se analisar os mesmo periféricos em contextos específicos",
+        p2: "São bem auto explicativos, por exemplo, uma categoria descrita como \"Custo Benefício\" terá foco maior naqueles periféricos que se destacam mais nessa área e por assim, seu Tier (Rank) será maior devido a importância desse fator ter aumentando sobre essa análise avaliativa",
+      },
+      tagsTab: {
+        title: "Tags",
+        p1: "Tags são etiquetas simples colocadas nos periféricos que visam descrever certos aspectos dele de forma breve, facilitando a busca dos interessados por outros periféricos que tenham essa determinada característica",
+        p2: "Por exemplo; na Tag \"Competitivo\" entende-se que tal Periférico se destaca nesse campo competitivo, com tua função sendo focada nesse área em especifica e sendo uma escolha sólida caso tu procure por algo com esse enfoque",
       },
       tiers: {
         title: "Tiers",
-        goatSS: "GOAT / SS: opções de elite e topo absoluto.",
-        sa: "S / A: escolhas premium com consistência muito forte.",
-        bcl: "B / C / L: opções sólidas até de nicho, com mais concessões.",
+        intro: "Tier ou Rank foi o formato escolhido para subdividir e organizar os periféricos. Baseado na cultura pop que se utiliza nos mangás para ranqueamento de heróis ou vilões.",
+        goat: "GOAT - Os melhores sem sombra de dúvidas, praticamente perfeitos.",
+        ss: "SS - Excepcional, quase perfeitos.",
+        s: "S - Muito bons mas podem ter ressalvas.",
+        a: "A - São bons mas com defeitos visíveis.",
+        b: "B - São decentes, atendem o que se espera por eles.",
+        c: "C - Usável, dá para usar tranquilo mas tem opções melhores.",
+        l: "L - Veio Podi, não valem a pena, seus defeitos sobressaem as suas qualidades.",
+        u: "U - Ultrapassados, não que eles sejam ruins mas estão ultrapassados, acaba não compensando pegar eles por justamente terem modelos mais recentes e atualizados.",
       },
       criteria: {
         title: "Criterios",
-        intro: "A avaliação considera:",
-        item1: "Uso real em jogos e no dia a dia",
-        item2: "Qualidade de construção e materiais",
-        item3: "Latência e consistência",
-        item4: "Software, firmware e suporte",
+        intro: "A avaliação e ranqueamento se baseia:",
+        item1: "Uso real em jogos no dia a dia",
+        item2: "Latência e consistência nos jogos",
+        item3: "Qualidade de construção e materiais",
+        item4: "Recursos providos pela Marca",
       },
       latestUpdate: {
         title: "Ultima Atualizacao",
@@ -1308,29 +1330,39 @@ export const translations: Record<LocaleCode, Translations> = {
       info: "Tierlist Information",
       about: {
         title: "About",
-        p1: "Peripherals are personal. This tierlist prioritizes practical performance, value, and consistency in real usage.",
-        p2: "Items are grouped by tier and then organized by mode: Overall, Value, and Recommended.",
+        p1: "The analysis and ranking of peripherals comes from many hours of real usage testing and reflects my own opinion.",
+        p2: "Your opinion might differ from mine, and that's completely fine — it's okay to disagree with the rank given to some items. We have different opinions, and I fully respect yours.",
+        p3: "Peripherals are grouped by Tier (Rank) and organized by Categories focused on specific areas with a given context.",
       },
       categoriesTab: {
         title: "Categories",
-        primaryTags: "Primary tags:",
-        competitive: "Competitive: maximum performance focus",
-        bomba: "Bomba: balanced all-around usage",
-        value: "Value: best cost-benefit picks",
+        p1: "Categories are different ways of analyzing the same peripherals within specific contexts.",
+        p2: "They're pretty self-explanatory — for example, a category described as \"Cost-Benefit\" will focus more on peripherals that stand out in that area, and so its Tier (Rank) will be higher since that factor carries more weight in that particular evaluation.",
+      },
+      tagsTab: {
+        title: "Tags",
+        p1: "Tags are simple labels placed on peripherals to briefly describe certain aspects of them, making it easier for interested users to find other peripherals that share that particular trait.",
+        p2: "For example, the \"Competitive\" tag means that peripheral stands out in the competitive field, with its role focused specifically on that area — making it a solid choice if you're looking for something with that focus.",
       },
       tiers: {
         title: "Tiers",
-        goatSS: "GOAT / SS: absolute top-tier and elite picks.",
-        sa: "S / A: premium choices with very strong consistency.",
-        bcl: "B / C / L: solid-to-niche picks with more tradeoffs.",
+        intro: "Tier (or Rank) is the format chosen to break down and organize the peripherals, based on the pop-culture style used in mangas to rank heroes and villains.",
+        goat: "GOAT — The best, without a doubt, practically perfect.",
+        ss: "SS — Exceptional, nearly perfect.",
+        s: "S — Very good, but may have some caveats.",
+        a: "A — Good, but with visible flaws.",
+        b: "B — Decent, meets what's expected of them.",
+        c: "C — Usable, fine to go with, but better options exist.",
+        l: "L — Veio Podi, not worth it — their flaws outweigh their qualities.",
+        u: "U — Outdated. Not that they're bad, but they're outdated — not worth getting since newer, more up-to-date models exist.",
       },
       criteria: {
         title: "Criteria",
-        intro: "Evaluation considers:",
-        item1: "Real-game usage and daily use",
-        item2: "Build quality and materials",
-        item3: "Latency and consistency",
-        item4: "Software, firmware, and support",
+        intro: "The evaluation and ranking is based on:",
+        item1: "Real usage in games and day-to-day",
+        item2: "Latency and consistency in games",
+        item3: "Build quality and materials",
+        item4: "Features provided by the brand",
       },
       latestUpdate: {
         title: "Latest Update",

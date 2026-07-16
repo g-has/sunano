@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Clock, Info, ListChecks, Star, Tag } from "lucide-react"
+import { Clock, Info, ListChecks, Star, Tag, Tags } from "lucide-react"
 
 import { useT } from "@/lib/use-t"
 import { cn } from "@/lib/utils"
@@ -13,7 +13,12 @@ type InfoTab = {
   content: React.ReactNode
 }
 
-export function TierlistInfo() {
+type LatestUpdate = {
+  latestUpdateMonth: string
+  latestUpdateDescription: string
+}
+
+export function TierlistInfo({ latestUpdate }: { latestUpdate?: LatestUpdate | null }) {
   const t = useT()
   const [activeTab, setActiveTab] = useState<string>("about")
 
@@ -27,6 +32,7 @@ export function TierlistInfo() {
           <div className="space-y-3 text-sm leading-relaxed text-primary">
             <p>{t.tierlist.about.p1}</p>
             <p>{t.tierlist.about.p2}</p>
+            <p>{t.tierlist.about.p3}</p>
           </div>
         ),
       },
@@ -35,13 +41,20 @@ export function TierlistInfo() {
         title: t.tierlist.categoriesTab.title,
         icon: Tag,
         content: (
-          <div className="space-y-3 text-sm text-primary">
-            <p>{t.tierlist.categoriesTab.primaryTags}</p>
-              <ul className="space-y-1.5 text-primary">
-              <li>{t.tierlist.categoriesTab.competitive}</li>
-              <li>{t.tierlist.categoriesTab.bomba}</li>
-              <li>{t.tierlist.categoriesTab.value}</li>
-            </ul>
+          <div className="space-y-3 text-sm leading-relaxed text-primary">
+            <p>{t.tierlist.categoriesTab.p1}</p>
+            <p>{t.tierlist.categoriesTab.p2}</p>
+          </div>
+        ),
+      },
+      {
+        id: "tags",
+        title: t.tierlist.tagsTab.title,
+        icon: Tags,
+        content: (
+          <div className="space-y-3 text-sm leading-relaxed text-primary">
+            <p>{t.tierlist.tagsTab.p1}</p>
+            <p>{t.tierlist.tagsTab.p2}</p>
           </div>
         ),
       },
@@ -50,10 +63,18 @@ export function TierlistInfo() {
         title: t.tierlist.tiers.title,
         icon: Star,
         content: (
-          <div className="space-y-2 text-sm text-primary">
-            <p>{t.tierlist.tiers.goatSS}</p>
-            <p>{t.tierlist.tiers.sa}</p>
-            <p>{t.tierlist.tiers.bcl}</p>
+          <div className="space-y-3 text-sm leading-relaxed text-primary">
+            <p>{t.tierlist.tiers.intro}</p>
+            <ul className="space-y-1.5 text-primary">
+              <li>{t.tierlist.tiers.goat}</li>
+              <li>{t.tierlist.tiers.ss}</li>
+              <li>{t.tierlist.tiers.s}</li>
+              <li>{t.tierlist.tiers.a}</li>
+              <li>{t.tierlist.tiers.b}</li>
+              <li>{t.tierlist.tiers.c}</li>
+              <li>{t.tierlist.tiers.l}</li>
+              <li>{t.tierlist.tiers.u}</li>
+            </ul>
           </div>
         ),
       },
@@ -79,13 +100,13 @@ export function TierlistInfo() {
         icon: Clock,
         content: (
             <div className="space-y-2 text-sm text-primary">
-              <p>{t.tierlist.latestUpdate.month}</p>
-              <p>{t.tierlist.latestUpdate.description}</p>
+              <p>{latestUpdate?.latestUpdateMonth || t.tierlist.latestUpdate.month}</p>
+              <p>{latestUpdate?.latestUpdateDescription || t.tierlist.latestUpdate.description}</p>
             </div>
         ),
       },
     ]
-  }, [t])
+  }, [t, latestUpdate])
 
   const activeContent = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
 

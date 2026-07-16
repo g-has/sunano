@@ -1,4 +1,5 @@
 import { listAllPeripherals } from "@/lib/server/repositories/peripherals-repository"
+import { getTierlistMeta } from "@/lib/server/repositories/tierlist-meta-repository"
 import { TierlistInfo } from "@/components/tierlist/TierlistInfo"
 import { TierlistContent } from "@/components/tierlist/TierlistContent"
 import { mapTier } from "@/lib/tier-utils"
@@ -7,7 +8,10 @@ import { mapTier } from "@/lib/tier-utils"
 export const dynamic = "force-dynamic"
 
 export default async function TierlistPage() {
-  const peripheralsList = await listAllPeripherals()
+  const [peripheralsList, tierlistMeta] = await Promise.all([
+    listAllPeripherals(),
+    getTierlistMeta(),
+  ])
 
   const items = peripheralsList.map((p) => {
     const specs = (p.specs || {}) as Record<string, unknown> & {
@@ -68,7 +72,7 @@ export default async function TierlistPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 lg:px-8 space-y-5">
       <TierlistContent initialData={items as any} categoryLabels={CATEGORY_LABELS} />
-      <TierlistInfo />
+      <TierlistInfo latestUpdate={tierlistMeta} />
     </div>
   )
 }

@@ -288,6 +288,27 @@ export type Database = {
           updated_at?: string
         }
       }
+      tierlist_meta: {
+        Relationships: []
+        Row: {
+          id: number
+          latest_update_month: string
+          latest_update_description: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          latest_update_month: string
+          latest_update_description: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          latest_update_month?: string
+          latest_update_description?: string
+          updated_at?: string
+        }
+      }
     }
     Views: Record<string, never>
     Functions: {
