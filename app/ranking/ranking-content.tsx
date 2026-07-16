@@ -77,7 +77,16 @@ function BarChart({ items }: { items: RankedPeripheral[] }) {
             <div className="flex flex-1 items-center gap-2">
               <div className="relative h-5 flex-1 overflow-hidden rounded-sm bg-muted/20">
                 <div
-                  className="absolute inset-y-0 left-0 rounded-sm bg-gradient-to-r from-primary/50 to-primary transition-all duration-300"
+                  className={cn(
+                    "absolute inset-y-0 left-0 rounded-sm bg-gradient-to-r transition-all duration-300",
+                    index === 0
+                      ? "from-yellow-700 via-yellow-300 to-yellow-500"
+                      : index === 1
+                      ? "from-slate-500 via-slate-100 to-slate-400"
+                      : index === 2
+                      ? "from-amber-900 via-amber-400 to-amber-700"
+                      : "from-primary/50 to-primary"
+                  )}
                   style={{ width: `${barPct}%` }}
                 />
               </div>
