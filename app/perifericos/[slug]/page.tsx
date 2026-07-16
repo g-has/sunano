@@ -385,6 +385,17 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                   </CardContent>
                 </Card>
 
+                {!isSwitch && (
+                  <Card className="border-border bg-card">
+                    <CardHeader>
+                      <CardTitle className="text-sm">Sobre as notas</CardTitle>
+                    </CardHeader>
+                    <CardContent className="max-h-80 overflow-auto text-sm text-muted-foreground whitespace-pre-wrap">
+                      {teamComments || "Sem observacoes adicionais."}
+                    </CardContent>
+                  </Card>
+                )}
+
                 <Card className="border-border bg-card">
                   <CardHeader>
                     <CardTitle className="text-sm">Software do Periférico</CardTitle>
@@ -674,17 +685,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                       </div>
                     </CardContent>
                   </Card>
-
-                {!isSwitch && (
-                  <Card className="border-border bg-card">
-                    <CardHeader>
-                      <CardTitle className="text-lg">Sobre as notas</CardTitle>
-                    </CardHeader>
-                    <CardContent className="max-h-80 overflow-auto text-base text-muted-foreground whitespace-pre-wrap">
-                      {teamComments || "Sem observacoes adicionais."}
-                    </CardContent>
-                  </Card>
-                )}
 
                 <Card className="border-border bg-card">
                   <CardHeader>
