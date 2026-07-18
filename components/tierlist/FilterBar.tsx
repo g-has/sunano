@@ -88,7 +88,8 @@ export function FilterBar({
             return (
               <button
                 className={cn(
-                  "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                  // Alvo de toque maior no mobile; no desktop volta à altura compacta.
+                  "shrink-0 rounded-full border px-3 py-2.5 text-xs font-medium transition-all md:py-1.5",
                   active
                     ? "border-primary/50 bg-primary/15 text-primary"
                     : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/40"
@@ -267,25 +268,37 @@ export function FilterBar({
         {query.trim() && (
           <Badge variant="outline" className="gap-1.5 rounded-full border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
             {t.filters.searchBadge}: {query.trim()}
-            <button onClick={() => onQueryChange("")} className="hover:text-primary">
+            <button
+              onClick={() => onQueryChange("")}
+              aria-label={`${t.filters.searchBadge}: ${t.common.clear}`}
+              className="-my-1 -mr-1.5 p-1.5 hover:text-primary"
+            >
               <X className="size-3" />
             </button>
           </Badge>
         )}
 
         {selectedBrand !== "all" && (
-          <Badge variant="outline" className="gap-1.5 rounded-full border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
+          <Badge variant="outline" className="gap-1.5 rounded-full border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-700 dark:text-emerald-300">
             {formatLabel(selectedBrand)}
-            <button onClick={() => onBrandChange("all")} className="hover:text-emerald-200">
+            <button
+              onClick={() => onBrandChange("all")}
+              aria-label={`${t.common.brand}: ${t.common.clear}`}
+              className="-my-1 -mr-1.5 p-1.5 hover:text-emerald-200"
+            >
               <X className="size-3" />
             </button>
           </Badge>
         )}
 
         {selectedPriceBand !== "all" && (
-          <Badge variant="outline" className="gap-1.5 rounded-full border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-300">
+          <Badge variant="outline" className="gap-1.5 rounded-full border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-700 dark:text-amber-300">
             {formatLabel(selectedPriceBand)}
-            <button onClick={() => onPriceBandChange("all")} className="hover:text-amber-200">
+            <button
+              onClick={() => onPriceBandChange("all")}
+              aria-label={`${t.common.price}: ${t.common.clear}`}
+              className="-my-1 -mr-1.5 p-1.5 hover:text-amber-200"
+            >
               <X className="size-3" />
             </button>
           </Badge>

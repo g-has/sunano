@@ -195,7 +195,7 @@ export function PublicSidebar() {
                 isCollapsed && "justify-center",
                 isActive("/loja")
                   ? "bg-emerald-600 text-white shadow-sm shadow-emerald-900/40"
-                  : "border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:border-emerald-500/60 hover:bg-emerald-500/20 hover:text-emerald-200"
+                  : "border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 hover:border-emerald-500/60 hover:bg-emerald-500/20 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
               )}
             >
               <ShoppingBag className="size-[18px] shrink-0" />
@@ -226,7 +226,7 @@ export function PublicSidebar() {
                 isCollapsed && "justify-center",
                 isActive("/bazar")
                   ? "bg-amber-600 text-white shadow-sm shadow-amber-900/40"
-                  : "border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:border-amber-500/60 hover:bg-amber-500/20 hover:text-amber-200"
+                  : "border border-amber-500/40 bg-amber-500/10 text-amber-700 hover:border-amber-500/60 hover:bg-amber-500/20 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200"
               )}
             >
               <Recycle className="size-[18px] shrink-0" />
@@ -234,7 +234,7 @@ export function PublicSidebar() {
               {!isCollapsed && (
                 <span className={cn(
                   "rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
-                  isActive("/bazar") ? "bg-white/25 text-white" : "bg-amber-500/25 text-amber-200"
+                  isActive("/bazar") ? "bg-white/25 text-white" : "bg-amber-500/25 text-amber-800 dark:text-amber-200"
                 )}>
                   {t.nav.used}
                 </span>

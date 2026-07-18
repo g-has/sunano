@@ -104,7 +104,7 @@ export default function AdminStorePage() {
       <div className="flex justify-end">
         <div className="flex gap-2">
           <Link href="/admin/store/new?type=store">
-            <Button variant="outline" className="gap-2 border-white/[0.12]">
+            <Button variant="outline" className="gap-2 border-border">
               <Plus className="size-4" />
               Novo produto
             </Button>
@@ -137,17 +137,17 @@ export default function AdminStorePage() {
               "rounded-xl border p-4 text-left transition-all",
               filter === stat.key && stat.key !== "all"
                 ? "border-primary/40 bg-primary/10"
-                : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15]"
+                : "border-border bg-muted/30 hover:border-border"
             )}
           >
-            <p className="text-2xl font-black text-slate-100">{stat.value}</p>
-            <p className="mt-0.5 text-xs text-slate-500">{stat.label}</p>
+            <p className="text-2xl font-black text-foreground">{stat.value}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{stat.label}</p>
           </button>
         ))}
       </div>
 
       {/* Filter tabs */}
-      <div className="flex rounded-lg border border-white/[0.08] bg-white/[0.02] p-1 w-fit">
+      <div className="flex rounded-lg border border-border bg-muted/30 p-1 w-fit">
         {(["all", "store", "bazaar"] as const).map((f) => (
           <button
             key={f}
@@ -156,7 +156,7 @@ export default function AdminStorePage() {
               "rounded-md px-4 py-2 text-sm font-medium transition-all",
               filter === f
                 ? "bg-primary/20 text-primary"
-                : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             )}
           >
             {f === "all" ? "Todos" : f === "store" ? "🛒 Loja" : "♻️ Bazar"}
@@ -177,9 +177,9 @@ export default function AdminStorePage() {
           <BoxLoader />
         </div>
       ) : products.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-white/[0.08] py-16 text-center">
-          <Store className="size-10 text-slate-700" />
-          <p className="text-sm text-slate-500">Nenhum produto cadastrado</p>
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border py-16 text-center">
+          <Store className="size-10 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Nenhum produto cadastrado</p>
           <Link href="/admin/store/new">
             <Button variant="outline" size="sm" className="gap-2">
               <Plus className="size-3.5" />
@@ -188,38 +188,38 @@ export default function AdminStorePage() {
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-white/[0.08] bg-card">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card">
           <table className="w-full min-w-[760px]">
             <thead>
-              <tr className="border-b border-white/[0.08]">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Produto</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Tipo</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Condição</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Preço</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estoque</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+              <tr className="border-b border-border">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produto</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tipo</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Condição</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Preço</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estoque</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05]">
+            <tbody className="divide-y divide-border">
               {products.map((p) => (
-                <tr key={p.id} className="transition-colors hover:bg-white/[0.02]">
+                <tr key={p.id} className="transition-colors hover:bg-muted/40">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="size-10 shrink-0 overflow-hidden rounded-lg bg-white/[0.05]">
+                      <div className="size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
                         {p.images?.[0] ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.images[0]} alt={p.name} className="h-full w-full object-contain p-0.5" />
                         ) : (
-                          <div className="flex h-full items-center justify-center text-[9px] font-bold text-slate-600">
+                          <div className="flex h-full items-center justify-center text-[9px] font-bold text-muted-foreground">
                             {p.name.slice(0, 2).toUpperCase()}
                           </div>
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-200">{p.name}</p>
+                        <p className="text-sm font-semibold text-foreground">{p.name}</p>
                         {p.category && (
-                          <p className="text-[10px] text-slate-600">{p.category}</p>
+                          <p className="text-[10px] text-muted-foreground">{p.category}</p>
                         )}
                       </div>
                     </div>
@@ -252,7 +252,7 @@ export default function AdminStorePage() {
                         ? "bg-red-500/15 text-red-400"
                         : p.stock <= 3
                           ? "bg-amber-500/15 text-amber-300"
-                          : "bg-white/[0.06] text-slate-300"
+                          : "bg-muted text-foreground/80"
                     )}>
                       {p.stock === 0 ? "Esgotado" : `${p.stock} un.`}
                     </span>
@@ -264,7 +264,7 @@ export default function AdminStorePage() {
                         "text-[10px]",
                         p.is_active
                           ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-slate-500/10 text-slate-500"
+                          : "bg-slate-500/10 text-muted-foreground"
                       )}
                     >
                       {p.is_active ? "Ativo" : "Inativo"}
@@ -273,7 +273,7 @@ export default function AdminStorePage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 justify-end">
                       <Link href={`/admin/store/${p.id}`}>
-                        <Button size="icon" variant="ghost" className="size-8 text-slate-400 hover:text-slate-100">
+                        <Button size="icon" variant="ghost" className="size-8 text-muted-foreground hover:text-foreground">
                           <Edit className="size-3.5" />
                         </Button>
                       </Link>
@@ -296,7 +296,7 @@ export default function AdminStorePage() {
 
       {/* Delete dialog */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
-        <DialogContent className="border border-white/[0.12] bg-[#0a0e17]/95">
+        <DialogContent className="border border-border bg-card">
           <DialogHeader>
             <DialogTitle>Deletar produto?</DialogTitle>
             <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>

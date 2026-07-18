@@ -26,7 +26,7 @@ function NewProductPage() {
         currentLabel={type === "bazaar" ? "Novo item do Bazar" : "Novo produto"}
       />
 
-      <div className="rounded-xl border border-white/[0.08] bg-card p-6">
+      <div className="rounded-xl border border-border bg-card p-6">
         <StoreProductForm
           defaultType={type}
           onSuccess={() => router.push("/admin/store")}

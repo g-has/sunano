@@ -19,24 +19,24 @@ export default function AdminMaintenancePage() {
         Maintenance
       </p>
 
-      <Card className="border-white/[0.08] bg-card">
+      <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-50">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <ShieldCheck className="size-5 text-cyan-400" />
             {t.admin.maintenance.currentStatus}
           </CardTitle>
-          <CardDescription className="text-slate-400">
+          <CardDescription className="text-muted-foreground">
             {t.admin.maintenance.stateFromEnv}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-300">
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+        <CardContent className="space-y-3 text-sm text-foreground/80">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3">
             <AlertTriangle className="size-4 text-amber-300" />
             <span>
-              Maintenance mode: <strong className="text-slate-50">{maintenanceEnabled ? t.admin.maintenance.active : t.admin.maintenance.inactive}</strong>
+              Maintenance mode: <strong className="text-foreground">{maintenanceEnabled ? t.admin.maintenance.active : t.admin.maintenance.inactive}</strong>
             </span>
           </div>
-          <p className="text-slate-400">
+          <p className="text-muted-foreground">
             {t.admin.maintenance.reopen}
           </p>
         </CardContent>

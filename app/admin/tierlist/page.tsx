@@ -350,8 +350,8 @@ function DraggablePeripheralCard({
       ref={setDragNodeRef}
       style={{ opacity: isDragging ? 0.2 : 1 }}
       className={cn(
-        "group relative cursor-grab overflow-hidden rounded-lg border border-white/[0.10] bg-[#0a0e17]/90 transition-all duration-200 active:cursor-grabbing",
-        "hover:border-white/[0.22] hover:shadow-md hover:shadow-black/40",
+        "group relative cursor-grab overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 active:cursor-grabbing",
+        "hover:border-border hover:shadow-md hover:shadow-black/40",
         isGoat && "shadow-[0_0_14px_rgba(240,97,97,0.18)]",
       )}
       {...attributes}
@@ -363,7 +363,7 @@ function DraggablePeripheralCard({
       {/* Edit / Delete overlay */}
       <div className="absolute right-1 top-1 z-10 flex gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
         <Link href={`/admin/tierlist/${item.id}`} onPointerDown={(e) => e.stopPropagation()}>
-          <Button size="icon" variant="ghost" className="size-6 bg-black/70 text-slate-300 hover:text-slate-100">
+          <Button size="icon" variant="ghost" className="size-6 bg-black/70 text-foreground/80 hover:text-foreground">
             <Edit className="size-3" />
           </Button>
         </Link>
@@ -394,9 +394,9 @@ function DraggablePeripheralCard({
 
       {/* Info */}
       <div className="ml-[3px] px-1.5 pb-1.5 pt-1">
-        <p className="line-clamp-2 text-[10px] font-bold leading-tight text-slate-100">{item.name}</p>
+        <p className="line-clamp-2 text-[10px] font-bold leading-tight text-foreground">{item.name}</p>
         <div className="mt-0.5 flex items-center justify-between gap-1">
-          <p className="truncate text-[8px] text-slate-500">{item.brand}</p>
+          <p className="truncate text-[8px] text-muted-foreground">{item.brand}</p>
         </div>
       </div>
     </div>
@@ -408,7 +408,7 @@ function DraggablePeripheralCard({
     <Tooltip>
       <TooltipTrigger asChild>{card}</TooltipTrigger>
       <TooltipContent
-        className="rounded-xl border border-white/[0.12] bg-[#0a0e17]/95 p-4 shadow-2xl backdrop-blur-md"
+        className="rounded-xl border border-border bg-card p-4 shadow-2xl backdrop-blur-md"
         sideOffset={12}
         side="bottom"
         align="center"
@@ -458,7 +458,7 @@ function DragOverlayCard({ item }: { item: Peripheral }) {
 
   return (
     <div className="w-[150px] rotate-2 scale-105 cursor-grabbing drop-shadow-2xl">
-      <div className="relative overflow-hidden rounded-lg border border-cyan-400/50 bg-[#0a0e17] ring-2 ring-cyan-400/20">
+      <div className="relative overflow-hidden rounded-lg border border-cyan-400/50 bg-card ring-2 ring-cyan-400/20">
         <div className={cn("absolute bottom-0 left-0 top-0 w-[3px] bg-gradient-to-b", tierTheme.accent)} />
         <div className="relative ml-[3px] h-12 overflow-hidden bg-black/60">
           {item.image_url ? (
@@ -470,8 +470,8 @@ function DragOverlayCard({ item }: { item: Peripheral }) {
           )}
         </div>
         <div className="ml-[3px] px-1.5 pb-1.5 pt-1">
-          <p className="line-clamp-2 text-[10px] font-bold leading-tight text-slate-100">{item.name}</p>
-          <p className="mt-0.5 truncate text-[8px] text-slate-500">{item.brand}</p>
+          <p className="line-clamp-2 text-[10px] font-bold leading-tight text-foreground">{item.name}</p>
+          <p className="mt-0.5 truncate text-[8px] text-muted-foreground">{item.brand}</p>
         </div>
       </div>
     </div>
@@ -527,14 +527,14 @@ function DroppableTier({
               isOver
                 ? "border-cyan-400 bg-cyan-500/10"
                 : isDragging
-                  ? "border-white/[0.18] bg-white/[0.02]"
-                  : "border-white/[0.05]"
+                  ? "border-border bg-muted/30"
+                  : "border-border"
             )}
           >
             <p
               className={cn(
                 "text-[10px] font-medium transition-colors",
-                isOver ? "text-cyan-300" : isDragging ? "text-slate-600" : "text-transparent"
+                isOver ? "text-cyan-300" : isDragging ? "text-muted-foreground" : "text-transparent"
               )}
             >
               {isOver ? "Soltar aqui" : "+"}
@@ -579,13 +579,13 @@ function DroppableUnassignedPool({
               ? "border-amber-400 bg-amber-500/10"
               : isDragging
                 ? "border-amber-500/40 bg-amber-500/5"
-                : "border-white/[0.06]"
+                : "border-border"
           )}
         >
           <p
             className={cn(
               "text-xs font-medium transition-colors duration-150",
-              isOver ? "text-amber-300" : isDragging ? "text-amber-400/70" : "text-slate-600"
+              isOver ? "text-amber-300" : isDragging ? "text-amber-400/70" : "text-muted-foreground"
             )}
           >
             {isOver
@@ -1158,12 +1158,12 @@ export default function AdminPeripheralsPage() {
       </div>
 
 
-      <div className="flex flex-col gap-4 rounded-xl border border-white/[0.08] bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-medium text-slate-500">{t.tierlist.viewingBy}</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-100">{modeDescription}</p>
+          <p className="text-xs font-medium text-muted-foreground">{t.tierlist.viewingBy}</p>
+          <p className="mt-0.5 text-sm font-semibold text-foreground">{modeDescription}</p>
         </div>
-        <div className="flex rounded-lg border border-white/[0.1] bg-white/[0.02] p-1">
+        <div className="flex rounded-lg border border-border bg-muted/30 p-1">
           {RATING_MODES.filter((m) => {
             if (m.key === "oled" && selectedCategory !== "monitors") return false
             if (m.key === "soundTyping" && selectedCategory !== "switches") return false
@@ -1177,7 +1177,7 @@ export default function AdminPeripheralsPage() {
               onClick={() => setRatingMode(mode.key)}
               className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${ratingMode === mode.key
                 ? "bg-cyan-500/20 text-cyan-300"
-                : "text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                 }`}
             >
               {getRatingModeLabel(mode.key, selectedCategory, locale)}
@@ -1201,11 +1201,11 @@ export default function AdminPeripheralsPage() {
         </div>
       ) : (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-          <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-card shadow-lg">
+          <section className="overflow-hidden rounded-xl border border-border bg-card shadow-lg">
             {itemsByTier.map((tierRow) => (
               <div
                 key={tierRow.key}
-                className="grid border-b border-white/[0.08] last:border-b-0"
+                className="grid border-b border-border last:border-b-0"
                 style={{ gridTemplateColumns: "70px 1fr" }}
               >
                 <div className={`flex flex-col items-center justify-center bg-gradient-to-b ${tierRow.accent} text-2xl font-black ${tierRow.textColor}`}>
@@ -1233,17 +1233,17 @@ export default function AdminPeripheralsPage() {
           <div
             className={cn(
               "mt-6 overflow-hidden rounded-xl border bg-[#05070d] shadow-lg transition-colors duration-200",
-              unassignedItems.length > 0 ? "border-amber-500/20" : activeId ? "border-amber-500/20" : "border-white/[0.08]"
+              unassignedItems.length > 0 ? "border-amber-500/20" : activeId ? "border-amber-500/20" : "border-border"
             )}
           >
-            <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-3">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-3">
                 {unassignedItems.length > 0 && <AlertCircle className="size-4 text-amber-400" />}
                 <div>
-                  <p className={cn("text-sm font-semibold", unassignedItems.length > 0 ? "text-amber-300" : "text-slate-400")}>
+                  <p className={cn("text-sm font-semibold", unassignedItems.length > 0 ? "text-amber-300" : "text-muted-foreground")}>
                     {t.admin.tierlistPage.underReviewPeripherals}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     {unassignedItems.length > 0
                       ? t.admin.tierlistPage.dragToTierDesc
                       : t.admin.tierlistPage.dropToRemoveDesc}
@@ -1271,7 +1271,7 @@ export default function AdminPeripheralsPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
-        <DialogContent className="border border-white/[0.12] bg-[#0a0e17]/95">
+        <DialogContent className="border border-border bg-card">
           <DialogHeader>
             <DialogTitle>{t.peripherals.delete.title}</DialogTitle>
             <DialogDescription>

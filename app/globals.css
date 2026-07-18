@@ -1,7 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* O tema é aplicado via atributo data-theme no <html> (ver ThemeProvider), não via
+   classe .dark. A variante default do shadcn (`&:is(.dark *)`) nunca casava, então
+   todo utilitário `dark:` do projeto era código morto. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   /* Informa ao navegador o tema nativo (scrollbars, inputs, date pickers). */

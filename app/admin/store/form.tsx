@@ -343,7 +343,7 @@ export function StoreProductForm({ product, defaultType = "store", onSuccess, on
         <Label>Imagens</Label>
         <div className="flex flex-wrap gap-3">
           {images.map((url, idx) => (
-            <div key={url} className="group relative size-24 overflow-hidden rounded-xl border border-white/[0.10] bg-white/[0.03]">
+            <div key={url} className="group relative size-24 overflow-hidden rounded-xl border border-border bg-muted/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt={`Imagem ${idx + 1}`} className="h-full w-full object-contain p-1" />
               <button
@@ -362,7 +362,7 @@ export function StoreProductForm({ product, defaultType = "store", onSuccess, on
           ))}
 
           <label className={cn(
-            "flex size-24 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-white/[0.12] text-slate-500 transition-colors hover:border-white/[0.25] hover:text-slate-300",
+            "flex size-24 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-border hover:text-foreground/80",
             uploading && "cursor-wait opacity-50"
           )}>
             <input

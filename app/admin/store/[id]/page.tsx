@@ -84,7 +84,7 @@ export default function EditProductPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <BackBreadcrumb href="/admin/store" parentLabel="Loja & Bazar" currentLabel={product.name} />
-      <div className="rounded-xl border border-white/[0.08] bg-card p-6">
+      <div className="rounded-xl border border-border bg-card p-6">
         <StoreProductForm
           product={product}
           onSuccess={() => router.push("/admin/store")}

@@ -35,10 +35,30 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0a0d14",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
   width: "device-width",
   initialScale: 1,
+  // O layout usa h-dvh/viewport unit no mobile; travar o zoom prejudicaria
+  // acessibilidade, então apenas garantimos a escala inicial.
+  viewportFit: "cover",
 }
+
+/** Aplica o tema salvo antes da primeira pintura. Sem isso o ThemeProvider só
+ *  ajusta data-theme dentro de um useEffect, e quem usa tema claro vê um flash
+ *  escuro a cada carregamento. */
+const THEME_INIT_SCRIPT = `
+(function() {
+  try {
+    var t = localStorage.getItem("sunano-theme");
+    if (t === "light" || t === "dark") {
+      document.documentElement.setAttribute("data-theme", t);
+    }
+  } catch (e) {}
+})();
+`
 
 export default function RootLayout({
   children,
@@ -47,6 +67,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="bg-background" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className={`${manrope.variable} ${spaceGrotesk.variable} ${caveat.variable} font-sans`}>
         <ThemeProvider>
           <LocaleProvider>
