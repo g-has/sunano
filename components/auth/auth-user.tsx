@@ -115,7 +115,7 @@ export function AuthUser({ isCollapsed = false, loginHref = "/admin/login", vari
       return (
         <Link
           href={loginHref}
-          className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card/70 px-3 text-sm font-medium text-foreground transition-all hover:bg-muted/40"
+          className="flex h-11 items-center gap-1.5 rounded-lg border border-border bg-card/70 px-3 text-sm font-medium text-foreground transition-all hover:bg-muted/40 md:h-8"
         >
           <LogIn className="size-[15px] text-primary" />
           <span>Login</span>
@@ -145,7 +145,7 @@ export function AuthUser({ isCollapsed = false, loginHref = "/admin/login", vari
           <button
             type="button"
             aria-label={user.name}
-            className="flex shrink-0 items-center justify-center rounded-lg transition-all hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            className="flex size-11 shrink-0 items-center justify-center rounded-lg transition-all hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 md:size-8"
           >
             <Avatar className="size-8 rounded-lg ring-1 ring-border">
               <AvatarImage src={user.avatar} alt={user.name} />

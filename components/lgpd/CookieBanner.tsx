@@ -40,11 +40,13 @@ export function CookieBanner() {
 
   if (!visible) return null
 
+  // O padding inferior soma env(safe-area-inset-bottom): sem isso os botões ficam
+  // sob o indicador de home do iOS quando a barra está colada no rodapé.
   return (
     <div
       role="dialog"
       aria-label="Aviso de cookies e privacidade"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 px-4 py-4 shadow-lg backdrop-blur-sm md:bottom-4 md:left-4 md:right-auto md:max-w-md md:rounded-xl md:border"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 px-4 pt-4 pb-[calc(1rem_+_env(safe-area-inset-bottom))] shadow-lg backdrop-blur-sm md:bottom-4 md:left-4 md:right-auto md:max-w-md md:rounded-xl md:border md:pb-4"
     >
       <div className="flex items-start gap-3">
         <div className="flex-1 space-y-2">
@@ -62,12 +64,12 @@ export function CookieBanner() {
             .
           </p>
           <div className="flex items-center gap-2 pt-1">
-            <Button size="sm" onClick={accept} className="h-7 text-xs">
+            <Button size="sm" onClick={accept} className="h-11 text-xs md:h-8">
               Entendido
             </Button>
             <Link
               href="/privacidade"
-              className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              className="flex h-11 items-center px-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground md:h-8"
             >
               Saiba mais
             </Link>
@@ -76,7 +78,7 @@ export function CookieBanner() {
         <button
           onClick={dismiss}
           aria-label="Fechar aviso de cookies"
-          className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+          className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/40 hover:text-foreground md:size-8"
         >
           <X className="size-4" />
         </button>

@@ -1111,8 +1111,8 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
 
       {/* Floating compare bar */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 px-4">
-          <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/95 px-4 py-3 shadow-2xl shadow-black/50 backdrop-blur-md">
+        <div className="fixed bottom-[calc(1.5rem_+_env(safe-area-inset-bottom))] left-1/2 z-50 w-full max-w-[calc(100vw-1rem)] -translate-x-1/2 px-4 sm:w-auto">
+          <div className="flex items-center justify-center gap-3 rounded-2xl border border-border/60 bg-card/95 px-4 py-3 shadow-2xl shadow-black/50 backdrop-blur-md">
             <div className="flex items-center gap-1.5">
               {selectedIds.slice(0, 3).map((id) => {
                 const item = initialData.find((i) => i.id === id)
@@ -1140,7 +1140,8 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
               <button
                 type="button"
                 onClick={clearSelection}
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+                aria-label={t.common.clear}
+                className="flex size-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground md:size-8"
               >
                 <X className="size-3.5" />
               </button>
@@ -1148,7 +1149,7 @@ export function PerifericosContent({ initialData: initialDataProp, showAdminActi
               {selectedIds.length >= 2 && (
                 <Link
                   href={`/perifericos/comparar?ids=${selectedIds.join(",")}`}
-                  className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                  className="flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 md:h-8"
                 >
                   <ArrowLeftRight className="size-3.5" />
                   {t.common.compare}

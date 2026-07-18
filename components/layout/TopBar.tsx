@@ -129,13 +129,7 @@ export function TopBar() {
   const pageDescription = override.description ?? defaults.description
 
   return (
-    <div
-      className={cn(
-        "min-h-16 z-20 border-b border-border transition-[left] duration-300",
-        "left-16",
-        isCollapsed ? "md:left-16" : isAdmin ? "md:left-64" : "md:left-64"
-      )}
-    >
+    <div className="min-h-16 border-b border-border">
       <div className="min-h-16 flex items-center justify-between gap-4 px-4 py-2">
         {/* Left — Toggle + Page Title + Description */}
         <div className="flex items-center gap-3 min-w-0">
