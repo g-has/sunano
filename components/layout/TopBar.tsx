@@ -163,7 +163,7 @@ export function TopBar() {
         {/* Right — Theme + Language + Social */}
         <div className="flex items-center gap-2">
           <button
-            className="flex h-8 items-center gap-2 rounded-lg border border-border bg-card/70 px-3 text-sm font-medium text-foreground transition-all hover:bg-muted/40"
+            className="flex h-11 items-center gap-2 rounded-lg border border-border bg-card/70 px-3 text-sm font-medium text-foreground transition-all hover:bg-muted/40 md:h-8"
             type="button"
             onClick={() => setTheme(isLight ? "dark" : "light")}
             aria-label={isLight ? "Ativar modo escuro" : "Ativar modo claro"}
@@ -178,7 +178,7 @@ export function TopBar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card/70 px-3 text-sm font-medium text-foreground transition-all hover:bg-muted/40"
+                className="flex h-11 items-center gap-1.5 rounded-lg border border-border bg-card/70 px-3 text-sm font-medium text-foreground transition-all hover:bg-muted/40 md:h-8"
                 type="button"
               >
                 <Globe className="size-[15px] text-primary" />
@@ -227,7 +227,7 @@ export function TopBar() {
                   rel="noreferrer"
                   aria-label={link.label}
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-lg border border-border/80 bg-background/80 text-foreground shadow-sm transition-all hover:bg-foreground hover:text-background"
+                    "flex size-11 items-center justify-center rounded-lg border border-border/80 bg-background/80 text-foreground shadow-sm transition-all hover:bg-foreground hover:text-background md:size-8"
                   )}
                 >
                   <Icon className="size-[15px]" />

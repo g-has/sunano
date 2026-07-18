@@ -1,7 +1,7 @@
 import "./globals.css"
 
 import type { Metadata, Viewport } from "next"
-import { Inter, Space_Grotesk, Caveat } from "next/font/google"
+import { Manrope, Space_Grotesk, Caveat } from "next/font/google"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/toaster"
 import { LocaleProvider } from "@/components/providers/locale-context"
@@ -12,9 +12,9 @@ import { PageHeaderProvider } from "@/components/providers/page-header-context"
 import { LayoutShell } from "@/components/layout/LayoutShell"
 import { CookieBanner } from "@/components/lgpd/CookieBanner"
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-manrope",
 })
 
 const spaceGrotesk = Space_Grotesk({
@@ -47,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="bg-background" data-theme="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} ${spaceGrotesk.variable} ${caveat.variable} font-sans`}>
+      <body className={`${manrope.variable} ${spaceGrotesk.variable} ${caveat.variable} font-sans`}>
         <ThemeProvider>
           <LocaleProvider>
             <SidebarProvider>

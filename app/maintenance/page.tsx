@@ -7,7 +7,7 @@ export default function MaintenancePage() {
   const t = useT()
 
   return (
-    <main className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center overflow-hidden bg-background px-6 py-10 text-foreground">
+    <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden bg-background px-6 py-10 text-foreground">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.14),transparent_32%)]" />
 
       <section className="relative w-full max-w-3xl flex-col items-center rounded-3xl border border-border bg-card/70 p-10 text-center shadow-[0_28px_80px_rgba(0,0,0,0.35)] backdrop-blur">

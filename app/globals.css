@@ -105,9 +105,12 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   
-  --font-sans: 'Manrope', 'Manrope Fallback', system-ui, sans-serif;
-  --font-display: 'Space Grotesk', 'Space Grotesk Fallback', system-ui, sans-serif;
-  --font-handwritten: 'Caveat', 'Caveat Fallback', cursive;
+  /* Precisa referenciar as variáveis do next/font: ele registra as famílias com um
+     nome gerado com hash (__Manrope_xxxx), então o nome literal 'Manrope' nunca casa
+     com a fonte carregada e cai silenciosamente no system-ui. */
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-handwritten: var(--font-caveat), cursive;
 }
 
 @layer base {
@@ -118,19 +121,19 @@
 
 body {
   @apply bg-background text-foreground antialiased;
-  font-family: var(--font-manrope), system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 h1,
 h2,
 h3,
 .font-display {
-  font-family: var(--font-space-grotesk), var(--font-manrope), sans-serif;
+  font-family: var(--font-display);
   letter-spacing: -0.025em;
 }
 
 .font-handwritten {
-  font-family: var(--font-caveat), var(--font-manrope), cursive;
+  font-family: var(--font-handwritten);
 }
 
 /* Scrollbar styling */

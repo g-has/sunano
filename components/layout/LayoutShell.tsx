@@ -38,7 +38,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
         {/* Content area */}
         {isAdmin ? (
-          <div className="flex-1 min-w-0 bg-card mr-2 mt-2 mb-2 rounded-2xl">
+          <div className="flex-1 min-w-0 bg-card mx-2 mt-2 mb-2 rounded-2xl md:ml-0">
             <TopBar />
             {isSelfPaddedAdminPage ? (
               <main className="overflow-auto">{children}</main>
@@ -49,7 +49,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             )}
           </div>
         ) : (
-          <div className="flex-1 min-w-0 bg-card mr-2 mt-2 mb-2 rounded-2xl">
+          <div className="flex-1 min-w-0 bg-card mx-2 mt-2 mb-2 rounded-2xl md:ml-0">
             <TopBar />
             <main>{children}</main>
           </div>

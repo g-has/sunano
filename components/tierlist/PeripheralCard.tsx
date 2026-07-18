@@ -44,10 +44,16 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div
+        {/* Link e não div: o Radix Tooltip ignora input de toque por design, então no
+            mobile o tooltip (que continha o único link) nunca abria e o card ficava
+            sem navegação. O href aqui torna o card acessível por toque e teclado. */}
+        <Link
+          href={href}
+          aria-label={item.name}
           className={cn(
-            "group relative cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-all duration-200",
+            "group relative block cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-all duration-200",
             "hover:border-foreground/20 hover:shadow-md hover:shadow-black/20",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
             isGoat && "shadow-[0_0_14px_rgba(240,97,97,0.18)]",
           )}
         >
@@ -91,7 +97,7 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
               )} */}
             </div>
           </div>
-        </div>
+        </Link>
       </TooltipTrigger>
 
       <TooltipContent
