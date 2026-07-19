@@ -508,17 +508,26 @@ export default function ForumPage() {
                 <div className="absolute -top-px left-0 right-0 h-px rounded-t-xl bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
               )}
 
-              <div className="flex items-start gap-3 p-4 pb-3.5">
-                {/* Vote column — outside Link to avoid navigation */}
-                <VoteColumn
-                  post={post}
-                  userVote={userVotes[post.id] ?? 0}
-                  onVote={(v) => handleVote(post, v)}
-                  disabled={!authUser}
-                />
+              {/* Overlay link — cobre o card inteiro sem aninhar <a> */}
+              <Link
+                href={`/forum/${post.slug}`}
+                aria-label={post.title}
+                className="absolute inset-0 z-0 rounded-xl"
+              />
 
-                {/* Post content — inside Link */}
-                <Link href={`/forum/${post.slug}`} className="flex flex-1 min-w-0 items-start gap-3">
+              <div className="flex items-start gap-3 p-4 pb-3.5">
+                {/* Vote column — acima do overlay para continuar clicável */}
+                <div className="relative z-10">
+                  <VoteColumn
+                    post={post}
+                    userVote={userVotes[post.id] ?? 0}
+                    onVote={(v) => handleVote(post, v)}
+                    disabled={!authUser}
+                  />
+                </div>
+
+                {/* Post content — não interativo, o overlay cuida da navegação */}
+                <div className="flex flex-1 min-w-0 items-start gap-3">
                   <UserAvatar name={post.author_display_name} avatarUrl={post.author_avatar_url} size={8} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
@@ -547,14 +556,14 @@ export default function ForumPage() {
                     </p>
 
                     {post.peripherals && post.peripherals.length > 0 && (
-                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      <div className="relative z-10 mt-2.5 flex flex-wrap gap-1.5">
                         {post.peripherals.map((p) => (
                           <PeripheralCard key={p.id} peripheral={p} />
                         ))}
                       </div>
                     )}
                   </div>
-                </Link>
+                </div>
               </div>
             </div>
           ))}
