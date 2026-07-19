@@ -23,15 +23,20 @@ type RateLimitParams = {
   windowSeconds: number
 }
 
-/** Deriva um identificador estável (hash) do visitante a partir da requisição. */
-export function getClientIdentifier(request: Request) {
-  const forwardedFor = request.headers.get("x-forwarded-for")
-  const realIp = request.headers.get("x-real-ip")
-  const userAgent = request.headers.get("user-agent")
+/** Deriva um identificador estável (hash) do visitante a partir dos headers. */
+export function getClientIdentifierFromHeaders(headers: Headers) {
+  const forwardedFor = headers.get("x-forwarded-for")
+  const realIp = headers.get("x-real-ip")
+  const userAgent = headers.get("user-agent")
   const ip = forwardedFor?.split(",")[0]?.trim() || realIp || "unknown"
   const salt = process.env.RATE_LIMIT_SALT || "sunano-rate-limit"
 
   return createHash("sha256").update(`${salt}:${ip}:${userAgent || "unknown"}`).digest("hex")
+}
+
+/** Deriva um identificador estável (hash) do visitante a partir da requisição. */
+export function getClientIdentifier(request: Request) {
+  return getClientIdentifierFromHeaders(request.headers)
 }
 
 /** Verifica e registra uma tentativa para a janela de tempo informada. */

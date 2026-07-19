@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
-import type { AdminProfile } from "@/lib/admin-permissions"
+import { hasAdminPermission, type AdminProfile } from "@/lib/admin-permissions"
 import { dbErrorResponse } from "@/lib/db-errors"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
@@ -86,6 +86,10 @@ export async function POST(request: Request) {
     }
 
     const typedCurrentProfile = currentProfile as AdminProfile
+
+    if (!hasAdminPermission(typedCurrentProfile, "profile_write")) {
+      return NextResponse.json({ error: "Sem permissão para editar o perfil." }, { status: 403 })
+    }
 
     const email = authData.user.email ?? null
     const incomingDisplayName = parsed.data.display_name?.trim() || null

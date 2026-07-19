@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
+import { validateImageUpload } from "@/lib/server/upload-validation"
+
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthorizedProfile()
@@ -19,22 +23,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Nenhum arquivo enviado" }, { status: 400 })
   }
 
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"]
-  if (!allowed.includes(file.type)) {
-    return NextResponse.json({ error: "Tipo de arquivo não permitido" }, { status: 400 })
+  const validated = await validateImageUpload(file, {
+    maxSizeBytes: MAX_FILE_SIZE_BYTES,
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
+  })
+  if (!validated.ok) {
+    return NextResponse.json({ error: validated.error }, { status: 400 })
   }
 
-  const ext = file.name.split(".").pop() ?? "jpg"
-  const filename = `store/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+  const filename = `store/${Date.now()}-${crypto.randomUUID()}.${validated.extension}`
 
   const db = createSupabaseAdminClient()
 
-  // Ensure the bucket exists (no-op if already created)
-  await db.storage.createBucket("images", { public: true, allowedMimeTypes: ["image/*"] })
+  // Garante que o bucket existe e está com a allowlist correta — cobre tanto
+  // criação quanto o caso de já existir com uma config antiga mais permissiva.
+  await db.storage.createBucket("images", { public: true, allowedMimeTypes: ALLOWED_MIME_TYPES })
+  await db.storage.updateBucket("images", { public: true, allowedMimeTypes: ALLOWED_MIME_TYPES })
 
   const { error } = await db.storage
     .from("images")
-    .upload(filename, file, { contentType: file.type, upsert: false })
+    .upload(filename, validated.bytes, { contentType: validated.mime, upsert: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

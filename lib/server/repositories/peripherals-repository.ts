@@ -105,8 +105,11 @@ export async function queryPeripherals(options: PeripheralQueryOptions): Promise
   if (options.search && options.search.trim().length >= 2) {
     query = query.ilike("name", `%${options.search.trim()}%`)
   }
-  if (options.excludeIds && options.excludeIds.length > 0) {
-    query = query.not("id", "in", `(${options.excludeIds.join(",")})`)
+  const validExcludeIds = options.excludeIds?.filter((id) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+  )
+  if (validExcludeIds && validExcludeIds.length > 0) {
+    query = query.not("id", "in", `(${validExcludeIds.join(",")})`)
   }
 
   const { data, error } = await query

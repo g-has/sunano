@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import * as z from "zod"
 
 import { getRequestUser } from "@/lib/server/auth/current-user"
+import { checkRateLimit } from "@/lib/server/rate-limit"
 import {
   createForumPost,
   listForumPosts,
@@ -50,6 +51,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message ?? "Dados inválidos." },
         { status: 400 }
+      )
+    }
+
+    const rateLimit = await checkRateLimit({
+      action: "forum_post_create",
+      identifier: user.id,
+      maxAttempts: 5,
+      windowSeconds: 3600,
+    })
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Você criou muitos posts recentemente. Tente novamente mais tarde." },
+        { status: 429 }
       )
     }
 

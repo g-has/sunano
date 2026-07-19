@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
+import { validateImageUpload } from "@/lib/server/upload-validation"
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
@@ -50,18 +51,12 @@ export async function POST(request: Request) {
       )
     }
 
-    if (fileEntry.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json(
-        { error: "Imagem deve ter no máximo 5MB." },
-        { status: 400 }
-      )
-    }
-
-    if (!ALLOWED_MIME_TYPES.includes(fileEntry.type)) {
-      return NextResponse.json(
-        { error: "Formato de imagem não suportado." },
-        { status: 400 }
-      )
+    const validated = await validateImageUpload(fileEntry, {
+      maxSizeBytes: MAX_FILE_SIZE_BYTES,
+      allowedMimeTypes: ALLOWED_MIME_TYPES,
+    })
+    if (!validated.ok) {
+      return NextResponse.json({ error: validated.error }, { status: 400 })
     }
 
     const fileSeed =
@@ -72,14 +67,13 @@ export async function POST(request: Request) {
           : "blog"
     const slug = sanitizeSlug(fileSeed) || "blog"
     const variant = variantEntry === "thumbnail" ? "thumbnail" : "header"
-    const extension = fileEntry.name.split(".").pop() || "jpg"
-    const fileName = `blog-cover-${variant}-${slug}-${Date.now()}.${extension}`
+    const fileName = `blog-cover-${variant}-${slug}-${Date.now()}.${validated.extension}`
 
     const { error: uploadError } = await supabase.storage
       .from("peripherals")
-      .upload(fileName, fileEntry, {
+      .upload(fileName, validated.bytes, {
         upsert: false,
-        contentType: fileEntry.type,
+        contentType: validated.mime,
       })
 
     if (uploadError) {

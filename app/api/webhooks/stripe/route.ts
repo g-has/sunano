@@ -78,8 +78,11 @@ async function handleCheckoutCompleted(
 
   const cart: Array<{ productId: string; quantity: number }> = JSON.parse(cartJson)
 
-  // Update order to paid
-  await db
+  // Update order to paid — só transiciona se AINDA não estava paga, tornando
+  // o handler idempotente contra reentrega do mesmo evento pelo Stripe
+  // (retry em timeout/erro 5xx). Se nenhuma linha for afetada, o pedido já
+  // foi processado (ou não existe) e o estoque não deve ser decrementado de novo.
+  const { data: updatedOrders } = await db
     .from("store_orders")
     .update({
       status: "paid",
@@ -90,6 +93,12 @@ async function handleCheckoutCompleted(
       updated_at: new Date().toISOString(),
     })
     .eq("stripe_session_id", session.id)
+    .neq("status", "paid")
+    .select("id")
+
+  if (!updatedOrders || updatedOrders.length === 0) {
+    return
+  }
 
   // Decrement stock for each purchased item
   for (const item of cart) {

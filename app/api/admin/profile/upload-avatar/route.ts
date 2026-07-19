@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
+import { checkRateLimit } from "@/lib/server/rate-limit"
+import { validateImageUpload } from "@/lib/server/upload-validation"
 
 const MAX_FILE_SIZE_BYTES = 3 * 1024 * 1024
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"]
@@ -32,20 +34,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Arquivo inválido." }, { status: 400 })
     }
 
-    if (fileEntry.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json({ error: "Imagem deve ter no máximo 3MB." }, { status: 400 })
+    const rateLimit = await checkRateLimit({
+      action: "admin_avatar_upload",
+      identifier: authData.user.id,
+      maxAttempts: 10,
+      windowSeconds: 3600,
+    })
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "Muitos uploads recentes. Tente novamente mais tarde." }, { status: 429 })
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(fileEntry.type)) {
-      return NextResponse.json({ error: "Formato de imagem não suportado." }, { status: 400 })
+    const validated = await validateImageUpload(fileEntry, {
+      maxSizeBytes: MAX_FILE_SIZE_BYTES,
+      allowedMimeTypes: ALLOWED_MIME_TYPES,
+    })
+    if (!validated.ok) {
+      return NextResponse.json({ error: validated.error }, { status: 400 })
     }
 
-    const extension = fileEntry.name.split(".").pop() || "jpg"
-    const fileName = `admin-avatar-${authData.user.id}-${Date.now()}.${extension}`
+    const fileName = `admin-avatar-${authData.user.id}-${Date.now()}.${validated.extension}`
 
-    const { error: uploadError } = await supabase.storage.from("peripherals").upload(fileName, fileEntry, {
+    const { error: uploadError } = await supabase.storage.from("peripherals").upload(fileName, validated.bytes, {
       upsert: false,
-      contentType: fileEntry.type,
+      contentType: validated.mime,
     })
 
     if (uploadError) {

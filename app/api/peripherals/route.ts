@@ -11,10 +11,15 @@ export const runtime = "nodejs"
  * Aceita: `search`, `ids`, `exclude`, `category`, `limit`, `full`.
  * A consulta vive no `peripherals-repository`.
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 function parseIdList(value: string | null): string[] | undefined {
   const trimmed = value?.trim()
   if (!trimmed) return undefined
-  const list = trimmed.split(",").map((id) => id.trim()).filter(Boolean)
+  const list = trimmed
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => UUID_RE.test(id))
   return list.length > 0 ? list : undefined
 }
 

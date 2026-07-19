@@ -6,6 +6,7 @@ import { isLocalhostHost, validatePassword } from "@/lib/password-policy"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "Informe sua senha atual."),
   password: z.string().min(1, "Informe uma senha."),
 })
 
@@ -28,8 +29,18 @@ export async function POST(request: Request) {
     const supabase = await createSupabaseServerClient()
     const { data: authData } = await supabase.auth.getUser()
 
-    if (!authData.user) {
+    if (!authData.user?.email) {
       return NextResponse.json({ error: "Sessão expirada. Entre novamente." }, { status: 401 })
+    }
+
+    // Reautentica com a senha atual antes de trocar — evita que uma sessão
+    // sequestrada (cookie roubado/XSS) vire takeover permanente da conta.
+    const { error: reauthError } = await supabase.auth.signInWithPassword({
+      email: authData.user.email,
+      password: parsed.data.currentPassword,
+    })
+    if (reauthError) {
+      return NextResponse.json({ error: "Senha atual incorreta." }, { status: 401 })
     }
 
     const { error } = await supabase.auth.updateUser({ password: parsed.data.password })

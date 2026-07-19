@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
+import * as z from "zod"
 import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { dbErrorResponse } from "@/lib/db-errors"
 import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
 import { parseSlug } from "@/lib/stripe"
+
+const createProductSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(5000).optional().nullable(),
+  price_cents: z.number().int().positive(),
+  stock: z.number().int().min(0).optional().default(0),
+  images: z.array(z.string().url()).optional().default([]),
+  category: z.string().trim().max(50).optional().nullable(),
+  type: z.enum(["store", "bazaar"]),
+  condition: z.enum(["new", "used", "opened"]).optional().default("new"),
+  condition_notes: z.string().trim().max(1000).optional().nullable(),
+  is_active: z.boolean().optional().default(true),
+})
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthorizedProfile()
@@ -45,12 +59,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 })
   }
 
-  const body = await request.json()
-  const { name, description, price_cents, stock, images, category, type, condition, condition_notes, is_active } = body
-
-  if (!name || !price_cents || !type) {
-    return NextResponse.json({ error: "Campos obrigatórios: name, price_cents, type" }, { status: 400 })
+  const parsed = createProductSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Dados inválidos." },
+      { status: 400 }
+    )
   }
+  const { name, description, price_cents, stock, images, category, type, condition, condition_notes, is_active } =
+    parsed.data
 
   // Generate unique slug
   const db = createSupabaseAdminClient()
@@ -69,15 +86,15 @@ export async function POST(request: NextRequest) {
     .insert({
       slug,
       name,
-      description: description || null,
-      price_cents: Number(price_cents),
-      stock: Number(stock ?? 0),
-      images: images || [],
-      category: category || null,
+      description: description ?? null,
+      price_cents,
+      stock,
+      images,
+      category: category ?? null,
       type,
-      condition: condition || "new",
-      condition_notes: condition_notes || null,
-      is_active: is_active !== false,
+      condition,
+      condition_notes: condition_notes ?? null,
+      is_active,
     })
     .select()
     .single()

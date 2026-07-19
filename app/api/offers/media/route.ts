@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { checkRateLimit, getClientIdentifier } from "@/lib/server/rate-limit"
+
 type TelegramGetFileResponse = {
   ok?: boolean
   result?: {
@@ -14,6 +16,17 @@ export async function GET(request: Request) {
 
   if (!fileId) {
     return NextResponse.json({ error: "fileId is required." }, { status: 400 })
+  }
+
+  const identifier = getClientIdentifier(request)
+  const rateLimit = await checkRateLimit({
+    action: "offers_media_proxy",
+    identifier,
+    maxAttempts: 120,
+    windowSeconds: 3600,
+  })
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
   }
 
   const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim()
