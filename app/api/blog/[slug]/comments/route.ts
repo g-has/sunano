@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import * as z from "zod"
 
 import { getRequestUser } from "@/lib/server/auth/current-user"
+import { checkRateLimit } from "@/lib/server/rate-limit"
 import { addBlogComment, listBlogComments } from "@/lib/server/repositories/blog-repository"
 import { getUserProfile } from "@/lib/server/repositories/users-repository"
 
@@ -40,6 +41,19 @@ export async function POST(request: NextRequest, context: { params: Promise<{ sl
       return NextResponse.json(
         { error: parsed.error.issues[0]?.message ?? "Dados inválidos." },
         { status: 400 }
+      )
+    }
+
+    const rateLimit = await checkRateLimit({
+      action: "blog_comment_create",
+      identifier: user.id,
+      maxAttempts: 20,
+      windowSeconds: 3600,
+    })
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Você comentou muitas vezes recentemente. Tente novamente mais tarde." },
+        { status: 429 }
       )
     }
 

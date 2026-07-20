@@ -4,6 +4,7 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 import { isLocalhostHost, validatePassword } from "@/lib/password-policy"
+import { checkRateLimit, getClientIdentifierFromHeaders } from "@/lib/server/rate-limit"
 import {
   upsertUserProfileOnSignup,
   recordLgpdConsent,
@@ -42,6 +43,18 @@ export async function registerUserAction(
   }
 
   const headersList = await headers()
+
+  const identifier = getClientIdentifierFromHeaders(headersList)
+  const rateLimit = await checkRateLimit({
+    action: "register",
+    identifier,
+    maxAttempts: 5,
+    windowSeconds: 3600,
+  })
+  if (!rateLimit.allowed) {
+    return { error: "too_many_attempts" }
+  }
+
   const relaxed = isLocalhostHost(headersList.get("host"))
   const passwordError = validatePassword(password, relaxed)
   if (passwordError) {

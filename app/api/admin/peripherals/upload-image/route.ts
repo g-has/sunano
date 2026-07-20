@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { getAuthorizedProfile } from "@/lib/server/auth/admin-auth"
 import { hasAdminPermission } from "@/lib/admin-permissions"
 import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
+import { validateImageUpload } from "@/lib/server/upload-validation"
+
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -25,18 +28,25 @@ export async function POST(request: NextRequest) {
   }
 
   const allowed = kind === "gallery" ? ["image/jpeg"] : ["image/jpeg", "image/png", "image/webp", "image/gif"]
-  if (!allowed.includes(file.type)) {
-    return NextResponse.json({ error: kind === "gallery" ? "Apenas arquivos JPEG são permitidos." : "Tipo de arquivo não permitido." }, { status: 400 })
+
+  const validated = await validateImageUpload(file, {
+    maxSizeBytes: MAX_FILE_SIZE_BYTES,
+    allowedMimeTypes: allowed,
+  })
+  if (!validated.ok) {
+    return NextResponse.json(
+      { error: kind === "gallery" && !allowed.includes(file.type) ? "Apenas arquivos JPEG são permitidos." : validated.error },
+      { status: 400 }
+    )
   }
 
-  const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, "-")
-  const filename = `${Date.now()}-${sanitized}`
+  const filename = `${Date.now()}-${crypto.randomUUID()}.${validated.extension}`
 
   const db = createSupabaseAdminClient()
 
   const { error } = await db.storage
     .from("peripherals")
-    .upload(filename, file, { contentType: file.type, upsert: false })
+    .upload(filename, validated.bytes, { contentType: validated.mime, upsert: false })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

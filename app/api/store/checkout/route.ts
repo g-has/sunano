@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
       items: orderItems,
       total_cents: orderItems.reduce((s, i) => s + i.price_cents * i.quantity, 0),
       status: "pending",
+      metadata: { user_id: user.id },
     })
 
     return NextResponse.json({ url: session.url })

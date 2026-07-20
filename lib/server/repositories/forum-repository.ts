@@ -499,7 +499,11 @@ export async function listForumPostsForModeration(params: {
   else if (params.filter === "pinned") query = (query as any).eq("is_pinned", true)
 
   if (params.q) {
-    query = (query as any).or(`title.ilike.%${params.q}%,author_name.ilike.%${params.q}%`)
+    // Escapa aspas/backslash e envolve em aspas duplas — sintaxe do PostgREST
+    // para valores de filtro que podem conter vírgula/ponto (delimitadores
+    // do `.or()`), evitando que `q` injete condições extras no filtro.
+    const escapedQ = params.q.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
+    query = (query as any).or(`title.ilike."%${escapedQ}%",author_name.ilike."%${escapedQ}%"`)
   }
 
   const { data: posts, count } = await (query as any)

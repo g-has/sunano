@@ -19,6 +19,7 @@ const REGISTER_ERRORS: Record<string, string> = {
   email_in_use: "Já existe uma conta com este email.",
   signup_failed: "Não foi possível concluir o cadastro. Tente novamente.",
   lgpd_consent_required: "Você precisa aceitar a Política de Privacidade para criar uma conta.",
+  too_many_attempts: "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.",
 }
 
 const initialState: RegisterState = { error: null }

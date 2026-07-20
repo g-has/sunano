@@ -54,6 +54,7 @@ function PasswordStrength({ password }: { password: string }) {
 
 export function SecurityTab({ email }: SecurityTabProps) {
   // ── Senha ──
+  const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [savingPassword, setSavingPassword] = useState(false)
@@ -94,10 +95,11 @@ export function SecurityTab({ email }: SecurityTabProps) {
       const res = await fetch("/api/profile/password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: newPassword }),
+        body: JSON.stringify({ currentPassword, password: newPassword }),
       })
       const data = (await res.json().catch(() => null)) as { error?: string; ok?: boolean } | null
       if (!res.ok || !data?.ok) throw new Error(data?.error ?? "")
+      setCurrentPassword("")
       setNewPassword("")
       setConfirmPassword("")
       toast.success("Senha atualizada")
@@ -206,6 +208,17 @@ export function SecurityTab({ email }: SecurityTabProps) {
           <CardDescription>Defina uma nova senha ou receba um link de redefinição por email.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5 pt-5">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Senha atual</label>
+            <Input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="border-border bg-background"
+              placeholder="Sua senha atual"
+              autoComplete="current-password"
+            />
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nova senha</label>
@@ -236,7 +249,7 @@ export function SecurityTab({ email }: SecurityTabProps) {
               <Mail className="size-4" />
               {sendingReset ? "Enviando..." : "Enviar link por email"}
             </Button>
-            <Button onClick={updatePassword} disabled={savingPassword || !newPassword || passwordsMismatch} className="gap-2 min-w-32">
+            <Button onClick={updatePassword} disabled={savingPassword || !currentPassword || !newPassword || passwordsMismatch} className="gap-2 min-w-32">
               <KeyRound className="size-4" />
               {savingPassword ? "Salvando..." : "Atualizar senha"}
             </Button>

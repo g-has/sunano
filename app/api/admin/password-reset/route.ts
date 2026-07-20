@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
+import { checkRateLimit, getClientIdentifier } from "@/lib/server/rate-limit"
 
 export async function POST(request: Request) {
   try {
@@ -8,6 +9,18 @@ export async function POST(request: Request) {
     const email = String(body?.email || "").trim()
 
     if (!email) {
+      return NextResponse.json({ message: "Email enviado." })
+    }
+
+    const identifier = getClientIdentifier(request)
+    const rateLimit = await checkRateLimit({
+      action: "admin_password_reset",
+      identifier: `${identifier}:${email.toLowerCase()}`,
+      maxAttempts: 5,
+      windowSeconds: 900,
+    })
+    if (!rateLimit.allowed) {
+      // Resposta genérica de propósito — não revela rate limit a quem tenta abusar.
       return NextResponse.json({ message: "Email enviado." })
     }
 

@@ -1,12 +1,14 @@
+import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
 import { isWebMaster } from "@/lib/admin-permissions"
+import { isLocalhostHost, validatePassword } from "@/lib/password-policy"
 import { createSupabaseAdminClient } from "@/lib/server/supabase/admin-client"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 
 const passwordSchema = z.object({
-  password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres"),
+  password: z.string().min(1, "Informe uma senha."),
 })
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -22,6 +24,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos." }, { status: 400 })
+    }
+
+    const headersList = await headers()
+    const relaxed = isLocalhostHost(headersList.get("host"))
+    const policyError = validatePassword(parsed.data.password, relaxed)
+    if (policyError) {
+      return NextResponse.json({ error: policyError }, { status: 400 })
     }
 
     const supabase = await createSupabaseServerClient()

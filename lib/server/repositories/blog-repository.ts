@@ -98,6 +98,24 @@ function isMissingPostType(message: string | null | undefined) {
 }
 
 /**
+ * O e-mail do autor é buscado só para derivar um nome de exibição de
+ * fallback (quando `display_name` está vazio) — nunca deve chegar à
+ * resposta pública da API, senão qualquer visitante consegue coletar o
+ * e-mail de admins/editores. Resolve o fallback aqui e descarta o e-mail.
+ */
+function stripAuthorEmail<T extends { admin_profiles: BlogAuthor }>(post: T): T {
+  if (!post.admin_profiles) return post
+  const displayName =
+    post.admin_profiles.display_name?.trim() ||
+    post.admin_profiles.email?.split("@")[0] ||
+    null
+  return {
+    ...post,
+    admin_profiles: { ...post.admin_profiles, display_name: displayName, email: null },
+  }
+}
+
+/**
  * Conta comentários visíveis por post. Resiliente: se a tabela `blog_comments`
  * ainda não existir (migração não aplicada), devolve um mapa vazio em vez de
  * quebrar a listagem.
@@ -146,7 +164,9 @@ export async function listPublishedPosts(peripheralId?: string | null): Promise<
 
   const rows = (data ?? []) as unknown as BlogListPost[]
   const counts = await countCommentsByPost(rows.map((p) => p.id))
-  return rows.map((p) => ({ ...p, post_type: p.post_type ?? "review", comment_count: counts[p.id] ?? 0 }))
+  return rows.map((p) =>
+    stripAuthorEmail({ ...p, post_type: p.post_type ?? "review", comment_count: counts[p.id] ?? 0 })
+  )
 }
 
 /** Busca um post publicado pelo slug. */
@@ -172,7 +192,7 @@ export async function getPublishedPostBySlug(slug: string): Promise<BlogPostDeta
 
   const post = data as unknown as BlogPostDetail
   const counts = await countCommentsByPost([post.id])
-  return { ...post, post_type: post.post_type ?? "review", comment_count: counts[post.id] ?? 0 }
+  return stripAuthorEmail({ ...post, post_type: post.post_type ?? "review", comment_count: counts[post.id] ?? 0 })
 }
 
 /** Posts publicados relacionados a um periférico (página de detalhe). */

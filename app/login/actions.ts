@@ -1,9 +1,11 @@
 "use server"
 
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { isMfaStepUpRequired } from "@/lib/auth-mfa"
 import { createSupabaseServerClient } from "@/lib/server/supabase/server-client"
 import { isAdminUser, upsertUserProfileFromAuth } from "@/lib/server/repositories/users-repository"
+import { checkRateLimit, getClientIdentifierFromHeaders } from "@/lib/server/rate-limit"
 
 type AuthState = { error: string | null }
 
@@ -13,6 +15,17 @@ export async function loginUserAction(_: AuthState, formData: FormData): Promise
 
   if (!email || !password) {
     return { error: "missing_credentials" }
+  }
+
+  const identifier = getClientIdentifierFromHeaders(await headers())
+  const rateLimit = await checkRateLimit({
+    action: "login",
+    identifier: `${identifier}:${email.toLowerCase()}`,
+    maxAttempts: 10,
+    windowSeconds: 300,
+  })
+  if (!rateLimit.allowed) {
+    return { error: "too_many_attempts" }
   }
 
   const supabase = await createSupabaseServerClient()
