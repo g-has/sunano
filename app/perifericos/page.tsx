@@ -2,7 +2,7 @@ import { listAllPeripherals } from "@/lib/server/repositories/peripherals-reposi
 import { PerifericosContent } from "./perifericos-content"
 import { mapTier } from "@/lib/tier-utils"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 30
 
 export default async function PerifericosPage() {
   const peripheralsList = (await listAllPeripherals()) as Array<{

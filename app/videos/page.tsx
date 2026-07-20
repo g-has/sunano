@@ -17,8 +17,10 @@ function formatDate(value: string) {
   })
 }
 
+export const revalidate = 300
+
 export default async function VideosPage() {
-  const { data: feed, error } = await getYouTubeChannelFeed({ forceRefresh: true })
+  const { data: feed, error } = await getYouTubeChannelFeed({ forceRefresh: false })
 
   const videos = feed?.videos ?? []
   const channel = feed?.channel ?? null

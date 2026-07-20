@@ -4,8 +4,9 @@ import { TierlistInfo } from "@/components/tierlist/TierlistInfo"
 import { TierlistContent } from "@/components/tierlist/TierlistContent"
 import { mapTier } from "@/lib/tier-utils"
 
-// Renderização dinâmica: a tierlist deve refletir o banco a cada requisição.
-export const dynamic = "force-dynamic"
+// ISR: serve do cache e revalida em background a cada 30s, em vez de
+// re-renderizar (com nova query ao banco) em toda requisição.
+export const revalidate = 30
 
 export default async function TierlistPage() {
   const [peripheralsList, tierlistMeta] = await Promise.all([

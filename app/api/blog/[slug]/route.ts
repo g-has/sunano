@@ -5,7 +5,7 @@ import {
   listRelatedPosts,
 } from "@/lib/server/repositories/blog-repository"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 30
 
 /** Endpoint público de detalhe de um post do blog, com notícias relacionadas. */
 export async function GET(_request: Request, context: { params: Promise<{ slug: string }> }) {

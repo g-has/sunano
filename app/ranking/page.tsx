@@ -1,7 +1,7 @@
 import { listAllPeripherals } from "@/lib/server/repositories/peripherals-repository"
 import { RankingContent } from "./ranking-content"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 30
 
 export default async function RankingPage() {
   const all = await listAllPeripherals()

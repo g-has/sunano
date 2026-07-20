@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { listPublishedPosts } from "@/lib/server/repositories/blog-repository"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 30
 
 /**
  * Endpoint público de listagem do blog.

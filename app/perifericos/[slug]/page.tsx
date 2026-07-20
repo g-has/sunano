@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Package, ShoppingBag, Trophy } from "lucide-react"
+import { FaAmazon } from "react-icons/fa"
+import { SiAliexpress, SiShopee } from "react-icons/si"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,7 +24,7 @@ interface PerifericoPageProps {
   params: Promise<{ slug: string }>
 }
 
-export const dynamic = "force-dynamic"
+export const revalidate = 30
 
 function formatLabel(value: string) {
   return value
@@ -171,16 +173,51 @@ function linkifyText(text: string) {
   )
 }
 
-const BUY_LINK_STYLES: Record<string, string> = {
-  aliexpress: "border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20",
-  "mercado livre": "border-yellow-400/30 bg-yellow-400/10 text-yellow-200 hover:bg-yellow-400/20",
-  mercadolivre: "border-yellow-400/30 bg-yellow-400/10 text-yellow-200 hover:bg-yellow-400/20",
-  amazon: "border-blue-500/30 bg-blue-500/10 text-blue-200 hover:bg-blue-500/20",
-  shopee: "border-orange-500/30 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20",
+const BUY_LINK_STYLES: Record<string, { container: string; icon: string }> = {
+  aliexpress: {
+    container: "border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20",
+    icon: "text-red-400",
+  },
+  "mercado livre": {
+    container: "border-yellow-400/30 bg-yellow-400/10 text-yellow-200 hover:bg-yellow-400/20",
+    icon: "text-yellow-400",
+  },
+  mercadolivre: {
+    container: "border-yellow-400/30 bg-yellow-400/10 text-yellow-200 hover:bg-yellow-400/20",
+    icon: "text-yellow-400",
+  },
+  amazon: {
+    container: "border-blue-500/30 bg-blue-500/10 text-blue-200 hover:bg-blue-500/20",
+    icon: "text-blue-400",
+  },
+  shopee: {
+    container: "border-orange-500/30 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20",
+    icon: "text-orange-400",
+  },
+}
+
+const DEFAULT_BUY_LINK_STYLE = {
+  container: "border-border bg-muted/30 text-foreground hover:bg-muted/40",
+  icon: "text-muted-foreground",
 }
 
 function getBuyLinkStyle(label: string) {
-  return BUY_LINK_STYLES[label.trim().toLowerCase()] ?? "border-border bg-muted/30 text-foreground hover:bg-muted/40"
+  return BUY_LINK_STYLES[label.trim().toLowerCase()] ?? DEFAULT_BUY_LINK_STYLE
+}
+
+// Sem logo oficial disponível nos pacotes de ícones instalados (react-icons/si só tem
+// "Mercado Pago", uma marca diferente) — usa um ícone genérico até termos o SVG certo.
+function getBuyLinkIcon(label: string) {
+  switch (label.trim().toLowerCase()) {
+    case "aliexpress":
+      return SiAliexpress
+    case "amazon":
+      return FaAmazon
+    case "shopee":
+      return SiShopee
+    default:
+      return ShoppingBag
+  }
 }
 
 function formatSpecValue(value: unknown) {
@@ -421,6 +458,39 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                     {softwareInfo ? linkifyText(softwareInfo) : "Informacao de compatibilidade nao cadastrada."}
                   </CardContent>
                 </Card>
+
+                {buyLinks.length > 0 && (
+                  <Card className="border-border bg-card">
+                    <CardHeader className="space-y-1">
+                      <CardTitle className="text-sm">Onde comprar</CardTitle>
+                      <CardDescription className="text-xs">Links oficiais e lojas recomendadas.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2 lg:max-h-40 lg:overflow-auto">
+                      {buyLinks.map((link: { label: string; url: string }) => {
+                        const style = getBuyLinkStyle(link.label)
+                        const Icon = getBuyLinkIcon(link.label)
+                        return (
+                          <a
+                            key={link.url}
+                            href={link.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={cn(
+                              "flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium transition",
+                              style.container
+                            )}
+                          >
+                            <span className="flex items-center gap-2">
+                              <Icon className={cn("size-4 shrink-0", style.icon)} />
+                              {link.label}
+                            </span>
+                            <span>→</span>
+                          </a>
+                        )
+                      })}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               {/* @container/col: os grids desta coluna precisam medir a coluna, não a
@@ -786,33 +856,6 @@ export default async function PerifericoPage({ params }: PerifericoPageProps) {
                     </CardContent>
                   </Card>
                 )}
-
-                {buyLinks.length > 0 && (
-                  <Card className="border-border bg-card">
-                    <CardHeader className="space-y-1">
-                      <CardTitle className="text-sm">Onde comprar</CardTitle>
-                      <CardDescription className="text-xs">Links oficiais e lojas recomendadas.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2 lg:max-h-40 lg:overflow-auto">
-                      {buyLinks.map((link: { label: string; url: string }) => (
-                        <a
-                          key={link.url}
-                          href={link.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={cn(
-                            "flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium transition",
-                            getBuyLinkStyle(link.label)
-                          )}
-                        >
-                          <span>{link.label}</span>
-                          <span>→</span>
-                        </a>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
-
 
               </div>
       </div>
