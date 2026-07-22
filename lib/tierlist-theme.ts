@@ -1,31 +1,43 @@
+// Base tier colors — single source of truth for the tierlist color system.
+// GOAT=violet-600, SS=red-500, S=orange-500, A=amber-500, B=green-500, C=blue-500, L=gray-500.
+export const TIER_BASE_COLORS = {
+  GOAT: "#7C3AED",
+  SS: "#EF4444",
+  S: "#F97316",
+  A: "#F59E0B",
+  B: "#22C55E",
+  C: "#3B82F6",
+  L: "#6B7280",
+} as const
+
 export const TIER_THEMES = {
   GOAT: {
-    accent: "from-[#f06161] to-[#de4f54]",
-    textColor: "text-[#141925]",
+    accent: "from-violet-500 to-violet-700",
+    textColor: "text-white",
   },
   SS: {
-    accent: "from-[#f08d61] to-[#e06d4f]",
-    textColor: "text-[#141925]",
+    accent: "from-red-400 to-red-600",
+    textColor: "text-white",
   },
   S: {
-    accent: "from-[#f1bb61] to-[#e0a84f]",
+    accent: "from-orange-400 to-orange-600",
     textColor: "text-[#141925]",
   },
   A: {
-    accent: "from-[#8adf7a] to-[#5bc56a]",
+    accent: "from-amber-400 to-amber-600",
     textColor: "text-[#141925]",
   },
   B: {
-    accent: "from-[#5ccbb2] to-[#3aa98f]",
+    accent: "from-green-400 to-green-600",
     textColor: "text-[#141925]",
   },
   C: {
-    accent: "from-[#6fb0ff] to-[#4d86e6]",
-    textColor: "text-[#141925]",
+    accent: "from-blue-400 to-blue-600",
+    textColor: "text-white",
   },
   L: {
-    accent: "from-[#7c8ca8] to-[#56647d]",
-    textColor: "text-[#f8fafc]",
+    accent: "from-gray-400 to-gray-600",
+    textColor: "text-white",
   },
 } as const
 
@@ -111,11 +123,48 @@ export const RATING_LEVEL_COLORS = [
 ] as const
 
 export const CARD_TIER_STYLES = {
-  GOAT: { bg: "bg-black", text: "text-white", accent: "bg-[#f06161]", ring: "ring-[#f06161]/50" },
-  SS:   { bg: "bg-black", text: "text-white", accent: "bg-[#f08d61]", ring: "ring-[#f08d61]/45" },
-  S:    { bg: "bg-black", text: "text-white", accent: "bg-[#f1bb61]", ring: "ring-[#f1bb61]/45" },
-  A:    { bg: "bg-black", text: "text-white", accent: "bg-[#8adf7a]", ring: "ring-[#8adf7a]/45" },
-  B:    { bg: "bg-black", text: "text-white", accent: "bg-[#5ccbb2]", ring: "ring-[#5ccbb2]/45" },
-  C:    { bg: "bg-black", text: "text-white", accent: "bg-[#6fb0ff]", ring: "ring-[#6fb0ff]/45" },
-  L:    { bg: "bg-black", text: "text-white", accent: "bg-[#7c8ca8]", ring: "ring-[#7c8ca8]/35" },
+  GOAT: {
+    // Roxo mais vibrante e glow mais intenso que os demais tiers — o GOAT
+    // precisa se destacar claramente no card, não só na etiqueta da tier.
+    bg: "bg-black", text: "text-white", accent: "bg-[#8B5CF6]", ring: "ring-[#8B5CF6]/50",
+    border: "border-[#8B5CF6]/30",
+    glow: "shadow-[0_0_16px_rgba(139,92,246,0.22)]",
+    glowHover: "hover:shadow-[0_0_24px_rgba(139,92,246,0.45)]",
+  },
+  SS: {
+    bg: "bg-black", text: "text-white", accent: "bg-[#EF4444]", ring: "ring-[#EF4444]/45",
+    border: "border-[#EF4444]/25",
+    glow: "shadow-[0_0_12px_rgba(239,68,68,0.15)]",
+    glowHover: "hover:shadow-[0_0_18px_rgba(239,68,68,0.35)]",
+  },
+  S: {
+    bg: "bg-black", text: "text-white", accent: "bg-[#F97316]", ring: "ring-[#F97316]/45",
+    border: "border-[#F97316]/25",
+    glow: "shadow-[0_0_12px_rgba(249,115,22,0.15)]",
+    glowHover: "hover:shadow-[0_0_18px_rgba(249,115,22,0.35)]",
+  },
+  A: {
+    bg: "bg-black", text: "text-white", accent: "bg-[#F59E0B]", ring: "ring-[#F59E0B]/45",
+    border: "border-[#F59E0B]/25",
+    glow: "shadow-[0_0_12px_rgba(245,158,11,0.15)]",
+    glowHover: "hover:shadow-[0_0_18px_rgba(245,158,11,0.35)]",
+  },
+  B: {
+    bg: "bg-black", text: "text-white", accent: "bg-[#22C55E]", ring: "ring-[#22C55E]/45",
+    border: "border-[#22C55E]/25",
+    glow: "shadow-[0_0_12px_rgba(34,197,94,0.15)]",
+    glowHover: "hover:shadow-[0_0_18px_rgba(34,197,94,0.35)]",
+  },
+  C: {
+    bg: "bg-black", text: "text-white", accent: "bg-[#3B82F6]", ring: "ring-[#3B82F6]/45",
+    border: "border-[#3B82F6]/25",
+    glow: "shadow-[0_0_12px_rgba(59,130,246,0.15)]",
+    glowHover: "hover:shadow-[0_0_18px_rgba(59,130,246,0.35)]",
+  },
+  L: {
+    bg: "bg-black", text: "text-white", accent: "bg-[#6B7280]", ring: "ring-[#6B7280]/35",
+    border: "border-[#6B7280]/25",
+    glow: "shadow-[0_0_10px_rgba(107,114,128,0.12)]",
+    glowHover: "hover:shadow-[0_0_16px_rgba(107,114,128,0.3)]",
+  },
 } as const

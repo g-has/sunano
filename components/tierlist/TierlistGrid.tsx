@@ -413,7 +413,9 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
       </div>
 
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+      <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.07),_transparent_60%)]" />
+
         <table className="hidden w-full border-collapse md:table">
           <tbody>
             {itemsByTier.map((tierRow, tierIndex) => (
@@ -421,24 +423,21 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
                 key={tierRow.key}
                 className={cn(tierIndex < itemsByTier.length - 1 && "border-b border-border")}
               >
-                <td
-                  className={cn(
-                    "border-r border-border w-20 align-middle text-center bg-gradient-to-b",
-                    tierRow.gradient
-                  )}
-                >
-                  <div className={cn("py-3 text-2xl font-black", tierRow.textColor)}>{tierRow.label}</div>
-                  {t.tierlist.tierSubtitles[tierRow.key] && (
-                    <div className={cn("pb-2 text-[10px] font-medium opacity-80", tierRow.textColor)}>
-                      {t.tierlist.tierSubtitles[tierRow.key]}
-                    </div>
-                  )}
+                <td className="border-r border-border w-20 p-1.5 align-middle text-center">
+                  <div className={cn("rounded-[11px] bg-gradient-to-b py-3", tierRow.gradient)}>
+                    <div className={cn("text-2xl font-black", tierRow.textColor)}>{tierRow.label}</div>
+                    {t.tierlist.tierSubtitles[tierRow.key] && (
+                      <div className={cn("pb-1 text-[10px] font-medium opacity-75", tierRow.textColor)}>
+                        {t.tierlist.tierSubtitles[tierRow.key]}
+                      </div>
+                    )}
+                  </div>
                 </td>
 
-                <td className="align-top bg-muted/20">
+                <td className="align-middle bg-muted/20">
                   <div className="p-2">
                     {tierRow.items.length > 0 ? (
-                      <div className="grid w-full auto-rows-max grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+                      <div className="grid w-full auto-rows-max grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2.5">
                         {tierRow.items.map((item) => (
                           <PeripheralCard key={item.id} {...item} />
                         ))}
@@ -467,17 +466,19 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
 
                 return (
                   <div key={tierRow.key}>
-                    <div className={cn("flex items-center justify-between bg-gradient-to-r px-4 py-3", tierRow.gradient)}>
+                    <div className={cn("mx-3 mt-3 flex items-center justify-between rounded-[11px] bg-gradient-to-b px-4 py-3", tierRow.gradient)}>
                       <div className="flex items-center gap-3">
                         <span className={cn("text-xl font-black", tierRow.textColor)}>{tierRow.label}</span>
-                        <span className={cn("text-xs font-medium opacity-80", tierRow.textColor)}>
-                          {tierRow.description}
-                        </span>
+                        {t.tierlist.tierSubtitles[tierRow.key] && (
+                          <span className={cn("text-xs font-medium opacity-75", tierRow.textColor)}>
+                            {t.tierlist.tierSubtitles[tierRow.key]}
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     <div className="p-4">
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-3 gap-2.5">
                         {tierRow.items.map((item) => (
                           <PeripheralCard key={item.id} {...item} />
                         ))}
@@ -502,7 +503,7 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
             </div>
 
             <div className="hidden p-2 md:block">
-              <div className="grid w-full auto-rows-max grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+              <div className="grid w-full auto-rows-max grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2.5">
                 {untieredItems.map((item) => (
                   <PeripheralCard key={item.id} {...item} />
                 ))}
@@ -510,7 +511,7 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
             </div>
 
             <div className="p-4 md:hidden">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2.5">
                 {untieredItems.map((item) => (
                   <PeripheralCard key={item.id} {...item} />
                 ))}

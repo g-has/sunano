@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { buildPeripheralSlug } from "@/lib/peripheral-slug"
 import { cn } from "@/lib/utils"
-import { CARD_TAG_STYLES, CARD_TIER_STYLES, TIER_THEMES } from "@/lib/tierlist-theme"
+import { CARD_TAG_STYLES, CARD_TIER_STYLES } from "@/lib/tierlist-theme"
 import { TierItemTooltipContent, type Ratings } from "./TierItemTooltipContent"
 
 type Tag = "competitive" | "versatile" | "value" | "cheap" | "expensive" | "light" | "heavy" | "unbalanced" | "dpi_deviation" | "wobble_high" | "wobble_low" | "scroll_hard" | "scroll_soft" | "trimode" | "stable" | "unstable" | "8_80" | "poron" | "borracha" | "grosso" | "fino" | "rapido" | "devagar" | "hibrido" | "aspero" | "liso" | "mug" | "macio" | "afetado_umidade" | "ultrapassado"
@@ -35,7 +35,6 @@ interface PeripheralCardProps {
 
 export function PeripheralCard({ ...item }: PeripheralCardProps) {
   const tierStyle = item.tier ? CARD_TIER_STYLES[item.tier] : CARD_TIER_STYLES.L
-  const tierTheme = item.tier ? TIER_THEMES[item.tier] : TIER_THEMES.L
   const primaryTag = item.tags[0]
   const tagStyle = primaryTag ? CARD_TAG_STYLES[primaryTag] : null
   const isGoat = item.tier === "GOAT"
@@ -51,27 +50,27 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
           href={href}
           aria-label={item.name}
           className={cn(
-            "group relative block cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-all duration-200",
-            "hover:border-foreground/20 hover:shadow-md hover:shadow-black/20",
+            "group relative block cursor-pointer overflow-hidden rounded-lg border bg-card transition-all duration-[220ms] ease-out",
+            "hover:-translate-y-1 hover:brightness-110",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-            isGoat && "shadow-[0_0_14px_rgba(240,97,97,0.18)]",
+            tierStyle.border,
+            tierStyle.glow,
+            tierStyle.glowHover,
           )}
         >
           {/* Tier accent bar */}
-          <div
-            className={cn("absolute bottom-0 left-0 top-0 w-[3px] bg-gradient-to-b", tierTheme.accent)}
-          />
+          <div className={cn("absolute bottom-0 left-0 top-0 w-1.5", tierStyle.accent)} />
 
           {/* Image area */}
-          <div className="relative ml-[3px] h-12 overflow-hidden bg-muted">
+          <div className="relative ml-1.5 h-[53px] overflow-hidden bg-muted">
             {isGoat && (
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-red-500/10 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-violet-500/15 to-transparent" />
             )}
             {item.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 alt={item.name}
-                className="h-full w-full object-contain p-0.5"
+                className="h-full w-full object-contain p-0.5 drop-shadow-[0_3px_6px_rgba(0,0,0,0.45)]"
                 src={item.image_url}
               />
             ) : (
@@ -88,10 +87,10 @@ export function PeripheralCard({ ...item }: PeripheralCardProps) {
           </div>
 
           {/* Info */}
-          <div className="ml-[3px] px-1.5 pb-1.5 pt-1">
-            <p className="line-clamp-2 text-[10px] font-bold leading-tight text-foreground">{item.name}</p>
-            <div className="mt-0.5 flex items-center justify-between gap-1">
-              <p className="truncate text-[8px] text-muted-foreground">{item.brand}</p>
+          <div className="ml-1.5 px-2 pb-2 pt-1.5">
+            <p className="line-clamp-2 text-[10px] font-semibold leading-tight text-foreground">{item.name}</p>
+            <div className="mt-1 flex items-center justify-between gap-1">
+              <p className="truncate text-[8px] text-gray-300">{item.brand}</p>
               {/* {tagStyle && (
                 <div className={cn("size-1.5 shrink-0 rounded-full", tagStyle.dot)} />
               )} */}
