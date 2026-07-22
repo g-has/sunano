@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
-import { Upload, ChevronDown, ChevronUp, ImageIcon, Tag, Layers, FileText, ShoppingCart, Info, Link2, Search, X, Scissors, RotateCcw, Loader2 } from "lucide-react"
+import { Upload, ChevronDown, ChevronUp, ImageIcon, Tag, Layers, FileText, ShoppingCart, Info, Link2, Search, X, Scissors, RotateCcw, Loader2, Eye } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
@@ -37,6 +37,7 @@ import { RATING_LEVEL_COLORS } from "@/lib/tierlist-theme"
 import { useT } from "@/lib/use-t"
 import { removeBackground, fileToDataUrl } from "@/lib/client/remove-background"
 import { SWITCH_PRICE_TIERS } from "@/lib/switch-price-tier"
+import { PeripheralDetailView } from "@/components/peripherals/PeripheralDetailView"
 
 type Category = "keyboard" | "mouse" | "mousepad" | "glasspad" | "iem" | "headset" | "feet" | "chairs" | "monitors" | "switches" | "dac_amp"
 type Tier = "GOAT" | "SS" | "S" | "A" | "B" | "C" | "L"
@@ -273,6 +274,70 @@ function findBuyLinkUrl(buyLinks: unknown, needles: string[]): string {
     return needles.some((needle) => label.includes(needle))
   })
   return found?.url ?? ""
+}
+
+// Monta o objeto `specs` salvo no banco a partir dos valores do formulário. Fica fora
+// do componente (função pura) para que o preview ao vivo use exatamente a mesma lógica
+// de mapeamento do onSubmit — sem isso, preview e dado salvo podiam divergir com o tempo.
+function buildSpecsPayload(
+  data: PeripheralFormData,
+  opts: { selectedTierlistCategories: TierlistMode[]; gallery: string[] }
+) {
+  const splitLines = (value?: string) =>
+    value ? value.split("\n").map((l) => l.trim()).filter(Boolean) : []
+
+  const buyLinks = BUY_LINK_PLATFORMS
+    .map((platform) => ({ label: platform.label, url: data[platform.field]?.trim() ?? "" }))
+    .filter((link) => link.url)
+
+  const ratings = {
+    overall: data.ratingOverall, build: data.ratingBuild, software: data.ratingSoftware,
+    battery: data.ratingBattery, performance: data.ratingPerformance, qc: data.ratingQc, value: data.ratingValue,
+    maintenance: data.ratingMaintenance,
+  }
+  const cleanedRatings = Object.fromEntries(
+    Object.entries(ratings).filter(([, v]) => typeof v === "number" && !Number.isNaN(v))
+  )
+
+  return {
+    mouseShape: data.mouseShape, keyboardLayout: data.keyboardLayout, keyboardType: data.keyboardType,
+    keyboardPlate: data.keyboardPlate || undefined, keyboardCase: data.keyboardCase || undefined, hotSwap: data.hotSwap || undefined,
+    connectivity: data.connectivity,
+    trimode: data.trimode || undefined,
+    size: data.size, surface: data.surface, padType: data.padType, driver: data.driver, profile: data.profile,
+    glide: data.glide || undefined, padSpeed: data.padSpeed || undefined,
+    stoppingPower: data.stoppingPower || undefined, thickness: data.thickness || undefined,
+    surfaceMaterial: data.surfaceMaterial || undefined,
+    hasBattery: data.hasBattery ?? undefined,
+    refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
+    panelType: data.panelType || undefined,
+    tierlistCategories: opts.selectedTierlistCategories,
+    reviewFlags: data.reviewFlags ?? [],
+    details: {
+      rankLabel: data.rankLabel || undefined, ranking: data.ranking || undefined, score: data.score ?? undefined,
+      reviewUrl: data.reviewUrl || undefined,
+      soundUrl: data.soundUrl || undefined,
+      guideUrl: data.guideUrl || undefined, wikiUrl: data.wikiUrl || undefined,
+      summary: data.summary || undefined, highlights: splitLines(data.highlights),
+      pros: splitLines(data.pros), cons: splitLines(data.cons), gallery: opts.gallery,
+      buyLinks, compatibility: data.compatibility || undefined,
+      comparisons: splitLines(data.comparisons),
+      softwareInfo: data.softwareInfo || undefined,
+      teamComments: data.teamComments || undefined,
+      switchPeripheralId: data.switchPeripheralId || undefined,
+      priceTier: data.priceTier || undefined,
+      weight: data.weight || undefined, latency: data.latency || undefined,
+      deadzone: data.deadzone || undefined, rtMin: data.rtMin || undefined,
+      features: data.features || undefined,
+      switchType: data.switchType || undefined, coating: data.coating || undefined,
+      actuationForce: data.actuationForce || undefined, totalTravel: data.totalTravel || undefined,
+      magneticFlux: data.magneticFlux || undefined, housing: data.housing || undefined,
+      stemType: data.stemType || undefined,
+      shape: data.shape || undefined, gripSmall: data.gripSmall || undefined,
+      gripMedium: data.gripMedium || undefined, gripLarge: data.gripLarge || undefined,
+      ratings: Object.keys(cleanedRatings).length > 0 ? cleanedRatings : undefined,
+    },
+  }
 }
 
 const BRAND_OPTIONS = [
@@ -803,6 +868,23 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   const watchedCategory = form.watch("category")
   const watchedKeyboardType = form.watch("keyboardType")
 
+  // Alimenta o preview ao vivo (ver JSX mais abaixo): espelha os mesmos dados que
+  // seriam salvos, então campos ainda vazios aparecem no preview exatamente como
+  // aparecerão para quem visitar a página pública (com os textos de "não cadastrado").
+  const watchedAll = form.watch()
+  const previewGallery = [...existingGalleryUrls, ...galleryPreviews]
+  const previewData = {
+    id: peripheralId ?? "preview",
+    name: watchedAll.name?.trim() || "Nome do periférico",
+    brand: watchedAll.brand?.trim() || "Marca",
+    category: watchedAll.category,
+    tier: watchedAll.tier === "__none__" ? null : watchedAll.tier,
+    price: watchedAll.price ?? 0,
+    tags: selectedTag,
+    image_url: imagePreview,
+    specs: buildSpecsPayload(watchedAll, { selectedTierlistCategories, gallery: previewGallery }),
+  }
+
   useEffect(() => {
     const validKeys = (TIERLIST_MODE_OPTIONS[watchedCategory] ?? []).map((option) => option.key)
     setSelectedTierlistCategories((prev) => prev.filter((mode) => validKeys.includes(mode)))
@@ -1037,61 +1119,7 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       }
       const finalGallery = [...existingGalleryUrls, ...uploadedGalleryUrls]
 
-      const splitLines = (value?: string) =>
-        value ? value.split("\n").map((l) => l.trim()).filter(Boolean) : []
-
-      const buyLinks = BUY_LINK_PLATFORMS
-        .map((platform) => ({ label: platform.label, url: data[platform.field]?.trim() ?? "" }))
-        .filter((link) => link.url)
-
-      const ratings = {
-        overall: data.ratingOverall, build: data.ratingBuild, software: data.ratingSoftware,
-        battery: data.ratingBattery, performance: data.ratingPerformance, qc: data.ratingQc, value: data.ratingValue,
-        maintenance: data.ratingMaintenance,
-      }
-      const cleanedRatings = Object.fromEntries(
-        Object.entries(ratings).filter(([, v]) => typeof v === "number" && !Number.isNaN(v))
-      )
-
-      const specs = {
-        mouseShape: data.mouseShape, keyboardLayout: data.keyboardLayout, keyboardType: data.keyboardType,
-        keyboardPlate: data.keyboardPlate || undefined, keyboardCase: data.keyboardCase || undefined, hotSwap: data.hotSwap || undefined,
-        connectivity: data.connectivity,
-        trimode: data.trimode || undefined,
-        size: data.size, surface: data.surface, padType: data.padType, driver: data.driver, profile: data.profile,
-        glide: data.glide || undefined, padSpeed: data.padSpeed || undefined,
-        stoppingPower: data.stoppingPower || undefined, thickness: data.thickness || undefined,
-        surfaceMaterial: data.surfaceMaterial || undefined,
-        hasBattery: data.hasBattery ?? undefined,
-        refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
-        panelType: data.panelType || undefined,
-        tierlistCategories: selectedTierlistCategories,
-        reviewFlags: data.reviewFlags ?? [],
-        details: {
-          rankLabel: data.rankLabel || undefined, ranking: data.ranking || undefined, score: data.score ?? undefined,
-          reviewUrl: data.reviewUrl || undefined,
-          soundUrl: data.soundUrl || undefined,
-          guideUrl: data.guideUrl || undefined, wikiUrl: data.wikiUrl || undefined,
-          summary: data.summary || undefined, highlights: splitLines(data.highlights),
-          pros: splitLines(data.pros), cons: splitLines(data.cons), gallery: finalGallery,
-          buyLinks, compatibility: data.compatibility || undefined,
-          comparisons: splitLines(data.comparisons),
-          softwareInfo: data.softwareInfo || undefined,
-          teamComments: data.teamComments || undefined,
-          switchPeripheralId: data.switchPeripheralId || undefined,
-          priceTier: data.priceTier || undefined,
-          weight: data.weight || undefined, latency: data.latency || undefined,
-          deadzone: data.deadzone || undefined, rtMin: data.rtMin || undefined,
-          features: data.features || undefined,
-          switchType: data.switchType || undefined, coating: data.coating || undefined,
-          actuationForce: data.actuationForce || undefined, totalTravel: data.totalTravel || undefined,
-          magneticFlux: data.magneticFlux || undefined, housing: data.housing || undefined,
-          stemType: data.stemType || undefined,
-          shape: data.shape || undefined, gripSmall: data.gripSmall || undefined,
-          gripMedium: data.gripMedium || undefined, gripLarge: data.gripLarge || undefined,
-          ratings: Object.keys(cleanedRatings).length > 0 ? cleanedRatings : undefined,
-        },
-      }
+      const specs = buildSpecsPayload(data, { selectedTierlistCategories, gallery: finalGallery })
 
       // Switches usam faixa de preço (priceTier); o valor numérico fica em 0.
       let priceToSave = data.category === "switches" ? 0 : data.price
@@ -1302,7 +1330,12 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
   }
 
   return (
-    <div className="space-y-6 pb-10">
+    // @container/pf: o preview ao vivo só entra quando sobra espaço de verdade para os
+    // dois lados — medido pela largura real desta área de conteúdo (não pela viewport),
+    // já que a sidebar do admin pode ser recolhida ou não.
+    <div className="@container/pf">
+    <div className="grid gap-6 @5xl/pf:grid-cols-[minmax(0,1fr)_420px] @5xl/pf:items-start">
+    <div className="min-w-0 space-y-6 pb-10">
       <BackBreadcrumb href={backHref} parentLabel={parentLabel} currentLabel={currentLabel} />
 
       {error && (
@@ -2577,6 +2610,26 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           </Button>
         </div>
       </form>
+    </div>
+
+    <aside className="hidden @5xl/pf:block">
+      <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-auto rounded-2xl border border-border bg-card/30 p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Eye className="size-4 text-muted-foreground" />
+          Pré-visualização
+        </div>
+        <p className="mb-4 text-xs text-muted-foreground">
+          É assim que a página pública vai ficar com o que já foi preenchido até agora.
+        </p>
+        <PeripheralDetailView
+          data={previewData}
+          linkedStore={linkedStore}
+          linkedBazaar={linkedBazaar}
+          linkedSwitch={linkedSwitch}
+        />
+      </div>
+    </aside>
+    </div>
     </div>
   )
 }

@@ -423,15 +423,18 @@ export function TierlistGrid({ filtered, category }: TierlistGridProps) {
                 key={tierRow.key}
                 className={cn(tierIndex < itemsByTier.length - 1 && "border-b border-border")}
               >
-                <td className="border-r border-border w-20 p-1.5 align-middle text-center">
-                  <div className={cn("rounded-[11px] bg-gradient-to-b py-3", tierRow.gradient)}>
-                    <div className={cn("text-2xl font-black", tierRow.textColor)}>{tierRow.label}</div>
-                    {t.tierlist.tierSubtitles[tierRow.key] && (
-                      <div className={cn("pb-1 text-[10px] font-medium opacity-75", tierRow.textColor)}>
-                        {t.tierlist.tierSubtitles[tierRow.key]}
-                      </div>
-                    )}
-                  </div>
+                <td
+                  className={cn(
+                    "border-r border-border w-20 align-middle text-center bg-gradient-to-b",
+                    tierRow.gradient
+                  )}
+                >
+                  <div className={cn("py-3 text-2xl font-black", tierRow.textColor)}>{tierRow.label}</div>
+                  {t.tierlist.tierSubtitles[tierRow.key] && (
+                    <div className={cn("pb-1 text-[10px] font-medium opacity-75", tierRow.textColor)}>
+                      {t.tierlist.tierSubtitles[tierRow.key]}
+                    </div>
+                  )}
                 </td>
 
                 <td className="align-middle bg-muted/20">
