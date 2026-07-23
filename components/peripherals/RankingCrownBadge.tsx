@@ -81,16 +81,21 @@ export function RankingCrownBadge({ position }: RankingCrownBadgeProps) {
       <div className="-rotate-2 leading-none transition group-hover:rotate-0">
         <p
           className={cn(
-            "font-handwritten text-xl font-semibold tracking-wide sm:text-2xl md:text-3xl",
+            "font-handwritten text-xl font-semibold tracking-wide @2xl/col:text-3xl",
             position === 1 && "-translate-x-6",
             style.label
           )}
         >
           Ranking
         </p>
-        {/* font-size lives here so the crown's em-based offsets track the number
-            across the text-5xl -> text-9xl breakpoints */}
-        <div className="relative -mt-2 inline-block text-5xl sm:-mt-3 sm:text-7xl md:text-9xl">
+        {/* Breakpoints em @2xl/col (não sm:/md: de viewport): este badge vive dentro
+            da coluna direita do PeripheralDetailView, que em telas de tablet continua
+            estreita mesmo com o viewport já passando de md — usar sm:/md: fazia o
+            texto pular pra text-9xl sem espaço pra isso, ficando gigante e flutuando
+            solto. @2xl/col só cresce quando a própria coluna (não a viewport) tem
+            largura de sobra, o que só acontece a partir do layout de 2 colunas.
+            Font-size vive aqui pra os offsets em em da coroa acompanharem o número. */}
+        <div className="relative -mt-2 inline-block text-5xl @2xl/col:-mt-3 @2xl/col:text-9xl">
           <p className={cn("font-handwritten font-bold", style.number)}>
             #
             {/* the crown anchors to this span so it centres on the digits
