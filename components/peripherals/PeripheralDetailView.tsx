@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Package, ShoppingBag, Trophy } from "lucide-react"
 import { FaAmazon } from "react-icons/fa"
-import { SiAliexpress, SiShopee } from "react-icons/si"
+import { SiShopee } from "react-icons/si"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -237,12 +237,13 @@ function getBuyLinkStyle(label: string) {
   return BUY_LINK_STYLES[label.trim().toLowerCase()] ?? DEFAULT_BUY_LINK_STYLE
 }
 
-// Sem logo oficial disponível nos pacotes de ícones instalados (react-icons/si só tem
-// "Mercado Pago", uma marca diferente) — usa um ícone genérico até termos o SVG certo.
+// AliExpress: o ícone da simple-icons é o wordmark completo, ilegível no tamanho
+// de ícone (size-4) — usa o ícone genérico até termos um SVG que caiba nesse espaço.
 function getBuyLinkIcon(label: string) {
   switch (label.trim().toLowerCase()) {
-    case "aliexpress":
-      return SiAliexpress
+    case "mercado livre":
+    case "mercadolivre":
+      return "/images/mercado-livre-icon.png"
     case "amazon":
       return FaAmazon
     case "shopee":
@@ -492,7 +493,11 @@ export function PeripheralDetailView({
                           )}
                         >
                           <span className="flex items-center gap-2">
-                            <Icon className={cn("size-4 shrink-0", style.icon)} />
+                            {typeof Icon === "string" ? (
+                              <img src={Icon} alt="" className="size-4 shrink-0 object-contain" />
+                            ) : (
+                              <Icon className={cn("size-4 shrink-0", style.icon)} />
+                            )}
                             {link.label}
                           </span>
                           <span>→</span>
