@@ -416,10 +416,14 @@ export function PeripheralDetailView({
     // corte de 2 colunas reage à largura do próprio componente, não da viewport.
     // O container fica num wrapper separado do grid que ele mede: um elemento não
     // pode aplicar a si mesmo um estilo baseado no próprio container query (a regra
-    // é ignorada pelo browser), então "@container/pdv" e "@5xl/pdv:" não podem estar
+    // é ignorada pelo browser), então "@container/pdv" e "@2xl/pdv:" não podem estar
     // na mesma div.
+    // Corte em @2xl (672px de container, não de viewport): a sidebar de 240px do app
+    // + o padding da página comem largura, então mesmo tablets de 10"+ (ex.: Galaxy
+    // Tab S10 FE em paisagem, container ~700-970px) não chegariam a 1024px. Com 672px
+    // o tablet entra em 2 colunas e só celular/retrato fica em coluna única.
     <div className="@container/pdv">
-    <div className="grid gap-4 @5xl/pdv:grid-cols-[320px_minmax(0,1fr)]">
+    <div className="grid gap-4 @2xl/pdv:grid-cols-[320px_minmax(0,1fr)]">
             <div className="space-y-3">
               {tierStyle ? (
                 <div className={cn("rounded-2xl bg-gradient-to-br px-4 py-3 text-center", tierStyle.accent, tierStyle.textColor)}>
