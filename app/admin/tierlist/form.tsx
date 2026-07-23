@@ -134,7 +134,8 @@ const peripheralSchema = z.object({
   teamComments: z.string().optional(),
   switchPeripheralId: z.string().optional(),
   priceTier: z.string().optional(),
-  reviewFlags: z.array(z.enum(["performance", "store", "videoReview", "specsComments"])).optional(),
+  reviewCategory: z.enum(["performance", "store", "videoReview", "specsComments"]).nullable().optional(),
+  reviewApproved: z.boolean().optional(),
 }).superRefine((data, ctx) => {
   // Switches usam faixa de preço (priceTier) no lugar de valor exato, então o
   // preço numérico fica em 0. Nas demais categorias, o preço tem que ser > 0.
@@ -312,7 +313,8 @@ function buildSpecsPayload(
     refreshRate: typeof data.refreshRate === "number" && !Number.isNaN(data.refreshRate) ? data.refreshRate : undefined,
     panelType: data.panelType || undefined,
     tierlistCategories: opts.selectedTierlistCategories,
-    reviewFlags: data.reviewFlags ?? [],
+    reviewCategory: data.reviewCategory ?? null,
+    reviewApproved: data.reviewApproved ?? false,
     details: {
       rankLabel: data.rankLabel || undefined, ranking: data.ranking || undefined, score: data.score ?? undefined,
       reviewUrl: data.reviewUrl || undefined,
@@ -837,7 +839,8 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
       category: "mouse",
       tier: "__none__",
       price: 0,
-      reviewFlags: [],
+      reviewCategory: null,
+      reviewApproved: false,
       rankLabel: "", ranking: undefined, score: undefined, reviewUrl: "", soundUrl: "", guideUrl: "", wikiUrl: "",
       summary: "", highlights: "", pros: "", cons: "", gallery: "",
       softwareInfo: "", teamComments: "", switchPeripheralId: "", priceTier: "",
@@ -1022,9 +1025,12 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
           ratingMaintenance: data.specs?.details?.ratings?.maintenance,
           hasBattery: data.specs?.hasBattery ?? undefined,
           trimode: data.specs?.trimode ?? "",
-          reviewFlags: Array.isArray(data.specs?.reviewFlags)
-            ? (data.specs.reviewFlags as ("performance" | "store" | "videoReview" | "specsComments")[])
-            : [],
+          reviewCategory: (["performance", "store", "videoReview", "specsComments"] as const).includes(
+            data.specs?.reviewCategory as "performance" | "store" | "videoReview" | "specsComments"
+          )
+            ? (data.specs?.reviewCategory as "performance" | "store" | "videoReview" | "specsComments")
+            : null,
+          reviewApproved: data.specs?.reviewApproved === true,
           ...data.specs,
         })
         setSelectedTag(data.tags ?? [])
@@ -1416,29 +1422,39 @@ export const PeripheralForm: React.FC<PeripheralEditProps> = ({ peripheralId }) 
         {/* SECTION 2: Informações Básicas */}
         <FormSection title={t.admin.tierlistForm.sectionBasicInfo} icon={<Info className="size-4" />} defaultOpen>
           <div className="space-y-4">
-            {/* Review flags */}
+            {/* Review category + approval */}
             <div className="space-y-2 rounded-lg border border-border px-3 py-2.5">
-              <p className="text-sm font-medium text-foreground">{t.admin.tierlistForm.reviewFlagsLabel}</p>
-              <p className="text-xs text-muted-foreground">{t.admin.tierlistForm.reviewFlagsHint}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{t.admin.tierlistForm.reviewCategoryLabel}</p>
+                  <p className="text-xs text-muted-foreground">{t.admin.tierlistForm.reviewCategoryHint}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => form.setValue("reviewApproved", !form.watch("reviewApproved"), { shouldDirty: true })}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    form.watch("reviewApproved")
+                      ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-300"
+                      : "border-border text-muted-foreground hover:border-border/80 hover:text-foreground"
+                  }`}
+                >
+                  {form.watch("reviewApproved") ? t.admin.tierlistForm.reviewApprovedLabel : t.admin.tierlistForm.reviewNotApprovedLabel}
+                </button>
+              </div>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {([
                   ["performance", t.admin.tierlistReview.categoryPerformance],
                   ["store", t.admin.tierlistReview.categoryStore],
                   ["videoReview", t.admin.tierlistReview.categoryVideoReview],
                   ["specsComments", t.admin.tierlistReview.categorySpecsComments],
-                ] as const).map(([flag, label]) => {
-                  const active = (form.watch("reviewFlags") ?? []).includes(flag)
+                ] as const).map(([key, label]) => {
+                  const active = form.watch("reviewCategory") === key
                   return (
                     <button
-                      key={flag}
+                      key={key}
                       type="button"
                       onClick={() => {
-                        const current = form.watch("reviewFlags") ?? []
-                        form.setValue(
-                          "reviewFlags",
-                          active ? current.filter((f) => f !== flag) : [...current, flag],
-                          { shouldDirty: true }
-                        )
+                        form.setValue("reviewCategory", active ? null : key, { shouldDirty: true })
                       }}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                         active

@@ -439,8 +439,10 @@ type Translations = {
       priceUsd: string
       tierHint: string
       underReview: string
-      reviewFlagsLabel: string
-      reviewFlagsHint: string
+      reviewCategoryLabel: string
+      reviewCategoryHint: string
+      reviewApprovedLabel: string
+      reviewNotApprovedLabel: string
       selectAtLeastOneTag: string
       sectionRatings: string
       sectionTechnicalSpecs: string
@@ -508,6 +510,12 @@ type Translations = {
       categoryStore: string
       categoryVideoReview: string
       categorySpecsComments: string
+      filterAll: string
+      approve: string
+      approvedToast: string
+      updateFailed: string
+      allApproved: string
+      allApprovedDesc: string
     }
   }
   settings: {
@@ -1077,8 +1085,10 @@ export const translations: Record<LocaleCode, Translations> = {
         priceUsd: "Preço (USD)",
         tierHint: "Selecione o tier que melhor representa a performance deste periférico",
         underReview: "Sob Revisão",
-        reviewFlagsLabel: "Marcar para revisão",
-        reviewFlagsHint: "Marque as frentes que ainda precisam de atenção. O periférico aparece na lista de revisão do dashboard até todas ficarem desmarcadas.",
+        reviewCategoryLabel: "Frente de revisão",
+        reviewCategoryHint: "Escolha a frente que ainda precisa de atenção neste periférico. Ele aparece na lista de revisão até ser marcado como aprovado.",
+        reviewApprovedLabel: "Aprovado",
+        reviewNotApprovedLabel: "Não aprovado",
         selectAtLeastOneTag: "Selecione pelo menos uma tag.",
         sectionRatings: "Notas (0–6)",
         sectionTechnicalSpecs: "Especificações Técnicas",
@@ -1115,7 +1125,7 @@ export const translations: Record<LocaleCode, Translations> = {
       },
       tierlistReview: {
         pageTitle: "Revisão de Periféricos",
-        pageDescription: "Marque o que falta revisar em cada periférico: Informações Técnicas (Performance), Loja, Vídeo review ou Specs e comentários.",
+        pageDescription: "Escolha a frente que falta em cada periférico e aprove quando estiver pronto: Informações Técnicas (Performance), Loja, Vídeo review ou Specs e comentários.",
         backToDashboard: "Dashboard",
         failedToLoad: "Falha ao carregar os periféricos.",
         empty: "Nenhum periférico encontrado.",
@@ -1125,6 +1135,12 @@ export const translations: Record<LocaleCode, Translations> = {
         categoryStore: "Loja",
         categoryVideoReview: "Vídeo review",
         categorySpecsComments: "Specs e comentários",
+        filterAll: "Todos",
+        approve: "Aprovar",
+        approvedToast: "Periférico aprovado",
+        updateFailed: "Falha ao atualizar periférico.",
+        allApproved: "Tudo revisado!",
+        allApprovedDesc: "Nenhum periférico pendente de aprovação.",
       },
     },
     settings: {
@@ -1677,8 +1693,10 @@ export const translations: Record<LocaleCode, Translations> = {
         priceUsd: "Price (USD)",
         tierHint: "Select the tier that best represents this peripheral's performance",
         underReview: "Under Review",
-        reviewFlagsLabel: "Flag for review",
-        reviewFlagsHint: "Flag the areas that still need attention. The peripheral shows up in the dashboard's review list until every flag is cleared.",
+        reviewCategoryLabel: "Review focus",
+        reviewCategoryHint: "Pick the area that still needs attention on this peripheral. It stays in the review list until marked approved.",
+        reviewApprovedLabel: "Approved",
+        reviewNotApprovedLabel: "Not approved",
         selectAtLeastOneTag: "Select at least one tag.",
         sectionRatings: "Ratings (0-6)",
         sectionTechnicalSpecs: "Technical Specs",
@@ -1736,7 +1754,7 @@ export const translations: Record<LocaleCode, Translations> = {
       },
       tierlistReview: {
         pageTitle: "Peripheral Review",
-        pageDescription: "Flag what's missing per peripheral: Technical Info (Performance), Store, Video review, or Specs & comments.",
+        pageDescription: "Pick the focus area for each peripheral and approve it once it's ready: Technical Info (Performance), Store, Video review, or Specs & comments.",
         backToDashboard: "Dashboard",
         failedToLoad: "Failed to load peripherals.",
         empty: "No peripherals found.",
@@ -1746,6 +1764,12 @@ export const translations: Record<LocaleCode, Translations> = {
         categoryStore: "Store",
         categoryVideoReview: "Video review",
         categorySpecsComments: "Specs & comments",
+        filterAll: "All",
+        approve: "Approve",
+        approvedToast: "Peripheral approved",
+        updateFailed: "Failed to update peripheral.",
+        allApproved: "All caught up!",
+        allApprovedDesc: "No peripherals pending approval.",
       },
     },
     settings: {
